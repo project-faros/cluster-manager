@@ -6,6 +6,7 @@ USER=core
 BASTION=192.168.8.50
 CONFIG_DIR='~/.config/faros'
 REPO="https://raw.githubusercontent.com/redhat-faros/deployer/master"
+OC="https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz"
 
 function _validate() {
 # validate inputs
@@ -72,6 +73,7 @@ echo -e "admin_password: '$adminpass'\nuser_password: '$userpass'\n" | ssh $USER
 ## install dependencies
 echo 'Installing Dependencies'
 ssh $USER@$BASTION "mkdir -p ~/bin; wget -O ~/bin/farosctl $REPO/bin/farosctl; chmod +x ~/bin/farosctl"
+ssh $USER@$BASTION "wget -O ~/bin/oc.tgz $OC; cd ~/bin; tar xvzf oc.tgz"
 }
 
 
