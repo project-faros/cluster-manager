@@ -1,3 +1,202 @@
 #!/bin/bash
 
-echo 'THIS IS A PLACEHOLDER'
+# APPLICATION OPTIONS
+CONFIG_DIR="$HOME/.config/faros"
+ENGINE=""
+IMAGE="quay.io/faros/cluster-manager"
+VERSION="latest"
+CONTAINER="faros-manager"
+CONTEXT="default"
+
+# DEBUG OPTIONS
+if basename "$0" | grep '.dev$' &>/dev/null; then
+    echo 'DEVELOPMENT MODE'
+    # set -x
+    IMAGE="localhost/cluster-manager"
+    VERSION="dev"
+fi
+
+
+function _bootstrap() {
+    # find container engine
+    ENGINE=$(which docker 2> /dev/null || which podman 2> /dev/null)
+    if [ x${ENGINE} == "x" ]; then
+        echo "No container engine found. Please install Podman or Docker." >&2
+        exit 1
+    fi
+
+    # ensure program is installed
+    if ! $ENGINE images $IMAGE | grep $VERSION &> /dev/null; then
+        echo "Installing $CONTAINER" >&2
+        update
+        echo "" >&2
+    fi
+
+    # ensure config directory exists
+    if [ -e $CONFIG_DIR/.active ]; then
+        CONTEXT=$(cat $CONFIG_DIR/.active)
+        if [ "x${CONTEXT}" == "x" ]; then
+            context default >&2
+        fi
+    else
+        echo "Creating skeleton configuration directory." >&2
+        mkdir -p $CONFIG_DIR
+        echo "default" > $CONFIG_DIR/.active
+        echo "" >&2
+    fi
+    _context_init >&2
+}
+
+
+function run() {
+    it=""
+    if [ "$1" == "-it" ]; then
+        it="-it"
+        shift
+    fi
+
+    $ENGINE run --rm $it \
+        --name "${CONTAINER}" \
+        -v "${CONFIG_DIR}/${CONTEXT}:/data:Z" \
+        ${IMAGE}:${VERSION} \
+        $@
+}
+
+
+function _context_init() {
+    if [ ! -e $CONFIG_DIR/$CONTEXT ]; then
+        echo "Initializing context: ${CONTEXT}"
+        mkdir -p $CONFIG_DIR/$CONTEXT
+        run ""
+        echo ""
+    fi
+}
+
+
+function context() {
+    if [ "$#" == "0" ]; then
+        ls ${CONFIG_DIR} | sed "s/^${CONTEXT}$/* ${CONTEXT}/g"
+        exit
+    fi
+
+    CONTEXT=$1; shift
+    echo "$CONTEXT" > $CONFIG_DIR/.active
+    _context_init
+}
+
+
+function update() {
+    $ENGINE pull $IMAGE:$VERSION
+}
+
+
+function dir() {
+    echo "${CONFIG_DIR}/${CONTEXT}"
+}
+
+function forget() {
+    if [ $# != 1 ]; then
+        echo "Usage: $0 forget CONTEXT"
+        exit 1
+    fi
+
+    target=$1
+    if [[ "$target" == "default" ]]; then
+        echo "Cannot forget default context"
+        exit 1
+    fi
+
+    echo "Forget and delete context \"$target\"."
+    echo -n "Are you sure [y/n]? "
+    read response
+
+    if [[ "$response" == "y" ]]; then
+        rm -rf "${CONFIG_DIR}/${target}"
+        if [[ "$CONTEXT" == "$target" ]]; then
+            context default
+        fi
+
+    elif [[ "$response" == "n" ]]; then
+        echo 'aborted'
+        exit 1
+    fi
+}
+
+
+function _app_cmds() {
+    run ls -1 /app/cli
+}
+
+
+function main() {
+    # setup
+    _bootstrap || exit $!
+
+    # get requested command
+    if [ "$#" == "0" ]; then
+        cmd="help"
+    else
+        cmd="$1"; shift
+    fi
+
+    # script native commands
+    case "$cmd" in
+        "update")
+            update $@
+            exit $?
+            ;;
+        "context")
+            context $@
+            exit $?
+            ;;
+        "run")
+            run $@
+            exit $?
+            ;;
+        "shell")
+            run -it /bin/bash
+            exit $?
+            ;;
+        "dir")
+            dir
+            exit $?
+            ;;
+        "forget")
+            forget $@
+            exit $?
+            ;;
+        "help")
+            commands="$(_app_cmds)"
+
+            echo "Usage: $0 COMMAND ..."
+            echo ""
+            echo "Basic Commands:"
+            echo "    context [NAME]: Check current context, create a new context, or switch contexts."
+            echo "    dir: Print the current context storage directory"
+            echo "    forget CONTEXT: Forget and delete the specified context"
+            echo "    help: Print this text"
+            echo "    run CMD [ARGS]: Run a raw shell command in the application namespace"
+            echo "    shell: Start an interactive bash shell in the application namespace"
+            echo "    update: Update this application"
+            echo ""
+            echo "Application Commands:"
+            echo -e "$commands" | sort | awk '{ print "    " $1}'
+            exit 1
+            ;;
+    esac
+
+    # container commands
+    commands="$(_app_cmds)"
+    if echo "$commands" | grep "^$cmd$" &>/dev/null; then
+        run -it /app/cli/$cmd $@
+        exit $?
+    fi
+
+    # not found
+    echo "Command not found: $cmd" >&2
+    echo "$0 help -> for help" >&2
+    exit 1
+}
+
+main $@
+
