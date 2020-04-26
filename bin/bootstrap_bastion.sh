@@ -64,11 +64,10 @@ ssh-add $privkey
 echo 'Installing SSH Keys'
 scp "$privkey" $USER@$BASTION:~/.ssh/id_rsa
 scp "$pubkey" $USER@$BASTION:~/.ssh/id_rsa.pub
-
-## copy secrets
-echo 'Writing Secrets'
+ssh $USER@$BASTION 'chmod 600 ~/.ssh/id_rsa*'
 ssh $USER@$BASTION "mkdir -p $CONFIG_DIR/default"
-echo -e "admin_password: '$adminpass'\nuser_password: '$userpass'\n" | ssh $USER@$BASTION -T "cat > $CONFIG_DIR/default/secrets.yaml"
+scp "$privkey" $USER@$BASTION:$CONFIG_DIR/default
+scp "$pubkey" $USER@$BASTION:$CONFIG_DIR/default
 
 ## install dependencies
 echo 'Installing Dependencies'

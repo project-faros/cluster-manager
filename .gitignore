@@ -1,0 +1,4 @@
+.pyo
+__pycache__
+*.swp
+data
