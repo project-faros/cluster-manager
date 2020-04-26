@@ -224,7 +224,8 @@ class configurator(object):
             ChoiceParameter('MGMT_PROVIDER', 'Machine Management Provider', mgmt_providers),
             Parameter('IP_POOL', 'Static IP Address Pool'),
             ListDictParameter('CP_NODES', 'Control Plane Machines', 
-                [('name', 'Node Name'), ('mac', 'MAC Address'), ('mgmt_mac', 'Management MAC Address')])])
+                [('name', 'Node Name'), ('mac', 'MAC Address'), 
+                 ('mgmt_mac', 'Management MAC Address'), ('mgmt_credentials', 'Management Credentials')])])
 
     def _main_menu(self):
         question = [
