@@ -8,8 +8,8 @@ COPY home /root
 COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
-RUN microdnf install python3; \
+RUN microdnf install python3 jq openssh-clients; \
     pip3 install -r /requirements.txt; \
-    microdnf update; 
+    microdnf update;
 
 CMD /app/bin/entry.sh

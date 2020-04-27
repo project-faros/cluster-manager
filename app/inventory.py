@@ -3,7 +3,7 @@ import argparse
 import ipaddress
 import json
 import os
-import pickle 
+import pickle
 
 SSH_PRIVATE_KEY = '/data/id_rsa'
 IP_RESERVATIONS = '/data/ip_addresses'
@@ -39,7 +39,7 @@ class Inventory(object):
         if group not in self._data:
             self.add_group(group)
 
-        hostvars.update({'ansible_hostname': hostname})
+        hostvars.update({'ansible_host': hostname})
         self._data[group]['hosts'].append(name)
         self._data['_meta']['hostvars'][name] = hostvars
 
@@ -86,7 +86,7 @@ class IPAddressManager(dict):
         with open(self._save_file, 'wb') as handle:
             pickle.dump(dict(self), handle)
 
-        
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--list', action = 'store_true')
@@ -99,7 +99,7 @@ def main():
     args = parse_args()
 
     inv = Inventory(0 if args.list else 1, args.host)
-    inv.add_group('all', None, 
+    inv.add_group('all', None,
         ansible_ssh_private_key_file=SSH_PRIVATE_KEY,
         cluster_name=os.environ['CLUSTER_NAME'],
         cluster_domain=os.environ['CLUSTER_DOMAIN'],
@@ -107,19 +107,22 @@ def main():
         user_password=os.environ['USER_PASSWORD'],
         mgmt_provider=os.environ['MGMT_PROVIDER'])
     # BASTION NODE
-    inv.add_host('bastion', 'infra', 
+    inv.add_host('bastion', 'infra',
         os.environ['BASTION_HOST_NAME'],
         ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # DNS NODE
     inv.add_host('dns', 'infra',
         os.environ['DNS_HOST_NAME'],
         provider=os.environ['DNS_PROVIDER'],
-        credentials=os.environ['DNS_CREDENTIALS'])
+        credentials=os.environ['DNS_CREDENTIALS'],
+        ansible_ssh_user=os.environ['DNS_CREDENTIALS'].split(':', 1)[0])
     # DHCP NODE
     inv.add_host('dhcp', 'infra',
         os.environ['DHCP_HOST_NAME'],
         provider=os.environ['DHCP_PROVIDER'],
-        credentials=os.environ['DHCP_CREDENTIALS'])
+        credentials=os.environ['DHCP_CREDENTIALS'],
+        ansible_ssh_user=os.environ['DHCP_CREDENTIALS'].split(':', 1)[0])
+    # DHCP NODE
     # CLUSTER CONTROL PLANE NODES
     inv.add_group('cluster')
     inv.add_group('control_plane', 'cluster')
@@ -133,7 +136,8 @@ def main():
         inv.add_host(node['name'], 'control_plane', ip,
             mac_address=node['mac'],
             mgmt_mac_address=node['mgmt_mac'],
-            mgmt_hostname=mgmt_ip)
+            mgmt_hostname=mgmt_ip,
+            ansible_ssh_user='core')
     ipam.save()
 
 

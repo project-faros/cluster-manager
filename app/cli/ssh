@@ -1,3 +1,15 @@
 #!/bin/bash
 
-echo 'TODO'
+if [ $# -ne 1 ]; then
+    echo 'USAGE: $0 HOST'
+    exit 1
+fi
+
+source /data/config.sh
+cd /app
+
+HOST_DATA=$(ansible-inventory --host $1)
+
+HOST=$(echo "$HOST_DATA" | jq '.ansible_ssh_user+"@"+.ansible_host')
+KEY=$(echo "$HOST_DATA" | jq '.ansible_ssh_private_key_file')
+/bin/bash -c "ssh -i $KEY $HOST"

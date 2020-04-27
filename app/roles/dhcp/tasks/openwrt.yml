@@ -1,0 +1,94 @@
+#!/usr/bin/env ansible-playbook
+- block:
+    - name: look for existing records
+      shell: >
+        uci show dhcp |
+        grep "{{ mac_address | lower }}" |
+        grep -Eo '@host\[\d+\]'
+      register: dhcp_id
+      delegate_to: dhcp
+
+    - name: read existing records
+      shell: uci get dhcp.{{ dhcp_id.stdout }}.{{ item.key }}
+      loop:
+        - key: name
+          target: "{{ inventory_hostname }}"
+        - key: ip
+          target: "{{ ansible_host }}"
+        - key: dns
+          target: "1"
+      loop_control:
+        label: "{{ item.key }}"
+      register: dhcp_record
+      when: dhcp_id is not failed
+      changed_when: False
+      delegate_to: dhcp
+
+    - name: update existing records
+      shell: "uci set dhcp.{{ dhcp_id.stdout }}.{{ item.item.key }}={{ item.item.target }}"
+      when: item.stdout != item.item.target
+      loop: "{{ dhcp_record.results }}"
+      loop_control:
+        label: "{{ item.item.key }} = {{ item.item.target }}"
+      changed_when: True
+      notify: commit changes
+      delegate_to: dhcp
+
+  rescue:
+    - name: create new record
+      shell: |
+        uci add dhcp host
+        uci set dhcp.@host[-1].name="{{ inventory_hostname }}"
+        uci set dhcp.@host[-1].mac="{{ mac_address | lower }}"
+        uci set dhcp.@host[-1].ip="{{ ansible_host }}"
+        uci set dhcp.@host[-1].dns="1"
+      changed_when: True
+      notify: commit changes
+      delegate_to: dhcp
+
+- block:
+    - name: look for existing mgmt records
+      shell: >
+        uci show dhcp |
+        grep "{{ mgmt_mac_address | lower }}" |
+        grep -Eo '@host\[\d+\]'
+      register: dhcp_id
+      delegate_to: dhcp
+
+    - name: read existing mgmt records
+      shell: uci get dhcp.{{ dhcp_id.stdout }}.{{ item.key }}
+      loop:
+        - key: name
+          target: "{{ inventory_hostname }}-mgmt"
+        - key: ip
+          target: "{{ mgmt_hostname }}"
+        - key: dns
+          target: "1"
+      loop_control:
+        label: "{{ item.key }}"
+      register: dhcp_record
+      when: dhcp_id is not failed
+      changed_when: False
+      delegate_to: dhcp
+
+    - name: update existing mgmt records
+      shell: "uci set dhcp.{{ dhcp_id.stdout }}.{{ item.item.key }}={{ item.item.target }}"
+      when: item.stdout != item.item.target
+      loop: "{{ dhcp_record.results }}"
+      loop_control:
+        label: "{{ item.item.key }} = {{ item.item.target }}"
+      changed_when: True
+      notify: commit changes
+      delegate_to: dhcp
+
+  rescue:
+    - name: create new mgmt record
+      shell: |
+        uci add dhcp host
+        uci set dhcp.@host[-1].name="{{ inventory_hostname }}-mgmt"
+        uci set dhcp.@host[-1].mac="{{ mgmt_mac_address | lower }}"
+        uci set dhcp.@host[-1].ip="{{ mgmt_hostname }}"
+        uci set dhcp.@host[-1].dns="1"
+      changed_when: True
+      notify: commit changes
+      delegate_to: dhcp
