@@ -1,5 +1,6 @@
 # CLUSTER CONFIGURATION
 export CLUSTER_NAME='beaconXX'
+export CLUSTER_DOMAIN='faros.site'
 export ADMIN_PASSWORD='admin'
 export USER_PASSWORD='user'
 # BASTION NODE CONFIGURATION

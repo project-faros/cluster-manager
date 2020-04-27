@@ -206,6 +206,7 @@ class configurator(object):
         self._footer = footer
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             Parameter('CLUSTER_NAME', 'Cluster Name'),
+            Parameter('CLUSTER_DOMAIN', 'Cluster Domain'),
             Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
             Parameter('USER_PASSWORD', 'User Password', password_repr)])
         self.bastion = ParameterCollection('bastion', 'Bastion Node Configuration', [
