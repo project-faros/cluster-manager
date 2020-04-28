@@ -112,6 +112,7 @@ def main():
     inv.add_group('bastion_hosts', 'infra')
     inv.add_host(os.environ['BASTION_HOST_NAME'], 'bastion_hosts',
         os.environ['BASTION_IP_ADDR'],
+        ansible_become_pass=os.environ['USER_PASSWORD'],
         ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # DNS NODE
     inv.add_host('dns', 'infra',

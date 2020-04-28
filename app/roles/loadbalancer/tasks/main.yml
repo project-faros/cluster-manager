@@ -1,0 +1,56 @@
+- name: check for requirements
+  assert:
+    that:
+      - ansible_os_family == 'RedHat' or
+        ansible_os_family == 'CentOS'
+      - ansible_distribution_major_version == '7' or
+        ansible_distribution_major_version == '8'
+    fail_msg: "Bastion host does not meet requirements"
+    success_msg: "Bastion host meets requirements."
+
+- name: install packages - el7
+  yum:
+    name: keepalived, haproxy, libsemanage-python
+    state: installed
+  when:
+    - ansible_distribution_major_version == '7'
+
+- name: install packages - el8
+  yum:
+    name: keepalived, haproxy, python3-libsemanage
+    state: installed
+  when:
+    - ansible_distribution_major_version == '8'
+
+- name: configure haproxy
+  template:
+    src: templates/haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  notify: restart haproxy
+
+- name: configure haproxy selinux booleans
+  seboolean:
+    name: haproxy_connect_any
+    state: yes
+    persistent: yes
+  when: ansible_selinux != False
+
+- name: configure services
+  service:
+    name: haproxy
+    state: started
+    enabled: yes
+
+- name: open firewall ports
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    immediate: yes
+    state: enabled
+  loop:
+    - 6443/tcp
+    - 22623/tcp
+    - 80/tcp
+    - 443/tcp
+    - 8080/tcp
+

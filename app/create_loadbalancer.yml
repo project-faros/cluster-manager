@@ -1,0 +1,9 @@
+#!/usr/bin/env ansible-playbook
+
+- name: deploy openshift load balancer
+  hosts: bastion_hosts
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - name: loadbalancer

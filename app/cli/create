@@ -35,7 +35,7 @@ for cmd in $cmds; do
             ;;
 
         "load-balancer")
-            echo "lb nyi"
+            ansible-playbook /app/create_loadbalancer.yml
             ;;
 
         "install-repos")
