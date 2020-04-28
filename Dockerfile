@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 
 WORKDIR /app
