@@ -1,9 +1,9 @@
-#!/usr/bin/env ansible-playbook
 - name: restart dnsmasq
   openwrt_init:
     name: dnsmasq
     state: restarted
-  delegate_to: dhcp
+  delegate_to: dns
+  run_once: true
   listen:
     - commit changes
 
@@ -11,6 +11,7 @@
   openwrt_init:
     name: odhcpd
     state: restarted
-  delegate_to: dhcp
+  delegate_to: dns
+  run_once: true
   listen:
     - commit changes

@@ -1,0 +1,153 @@
+#!/usr/bin/env ansible-playbook
+
+- name: Initialize Network Services
+  hosts: cluster:!bootstrap
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - name: setup dhcp
+      include_role:
+        name: dhcp
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dhcp.provider }}.yml"
+        tasks_from: "{{ hostvars.dhcp.provider }}.yml"
+        vars_from: "{{ hostvars.dhcp.provider }}.yml"
+      tags:
+        - dhcp
+        - cluster
+
+    - name: setup mgmt dhcp
+      include_role:
+        name: dhcp
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dhcp.provider }}.yml"
+        tasks_from: "{{ hostvars.dhcp.provider }}.yml"
+        vars_from: "{{ hostvars.dhcp.provider }}.yml"
+      vars:
+        dhcp_mac_address: "{{ mgmt_mac_address }}"
+        dhcp_ip: "{{ mgmt_hostname }}"
+        dhcp_name: "{{ inventory_hostname }}-mgmt"
+      tags:
+        - dhcp
+        - cluster
+
+    - name: setup dns
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dns.provider }}.yml"
+        tasks_from: "{{ hostvars.dns.provider }}.yml"
+        vars_from: "{{ hostvars.dns.provider }}.yml"
+      vars:
+        dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      tags:
+        - dns
+        - cluster
+
+    - name: setup mgmt dns
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dns.provider }}.yml"
+        tasks_from: "{{ hostvars.dns.provider }}.yml"
+        vars_from: "{{ hostvars.dns.provider }}.yml"
+      vars:
+        dns_hostname: "{{ inventory_hostname }}-mgmt"
+        dns_value: "{{ mgmt_hostname }}"
+        dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      tags:
+        - dns
+        - cluster
+
+
+- name: Initialize bastion DNS entries
+  hosts: bastion_hosts
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - name: load balancer DNS entries
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dns.provider }}.yml"
+        tasks_from: "{{ hostvars.dns.provider }}.yml"
+        vars_from: "{{ hostvars.dns.provider }}.yml"
+      vars:
+        dns_hostname: "{{ inventory_hostname }}"
+        dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+        dns_value: "{{ ansible_host }}"
+      tags:
+        - dns
+        - bastion
+
+
+- name: Initialize load balancer DNS entries
+  hosts: dns
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - name: load balancer DNS entries
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ provider }}.yml"
+        tasks_from: "{{ provider }}.yml"
+        vars_from: "{{ provider }}.yml"
+      vars:
+        dns_type: "{{ entry.type | default('A') }}"
+        dns_hostname: "{{ entry.name }}"
+        dns_domain: "{{ entry.domain | default(cluster_name + '.' + cluster_domain) }}"
+        dns_value: "{{ entry.value }}"
+      loop:
+        - name: "api"
+          value: "{{ hostvars[groups.bastion_hosts.0].ansible_host }}"
+        - name: "api-int"
+          value: "{{ hostvars[groups.bastion_hosts.0].ansible_host }}"
+        - name: '*'
+          domain: "apps.{{ cluster_name }}.{{ cluster_domain }}"
+          value: "{{ hostvars[groups.bastion_hosts.0].ansible_host }}"
+      loop_control:
+        loop_var: entry
+        label: "{{ entry.name }}"
+      tags:
+        - dns
+        - loadbalancer
+
+
+- name: Initialize etcd DNS entries
+  hosts: control_plane
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - name: etcd DNS entries
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dns.provider }}.yml"
+        tasks_from: "{{ hostvars.dns.provider }}.yml"
+        vars_from: "{{ hostvars.dns.provider }}.yml"
+      vars:
+        dns_type: "{{ entry.type | default('A') }}"
+        dns_hostname: "{{ entry.name }}"
+        dns_domain: "{{ entry.domain | default(cluster_name + '.' + cluster_domain) }}"
+        dns_value: "{{ entry.value }}"
+      loop:
+        - name: "etcd-{{ cp_node_id }}"
+          value: "{{ ansible_host }}"
+        - name: "_etcd-server-ssl"
+          domain: "_tcp.{{ cluster_name }}.{{ cluster_domain }}"
+          type: 'SRV'
+          value:
+            priority: 10
+            weight: 2380
+            target: "etcd-{{ cp_node_id }}.{{ cluster_name }}.{{ cluster_domain }}"
+      loop_control:
+        loop_var: entry
+        label: "{{ entry.name }}"
+      tags:
+        - dns
+        - etcd

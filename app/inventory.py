@@ -106,9 +106,12 @@ def main():
         admin_password=os.environ['ADMIN_PASSWORD'],
         user_password=os.environ['USER_PASSWORD'],
         mgmt_provider=os.environ['MGMT_PROVIDER'])
+
+    inv.add_group('infra')
     # BASTION NODE
-    inv.add_host('bastion', 'infra',
-        os.environ['BASTION_HOST_NAME'],
+    inv.add_group('bastion_hosts', 'infra')
+    inv.add_host(os.environ['BASTION_HOST_NAME'], 'bastion_hosts',
+        os.environ['BASTION_IP_ADDR'],
         ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # DNS NODE
     inv.add_host('dns', 'infra',
@@ -122,22 +125,26 @@ def main():
         provider=os.environ['DHCP_PROVIDER'],
         credentials=os.environ['DHCP_CREDENTIALS'],
         ansible_ssh_user=os.environ['DHCP_CREDENTIALS'].split(':', 1)[0])
-    # DHCP NODE
-    # CLUSTER CONTROL PLANE NODES
+
     inv.add_group('cluster')
-    inv.add_group('control_plane', 'cluster')
     ipam = IPAddressManager(
         IP_RESERVATIONS,
         os.environ['IP_POOL'])
+    # BOOTSTRAP NODE
+    ip = ipam['bootstrap']
+    inv.add_host('bootstrap', 'cluster', ip, ansible_ssh_user='core')
+    # CLUSTER CONTROL PLANE NODES
+    inv.add_group('control_plane', 'cluster')
     node_defs = json.loads(os.environ['CP_NODES'])
-    for node in node_defs:
+    for count, node in enumerate(node_defs):
         ip = ipam[node['mac']]
         mgmt_ip = ipam[node['mgmt_mac']]
         inv.add_host(node['name'], 'control_plane', ip,
             mac_address=node['mac'],
             mgmt_mac_address=node['mgmt_mac'],
             mgmt_hostname=mgmt_ip,
-            ansible_ssh_user='core')
+            ansible_ssh_user='core',
+            cp_node_id=count)
     ipam.save()
 
 

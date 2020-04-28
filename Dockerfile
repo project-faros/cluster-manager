@@ -9,7 +9,10 @@ COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
 RUN microdnf install python3 jq openssh-clients; \
+    #microdnf install gcc python3-devel; \
     pip3 install -r /requirements.txt; \
-    microdnf update;
+    #microdnf remove gcc python3-devel; \
+    microdnf update; \
+    rm -rf /var/cache/yum;
 
 CMD /app/bin/entry.sh

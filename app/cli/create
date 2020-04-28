@@ -1,0 +1,58 @@
+#!/bin/bash
+
+HELP="""
+USAGE: create COMMAND
+
+Available Commands:
+    cluster         Creates an OpenShift cluster.
+    network         Deploys network dependencies for the cluster.
+    load-balancer   Deploys the load balancer for the cluster.
+    install-repos   Deploys the software/config source repos for install.
+    bootstrap-node  Deploys and configures the bootstrap node.
+    control-plane   Deploys the OpenShift control plane.
+"""
+
+## PARSE INPUTS
+if [ $# -ne 1 ]; then
+    echo "$HELP"
+    exit 1
+fi
+cmds=$1
+if [ "$cmds" == "cluster" ]; then
+    cmds="network load-balancer install-repos bootstrap-node control-plane"
+fi
+
+## PREPARE ENVIRONMENT
+cd /app
+source /data/config.sh
+
+## EXECUTE
+for cmd in $cmds; do
+    case $cmd in
+
+        "network")
+            ansible-playbook /app/create_network.yml
+            ;;
+
+        "load-balancer")
+            echo "lb nyi"
+            ;;
+
+        "install-repos")
+            echo "ir nyi"
+            ;;
+
+        "bootstrap-node")
+            echo "bn nyi"
+            ;;
+
+        "control-plane")
+            echo "cp nyi"
+            ;;
+
+        *)
+            echo "$HELP"
+            exit 1
+            ;;
+    esac
+done

@@ -1,0 +1,4 @@
+dns_type: "A"
+dns_hostname: "{{ inventory_hostname }}"
+dns_domain: "example.com"
+dns_value: "{{ ansible_host }}"

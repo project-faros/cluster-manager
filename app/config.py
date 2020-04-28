@@ -61,7 +61,7 @@ class Parameter(object):
 
 
 class ChoiceParameter(Parameter):
-    
+
     def __init__(self, name, prompt, choices, value_reprfun=str):
         self._name = name
         self._value = os.environ.get(self._name, '')
@@ -211,7 +211,7 @@ class configurator(object):
             Parameter('USER_PASSWORD', 'User Password', password_repr)])
         self.bastion = ParameterCollection('bastion', 'Bastion Node Configuration', [
             Parameter('BASTION_HOST_NAME', 'Bastion Host Name'),
-            Parameter('BASTION_ID_ADDR', 'Bastion IP Address'),
+            Parameter('BASTION_IP_ADDR', 'Bastion IP Address'),
             Parameter('BASTION_SSH_USER', 'Bastion SSH User')])
         self.dns = ParameterCollection('dns', 'Cluster DNS Configuration', [
             ChoiceParameter('DNS_PROVIDER', 'DNS Provider', dns_providers),
@@ -224,8 +224,8 @@ class configurator(object):
         self.architecture = ParameterCollection('architecture', 'Cluster Architecture', [
             ChoiceParameter('MGMT_PROVIDER', 'Machine Management Provider', mgmt_providers),
             Parameter('IP_POOL', 'Static IP Address Pool'),
-            ListDictParameter('CP_NODES', 'Control Plane Machines', 
-                [('name', 'Node Name'), ('mac', 'MAC Address'), 
+            ListDictParameter('CP_NODES', 'Control Plane Machines',
+                [('name', 'Node Name'), ('mac', 'MAC Address'),
                  ('mgmt_mac', 'Management MAC Address'), ('mgmt_credentials', 'Management Credentials')])])
 
     def _main_menu(self):
@@ -279,10 +279,10 @@ class configurator(object):
 def main():
     print('Configurator 9000\n')
     return configurator(
-            CONFIG_PATH, 
-            CONFIG_FOOTER, 
-            DNS_PROVIDERS, 
-            DHCP_PROVIDERS, 
+            CONFIG_PATH,
+            CONFIG_FOOTER,
+            DNS_PROVIDERS,
+            DHCP_PROVIDERS,
             MGMT_PROVIDERS).configurate()
 
 
