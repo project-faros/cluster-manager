@@ -2,11 +2,21 @@
 
 # contstants
 # these should be true provided instructions are followed
-USER=core
-BASTION=192.168.8.50
 CONFIG_DIR='~/.config/faros'
 REPO="https://raw.githubusercontent.com/redhat-faros/deployer/master"
 OC="https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz"
+SELINUX_MODULE="""
+module faros 1.0;
+
+require {
+	type fusefs_t;
+	type container_t;
+	class file relabelto;
+}
+
+#============= container_t ==============
+allow container_t fusefs_t:file relabelto;
+"""
 
 function _validate() {
 # validate inputs
@@ -18,9 +28,9 @@ elif [[ $1 == "privkey" ]]; then
     ssh-keygen -l -f "$2" &> /dev/null && grep PRIVATE "$2" &> /dev/null && return 0
     echo "$2 is not a private key."
     return 1
-elif [[ $1 == "pass" ]]; then
+elif [[ $1 == "text" ]]; then
     test "x${2}" != "x" && return 0
-    echo "password is empty"
+    echo "respoinse is empty"
     return 1
 fi
 echo "$0 is not a valid option."
@@ -43,36 +53,38 @@ while [[ "$?" -gt 0 ]]; do
     read privkey
     _validate privkey "$privkey"
 done
-_validate pass "$adminpass" &> /dev/null
-while [[ "$?" -gt 0 ]]; do
-    echo ''
-    echo 'Environment admin password: '
-    read adminpass
-    _validate pass "$adminpass"
-done
-_validate pass "$userpass" &> /dev/null
-while [[ "$?" -gt 0 ]]; do
-    echo ''
-    echo 'Environment user password: '
-    read userpass
-    _validate pass "$userpass"
-done
 echo ''
 
 ## copy files
-ssh-add $privkey
 echo 'Installing SSH Keys'
-scp "$privkey" $USER@$BASTION:~/.ssh/id_rsa
-scp "$pubkey" $USER@$BASTION:~/.ssh/id_rsa.pub
-ssh $USER@$BASTION 'chmod 600 ~/.ssh/id_rsa*'
-ssh $USER@$BASTION "mkdir -p $CONFIG_DIR/default"
-scp "$privkey" $USER@$BASTION:$CONFIG_DIR/default
-scp "$pubkey" $USER@$BASTION:$CONFIG_DIR/default
+cp "$privkey" ~/.ssh/id_rsa
+cp "$pubkey" ~/.ssh/id_rsa.pub
+chmod 600 ~/.ssh/id_rsa*
+mkdir -p $CONFIG_DIR/default
+cp "$privkey" $CONFIG_DIR/default
+cp "$pubkey" $CONFIG_DIR/default
 
 ## install dependencies
 echo 'Installing Dependencies'
-ssh $USER@$BASTION "mkdir -p ~/bin; wget -O ~/bin/farosctl $REPO/bin/farosctl; chmod +x ~/bin/farosctl"
-ssh $USER@$BASTION "wget -O ~/bin/oc.tgz $OC; cd ~/bin; tar xvzf oc.tgz"
+mkdir -p ~/bin
+cd ~/bin
+wget -O ~/bin/farosctl $REPO/bin/farosctl
+chmod +x ~/bin/farosctl
+wget -O ~/bin/oc.tgz $OC
+tar xvzf oc.tgz
+
+## CONFIGURE SELINUX
+if [ $(getenforce) == "Enforcing" ]; then
+    echo 'Configuring SELinux'
+	te=faros.te
+	mod=faros.mod
+	pp=faros.pp
+	mkdir -p /tmp/faros_install
+	cd /tmp/faros_install
+    echo "$SELINUX_MODULE" > "$te"
+    sudo checkmodule -M -m -o "$mod" "$te" && semodule_package -o "$pp" -m "$mod" && semodule -i "$pp"
+	rm -rf /tmp/faros_install
+fi
 }
 
 
