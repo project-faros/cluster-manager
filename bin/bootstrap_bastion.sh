@@ -39,9 +39,14 @@ return 1
 
 function main() {
 ## gather input
+echo ''
 sudo -v
 can_sudo=$?
-
+if [ $can_sudo -eq 0 ]; then
+    echo 'The installer will continue with sudo rights.'
+else
+    echo 'The installer will attempt to continue without sudo rights.'
+fi
 _validate pubkey "$pubkey" &> /dev/null
 while [[ "$?" -gt 0 ]]; do
     echo ''
@@ -68,7 +73,7 @@ if [ $(getenforce) == "Enforcing" ]; then
         mkdir -p /tmp/faros_install
         cd /tmp/faros_install
         echo "$SELINUX_MODULE" > "$te"
-        sudo checkmodule -M -m -o "$mod" "$te" && semodule_package -o "$pp" -m "$mod" && semodule -i "$pp"
+        sudo checkmodule -M -m -o "$mod" "$te" && sudo semodule_package -o "$pp" -m "$mod" && sudo semodule -i "$pp"
         rm -rf /tmp/faros_install
     else
         echo 'Sudo is requried when installing on a machine with SELinux enabled.' >&2
@@ -79,16 +84,16 @@ fi
 ## configure cockpit
 if [ $can_sudo -eq 0 ]; then
     echo 'Configure cockpit'
-    yum install -y cockpit cockpit-podman cockpit-system
-    systemctl start cockpit.socket
-    systemctl enable cockpit.socket
+    sudo yum install -y cockpit cockpit-podman cockpit-system
+    sudo systemctl start cockpit.socket
+    sudo systemctl enable cockpit.socket
 fi
 
 ## ensure podman is installed
-if rpm -qa | grep -Po '^podman-\d' &> /dev/null; then
+if ! rpm -qa | grep -Po '^podman-\d' &> /dev/null; then
     if [ $can_sudo -eq 0 ]; then
         echo 'Install Podman'
-        yum install -y podman
+        sudo yum install -y podman
     else
         echo 'Sudo is required to install podman.' >&2
         exit 1
