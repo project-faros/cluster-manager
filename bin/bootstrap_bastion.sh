@@ -39,6 +39,9 @@ return 1
 
 function main() {
 ## gather input
+sudo -v
+can_sudo=$?
+
 _validate pubkey "$pubkey" &> /dev/null
 while [[ "$?" -gt 0 ]]; do
     echo ''
@@ -54,6 +57,43 @@ while [[ "$?" -gt 0 ]]; do
     _validate privkey "$privkey"
 done
 echo ''
+
+## CONFIGURE SELINUX
+if [ $(getenforce) == "Enforcing" ]; then
+    if [ $can_sudo -eq 0 ]; then
+        echo 'Configuring SELinux'
+        te=faros.te
+        mod=faros.mod
+        pp=faros.pp
+        mkdir -p /tmp/faros_install
+        cd /tmp/faros_install
+        echo "$SELINUX_MODULE" > "$te"
+        sudo checkmodule -M -m -o "$mod" "$te" && semodule_package -o "$pp" -m "$mod" && semodule -i "$pp"
+        rm -rf /tmp/faros_install
+    else
+        echo 'Sudo is requried when installing on a machine with SELinux enabled.' >&2
+        exit 1
+    fi
+fi
+
+## configure cockpit
+if [ $can_sudo -eq 0 ]; then
+    echo 'Configure cockpit'
+    yum install -y cockpit cockpit-podman cockpit-system
+    systemctl start cockpit.socket
+    systemctl enable cockpit.socket
+fi
+
+## ensure podman is installed
+if rpm -qa | grep -Po '^podman-\d' &> /dev/null; then
+    if [ $can_sudo -eq 0 ]; then
+        echo 'Install Podman'
+        yum install -y podman
+    else
+        echo 'Sudo is required to install podman.' >&2
+        exit 1
+    fi
+fi
 
 ## copy files
 echo 'Installing SSH Keys'
@@ -73,18 +113,7 @@ chmod +x ~/bin/farosctl
 wget -O ~/bin/oc.tgz $OC
 tar xvzf oc.tgz
 
-## CONFIGURE SELINUX
-if [ $(getenforce) == "Enforcing" ]; then
-    echo 'Configuring SELinux'
-	te=faros.te
-	mod=faros.mod
-	pp=faros.pp
-	mkdir -p /tmp/faros_install
-	cd /tmp/faros_install
-    echo "$SELINUX_MODULE" > "$te"
-    sudo checkmodule -M -m -o "$mod" "$te" && semodule_package -o "$pp" -m "$mod" && semodule -i "$pp"
-	rm -rf /tmp/faros_install
-fi
+
 }
 
 
