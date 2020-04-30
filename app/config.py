@@ -6,10 +6,6 @@ from PyInquirer import Token, prompt, Separator
 
 CONFIG_PATH = '/data/config.sh'
 CONFIG_FOOTER = ''
-DNS_PROVIDERS = ['openwrt']
-DHCP_PROVIDERS = ['openwrt']
-DDNS_PROVIDERS = ['none', 'openwrt']
-DDNS_SERVICES = ['route53']
 MGMT_PROVIDERS = ['ilo']
 
 
@@ -279,11 +275,17 @@ class configurator(object):
 
 def main():
     print('Configurator 9000\n')
+    dhcp_providers = ['.'.join(item.split('.')[:-1])
+                      for item in
+                      next(os.walk('/app/providers/dhcp/tasks'))[2]]
+    dns_providers = ['.'.join(item.split('.')[:-1])
+                     for item in
+                     next(os.walk('/app/providers/dns/tasks'))[2]]
     return configurator(
             CONFIG_PATH,
             CONFIG_FOOTER,
-            DNS_PROVIDERS,
-            DHCP_PROVIDERS,
+            dns_providers,
+            dhcp_providers,
             MGMT_PROVIDERS).configurate()
 
 
