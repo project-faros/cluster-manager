@@ -3,6 +3,7 @@ export CLUSTER_NAME='beaconXX'
 export CLUSTER_DOMAIN='faros.site'
 export ADMIN_PASSWORD='admin'
 export USER_PASSWORD='user'
+export PULL_SECRET=''
 # BASTION NODE CONFIGURATION
 export BASTION_HOST_NAME='bastion'
 export BASTION_IP_ADDR='192.168.8.50'

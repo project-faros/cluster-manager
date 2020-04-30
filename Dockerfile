@@ -8,7 +8,7 @@ COPY home /root
 COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
-RUN microdnf install python3 jq openssh-clients; \
+RUN microdnf install python3 jq openssh-clients tar; \
     #microdnf install gcc python3-devel; \
     pip3 install -r /requirements.txt; \
     #microdnf remove gcc python3-devel; \

@@ -1,0 +1,7 @@
+rhcos_images_repo: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest"
+rhcos_images_initramfs: ""
+rhcos_images_kernel: ""
+rhcos_images_image: ""
+rhcos_images_bootstrap_ign: ""
+rhcos_images_master_ign: ""
+rhcos_images_worker_ign: ""

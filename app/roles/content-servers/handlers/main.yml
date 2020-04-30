@@ -1,0 +1,4 @@
+- name: restart tftp
+  service:
+    name: tftp
+    state: restarted

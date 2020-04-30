@@ -105,6 +105,7 @@ def main():
         cluster_domain=os.environ['CLUSTER_DOMAIN'],
         admin_password=os.environ['ADMIN_PASSWORD'],
         user_password=os.environ['USER_PASSWORD'],
+        pull_secret=json.loads(os.environ['PULL_SECRET']),
         mgmt_provider=os.environ['MGMT_PROVIDER'])
 
     inv.add_group('infra')
@@ -133,9 +134,11 @@ def main():
         os.environ['IP_POOL'])
     # BOOTSTRAP NODE
     ip = ipam['bootstrap']
-    inv.add_host('bootstrap', 'cluster', ip, ansible_ssh_user='core')
+    inv.add_host('bootstrap', 'cluster', ip,
+        ansible_ssh_user='core',
+        node_role='bootstrap')
     # CLUSTER CONTROL PLANE NODES
-    inv.add_group('control_plane', 'cluster')
+    inv.add_group('control_plane', 'cluster', node_role='master')
     node_defs = json.loads(os.environ['CP_NODES'])
     for count, node in enumerate(node_defs):
         ip = ipam[node['mac']]

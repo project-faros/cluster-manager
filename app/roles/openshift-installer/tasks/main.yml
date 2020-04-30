@@ -1,0 +1,38 @@
+- name: ensure working directory exists
+  file:
+    path: "{{ openshift_installer_dir }}"
+    state: directory
+    mode: 0700
+
+- name: download openshift installer
+  get_url:
+    url: "{{ openshift_installer_source }}"
+    dest: "{{ openshift_installer_dir }}/openshift-installer.tar.gz"
+    mode: 0644
+    unsafe_writes: yes
+  register: pkg_download
+
+- name: extract openshift installer
+  shell: "tar xvzf '{{ openshift_installer_dir }}/openshift-installer.tar.gz' -C '{{ openshift_installer_dir }}'"
+  args:
+    warn: no
+  when: pkg_download is changed
+
+- name: create cluster install config - permanent copy
+  template:
+    src: install-config.yaml.j2
+    dest: "{{ openshift_installer_dir }}/install-config.yaml.bkp"
+  register: install_config
+
+- name: create cluster install config
+  template:
+    src: install-config.yaml.j2
+    dest: "{{ openshift_installer_dir }}/install-config.yaml"
+  when: install_config is changed
+
+- name: create ignition files
+  shell: >
+    rm {{ openshift_installer_dir }}/.openshift_install_state.json;
+    {{ openshift_installer_dir }}/openshift-install create ignition-configs
+    --dir={{ openshift_installer_dir }}
+  when: install_config is changed

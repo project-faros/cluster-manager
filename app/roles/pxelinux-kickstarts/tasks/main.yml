@@ -1,0 +1,7 @@
+- name: deploy kickstarts
+  template:
+    src: pxelinux.cfg.j2
+    dest: /var/lib/tftpboot/pxelinux.cfg/01-{{ mac_address | regex_replace (':', '-') }}
+    mode: 0555
+  delegate_to: "{{ pxelinux_kickstarts_pxe_server }}"
+  become: yes

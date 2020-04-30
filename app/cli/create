@@ -4,13 +4,14 @@ HELP="""
 USAGE: create COMMAND
 
 Available Commands:
-    cluster         Creates an OpenShift cluster.
+    all             Creates an OpenShift cluster.
     network         Deploys network dependencies for the cluster.
     load-balancer   Deploys the load balancer for the cluster.
+    machines        Create any required virtual machines (like bootstrap).
     install-repos   Deploys the software/config source repos for install.
-    bootstrap-node  Deploys and configures the bootstrap node.
-    control-plane   Deploys the OpenShift control plane.
+    cluster         Installs OpenShift onto the cluster nodes.
 """
+ALL_CMDS="network load-balancer machines install-repos cluster"
 
 ## PARSE INPUTS
 if [ $# -ne 1 ]; then
@@ -18,8 +19,8 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 cmds=$1
-if [ "$cmds" == "cluster" ]; then
-    cmds="network load-balancer install-repos bootstrap-node control-plane"
+if [ "$cmds" == "all" ]; then
+    cmds="$ALL_CMDS"
 fi
 
 ## PREPARE ENVIRONMENT
@@ -38,16 +39,16 @@ for cmd in $cmds; do
             ansible-playbook /app/create_loadbalancer.yml
             ;;
 
+        "machines")
+            echo "m nyi"
+            ;;
+
         "install-repos")
-            echo "ir nyi"
+            ansible-playbook /app/create_installrepos.yml
             ;;
 
-        "bootstrap-node")
-            echo "bn nyi"
-            ;;
-
-        "control-plane")
-            echo "cp nyi"
+        "cluster")
+            echo "c nyi"
             ;;
 
         *)

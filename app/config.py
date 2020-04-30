@@ -208,7 +208,8 @@ class configurator(object):
             Parameter('CLUSTER_NAME', 'Cluster Name'),
             Parameter('CLUSTER_DOMAIN', 'Cluster Domain'),
             Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
-            Parameter('USER_PASSWORD', 'User Password', password_repr)])
+            Parameter('USER_PASSWORD', 'User Password', password_repr),
+            Parameter('PULL_SECRET', 'Pull Secret', password_repr)])
         self.bastion = ParameterCollection('bastion', 'Bastion Node Configuration', [
             Parameter('BASTION_HOST_NAME', 'Bastion Host Name'),
             Parameter('BASTION_IP_ADDR', 'Bastion IP Address'),

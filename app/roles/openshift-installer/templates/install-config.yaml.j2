@@ -1,0 +1,23 @@
+apiVersion: v1
+baseDomain: "{{ openshift_installer_base_domain }}"
+compute:
+- hyperthreading: Enabled
+  name: worker
+  replicas: 0
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: {{ openshift_installer_control_plane | length }}
+metadata:
+  name: "{{ openshift_installer_cluster_id }}"
+networking:
+  clusterNetworks:
+  - cidr: "{{ openshift_installer_cluster_cidr }}"
+    hostPrefix: 24
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - "{{ openshift_installer_service_cidr }}"
+platform:
+    none: {}
+pullSecret: '{{ openshift_installer_pull_secret }}'
+sshKey: "{{ openshift_installer_ssh_key }}"
