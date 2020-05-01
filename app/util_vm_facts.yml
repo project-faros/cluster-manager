@@ -1,0 +1,9 @@
+#!/usr/bin/env ansible-playbook
+- name: gather virtual machine facts from qemu-kvm
+  hosts: virtual
+  gather_facts: no
+  become: no
+
+  roles:
+    - name: vm-gather-facts
+      hypervisor: '{{ groups.bastion_hosts.0 }}'

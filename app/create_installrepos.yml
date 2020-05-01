@@ -1,5 +1,7 @@
 #!/usr/bin/env ansible-playbook
-#
+
+- import_playbook: util_vm_facts.yml
+
 - name: create red hat coreos ignition files
   hosts: localhost
   gather_facts: no

@@ -5,13 +5,13 @@ USAGE: create COMMAND
 
 Available Commands:
     all             Creates an OpenShift cluster.
+    machines        Create any required virtual machines (like bootstrap).
     network         Deploys network dependencies for the cluster.
     load-balancer   Deploys the load balancer for the cluster.
-    machines        Create any required virtual machines (like bootstrap).
     install-repos   Deploys the software/config source repos for install.
     cluster         Installs OpenShift onto the cluster nodes.
 """
-ALL_CMDS="network load-balancer machines install-repos cluster"
+ALL_CMDS="machines network load-balancer install-repos cluster"
 
 ## PARSE INPUTS
 if [ $# -ne 1 ]; then
@@ -31,16 +31,16 @@ source /data/config.sh
 for cmd in $cmds; do
     case $cmd in
 
+        "machines")
+            ansible-playbook /app/create_machines.yml
+            ;;
+
         "network")
             ansible-playbook /app/create_network.yml
             ;;
 
         "load-balancer")
             ansible-playbook /app/create_loadbalancer.yml
-            ;;
-
-        "machines")
-            ansible-playbook /app/create_machines.yml
             ;;
 
         "install-repos")

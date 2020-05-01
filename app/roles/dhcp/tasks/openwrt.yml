@@ -1,5 +1,6 @@
 #!/usr/bin/env ansible-playbook
-- block:
+- name: configure dhcp entry
+  block:
     - name: look for existing records
       shell: >
         uci show dhcp |

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from collections import defaultdict
 import ipaddress
 import json
 import os
@@ -18,14 +19,14 @@ class InventoryGroup(object):
     def add_group(self, name, **groupvars):
         return(self._parent.add_group(name, self._name, **groupvars))
 
-    def add_host(self, name, hostname, **hostvars):
+    def add_host(self, name, hostname=None, **hostvars):
         return(self._parent.add_host(name, self._name, hostname, **hostvars))
 
 
 class Inventory(object):
 
     _modes = ['list', 'host', 'none']
-    _data = {"_meta": {"hostvars": {}}}
+    _data = {"_meta": {"hostvars": defaultdict(dict)}}
 
     def __init__(self, mode=0, host=None):
         if mode==1:
@@ -50,13 +51,17 @@ class Inventory(object):
 
         return InventoryGroup(self, name)
 
-    def add_host(self, name, group, hostname, **hostvars):
+    def add_host(self, name, group=None, hostname=None, **hostvars):
+        if not group:
+            group = 'all'
         if group not in self._data:
             self.add_group(group)
 
-        hostvars.update({'ansible_host': hostname})
+        if hostname:
+            hostvars.update({'ansible_host': hostname})
+
         self._data[group]['hosts'].append(name)
-        self._data['_meta']['hostvars'][name] = hostvars
+        self._data['_meta']['hostvars'][name].update(hostvars)
 
     def to_json(self):
         return json.dumps(self._data, sort_keys=True,
@@ -165,9 +170,9 @@ def main():
            ansible_ssh_user='core',
            cp_node_id=count)
 
-    virt = inv.add_group('virtual')
+    virt = inv.add_group('virtual', mgmt_provider='kvm')
     # VIRTUAL NODES
-    virt.add_host('bootstrap', 'virtual')
+    virt.add_host('bootstrap')
     ipam.save()
 
 

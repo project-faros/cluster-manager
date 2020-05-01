@@ -1,7 +1,9 @@
 #!/usr/bin/env ansible-playbook
 
+- import_playbook: util_vm_facts.yml
+
 - name: Initialize Network Services
-  hosts: cluster:!bootstrap
+  hosts: cluster
   gather_facts: no
   serial: 1
 
@@ -17,6 +19,8 @@
         - dhcp
         - cluster
 
+    - meta: flush_handlers
+
     - name: setup mgmt dhcp
       include_role:
         name: dhcp
@@ -28,9 +32,14 @@
         dhcp_mac_address: "{{ mgmt_mac_address }}"
         dhcp_ip: "{{ mgmt_hostname }}"
         dhcp_name: "{{ inventory_hostname }}-mgmt"
+      when:
+        - mgmt_hostname is defined
+        - mgmt_mac_address is defined
       tags:
         - dhcp
         - cluster
+
+    - meta: flush_handlers
 
     - name: setup dns
       include_role:
@@ -45,6 +54,8 @@
         - dns
         - cluster
 
+    - meta: flush_handlers
+
     - name: setup mgmt dns
       include_role:
         name: dns
@@ -56,9 +67,13 @@
         dns_hostname: "{{ inventory_hostname }}-mgmt"
         dns_value: "{{ mgmt_hostname }}"
         dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      when:
+        - mgmt_hostname is defined
       tags:
         - dns
         - cluster
+
+    - meta: flush_handlers
 
 
 - name: Initialize bastion DNS entries
