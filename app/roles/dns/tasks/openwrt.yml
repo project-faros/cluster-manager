@@ -41,11 +41,6 @@
 - name: update normal A records
   block:
 
-    - debug:
-        var: dns_fqdn
-    - debug:
-        var: dns_value
-
     - name: look for existing domain entry
       shell: >
         uci show dhcp |

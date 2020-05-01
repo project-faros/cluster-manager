@@ -126,7 +126,8 @@ def main():
         admin_password=os.environ['ADMIN_PASSWORD'],
         user_password=os.environ['USER_PASSWORD'],
         pull_secret=json.loads(os.environ['PULL_SECRET']),
-        mgmt_provider=os.environ['MGMT_PROVIDER'])
+        mgmt_provider=os.environ['MGMT_PROVIDER'],
+        install_disk='sda')
 
     infra = inv.add_group('infra')
     # BASTION NODE
@@ -170,7 +171,7 @@ def main():
            ansible_ssh_user='core',
            cp_node_id=count)
 
-    virt = inv.add_group('virtual', mgmt_provider='kvm')
+    virt = inv.add_group('virtual', mgmt_provider='kvm', install_disk='vda')
     # VIRTUAL NODES
     virt.add_host('bootstrap')
     ipam.save()

@@ -32,19 +32,19 @@ for cmd in $cmds; do
     case $cmd in
 
         "machines")
-            ansible-playbook /app/create_machines.yml
+            ansible-playbook /app/create_machines.yml || exit 1
             ;;
 
         "network")
-            ansible-playbook /app/create_network.yml
+            ansible-playbook /app/create_network.yml || exit 1
             ;;
 
         "load-balancer")
-            ansible-playbook /app/create_loadbalancer.yml
+            ansible-playbook /app/create_loadbalancer.yml || exit 1
             ;;
 
         "install-repos")
-            ansible-playbook /app/create_installrepos.yml
+            ansible-playbook /app/create_installrepos.yml || exit 1
             ;;
 
         "cluster")
