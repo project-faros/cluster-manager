@@ -2,6 +2,8 @@
   shell: >
     curl {{ rhcos_images_repo }}/sha256sum.txt 2> /dev/null |
     grep rhcos | grep initramfs | awk '{ print $2 }'
+  args:
+    warn: false
   when: rhcos_images_initramfs == ""
   changed_when: False
   register: initramfs_lkp
@@ -16,6 +18,8 @@
   shell: >
     curl {{ rhcos_images_repo }}/sha256sum.txt 2> /dev/null |
     grep rhcos | grep kernel | awk '{ print $2 }'
+  args:
+    warn: false
   when: rhcos_images_kernel == ""
   changed_when: False
   register: kernel_lkp
@@ -30,6 +34,8 @@
   shell: >
     curl {{ rhcos_images_repo }}/sha256sum.txt 2> /dev/null |
     grep rhcos | grep metal | awk '{ print $2 }'
+  args:
+    warn: false
   when: rhcos_images_image == ""
   changed_when: False
   register: image_lkp

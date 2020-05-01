@@ -78,3 +78,13 @@
     name: httpd
     enabled: yes
     state: started
+
+- name: open firewall ports
+  firewalld:
+    port: "{{ item }}"
+    state: enabled
+    permanent: yes
+    immediate: yes
+  loop:
+    - 8081/tcp
+    - 69/udp
