@@ -1,0 +1,118 @@
+- name: check for requirements
+  assert:
+    that:
+      - ansible_os_family == 'RedHat' or
+        ansible_os_family == 'CentOS'
+      - ansible_distribution_major_version == '7' or
+        ansible_distribution_major_version == '8'
+    fail_msg: "Bastion host does not meet requirements"
+    success_msg: "Bastion host meets requirements."
+
+- name: ensure dependencies are installed
+  yum:
+    name: >
+      qemu-kvm, libvirt, libvirt-client, virt-install, virt-viewer,
+      cockpit-machines
+    state: installed
+
+- name: ensure libvirtd is running/enabled
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
+- name: ensure root and user can access kvm
+  user:
+    name: "{{ item }}"
+    groups: kvm
+    append: yes
+  loop:
+    - root
+    - "{{ ansible_ssh_user }}"
+
+- name: check for virtualization bridge
+  shell: nmcli con sh farosbr0 | grep -v 802-3
+  changed_when: no
+  failed_when: no
+  register: br_check
+
+- name: parse bridge settings
+  set_fact:
+    br_facts: "{{ br_check.stdout | from_yaml_all | list }}"
+
+- name: create the virtualization bridge
+  shell: nmcli con add ifname farosbr0 type bridge con-name farosbr0
+  when: br_facts == []
+  notify: restart networking
+
+- name: check virtualization bridge facts
+  shell: nmcli con mod farosbr0 "{{ key }}" "{{ target }}"
+  loop:
+    - key: connection.interface-name
+      target: farosbr0
+  when:
+    - br_facts != []
+    - br_facts[0][item.key] != item.target
+  notify: restart networking
+
+- name: check for virtualization child
+  shell: nmcli con sh bridge-slave-{{ hypervisor_network_interface }} | grep -v 802-3
+  changed_when: no
+  failed_when: no
+  register: child_check
+
+- name: parse bridge child settings
+  set_fact:
+    child_facts: "{{ child_check.stdout | from_yaml_all | list }}"
+
+- name: create the bridge child
+  shell: nmcli con add type bridge-slave ifname {{ hypervisor_network_interface }} master farosbr0
+  when: child_facts == []
+  notify: restart networking
+
+- name: check virtualization bridge child facts
+  shell: nmcli con mod bridge-slave-{{ hypervisor_network_interface }} "{{ key }}" "{{ target }}"
+  loop:
+    - key: connection.interface-name
+      target: "{{ hypervisor_network_interface }}"
+    - key: connection.master
+      target: farosbr0
+  when:
+    - child_facts != []
+    - child_facts[0][item.key] != item.target
+  notify: restart networking
+
+- name: read settings from default interface
+  shell: nmcli con sh {{ hypervisor_network_interface }} | grep -v 802-3
+  changed_when: no
+  register: default_check
+
+- name: parse default interface settings
+  set_fact:
+    default_facts: "{{ default_check.stdout | from_yaml_all | list }}"
+
+- name: migrate existing ipv4 settings to network bridge
+  shell: nmcli con mod farosbr0 "{{ item }}" "{{ default_facts[item] }}"
+  loop:
+    - ipv4.method
+    - ipv4.dns
+    - ipv4.dns-search
+    - ipv4.dns-options
+    - ipv4.dns-priority
+    - ipv4.addresses
+    - ipv4.gateway
+  when:
+    - br_facts == []
+    - default_facts[0][key] != br_facts[0][key]
+  notify: restart networking
+  # shell alternative:
+  #   nmcli -f ipv4 con sh eno1 | grep -v '\-\-' | sed 's/(.*)//g;s/: */ /g;s/\n/ /g' | tr '\n' ' ' | xargs nmcli con mod farosbr0
+
+- name: disable the default interface
+  shell: nmcli con mod {{ hypervisor_network_interface }} "{{ key }}" "{{ target }}"
+  loop:
+    - key: connection.autoconnect
+      target: no
+  when:
+    - default_facts[0][item.key] != item.target
+  notify: restart networking

@@ -1,0 +1,27 @@
+- name: gather existing virtual machines
+  virt:
+    command: list_vms
+  register: all_vms
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+
+- name: create virtual machine
+  shell: >
+    virt-install --name={{ inventory_hostname }}
+    --vcpus={{ virtual_machine_vcpus }}
+    --memory={{ virtual_machine_memory }}
+    --disk={{ virtual_machine_disk }}
+    --network={{ virtual_machine_network }}
+    --boot {{ virtual_machine_boot }}
+    --graphics {{ virtual_machine_graphics }}
+    --os-variant {{ virtual_machine_os_variant }}
+    --cpu Haswell-noTSX
+    --noautoconsole
+    --check disk_size=off
+  when: inventory_hostname not in all_vms.list_vms
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+
+  # Haswell CPU specification fixes some bug in kvm where it might not like
+  # the EL8000 CPUs. Or something. I don't know, I'm tired and it works.
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1657738

@@ -40,7 +40,7 @@ for cmd in $cmds; do
             ;;
 
         "machines")
-            echo "m nyi"
+            ansible-playbook /app/create_machines.yml
             ;;
 
         "install-repos")

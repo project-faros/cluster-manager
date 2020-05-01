@@ -1,0 +1,24 @@
+- name: lookup kvm id
+  shell: virsh domid "{{ inventory_hostname }}"
+  delegate_to: "{{ hypervisor }}"
+  become: yes
+  register: domid_lkp
+  changed_when: no
+
+- name: save kvm id
+  set_fact:
+    kvm_domid: "{{ domid_lkp.stdout }}"
+
+- name: lookup kvm mac adress
+  shell: >
+    virsh domiflist {{ kvm_domid }} |
+    tail -n2 |
+    awk '{ print $5 }'
+  delegate_to: "{{ hypervisor }}"
+  become: yes
+  register: dommac_lkp
+  changed_when: no
+
+- name: save mac address
+  set_fact:
+    mac_address: "{{ dommac_lkp.stdout }}"

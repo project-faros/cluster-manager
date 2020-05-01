@@ -9,6 +9,19 @@ SSH_PRIVATE_KEY = '/data/id_rsa'
 IP_RESERVATIONS = '/data/ip_addresses'
 
 
+class InventoryGroup(object):
+
+    def __init__(self, parent, name):
+        self._parent = parent
+        self._name = name
+
+    def add_group(self, name, **groupvars):
+        return(self._parent.add_group(name, self._name, **groupvars))
+
+    def add_host(self, name, hostname, **hostvars):
+        return(self._parent.add_host(name, self._name, hostname, **hostvars))
+
+
 class Inventory(object):
 
     _modes = ['list', 'host', 'none']
@@ -34,6 +47,8 @@ class Inventory(object):
             if parent not in self._data:
                 self.add_group(parent)
             self._data[parent]['children'].append(name)
+
+        return InventoryGroup(self, name)
 
     def add_host(self, name, group, hostname, **hostvars):
         if group not in self._data:
@@ -108,47 +123,51 @@ def main():
         pull_secret=json.loads(os.environ['PULL_SECRET']),
         mgmt_provider=os.environ['MGMT_PROVIDER'])
 
-    inv.add_group('infra')
+    infra = inv.add_group('infra')
     # BASTION NODE
-    inv.add_group('bastion_hosts', 'infra')
-    inv.add_host(os.environ['BASTION_HOST_NAME'], 'bastion_hosts',
-        os.environ['BASTION_IP_ADDR'],
-        ansible_become_pass=os.environ['USER_PASSWORD'],
-        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    bastion = infra.add_group('bastion_hosts')
+    bastion.add_host(os.environ['BASTION_HOST_NAME'],
+            os.environ['BASTION_IP_ADDR'],
+            ansible_become_pass=os.environ['USER_PASSWORD'],
+            ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # DNS NODE
-    inv.add_host('dns', 'infra',
-        os.environ['DNS_HOST_NAME'],
-        provider=os.environ['DNS_PROVIDER'],
-        credentials=os.environ['DNS_CREDENTIALS'],
-        ansible_ssh_user=os.environ['DNS_CREDENTIALS'].split(':', 1)[0])
+    infra.add_host('dns',
+          os.environ['DNS_HOST_NAME'],
+          provider=os.environ['DNS_PROVIDER'],
+          credentials=os.environ['DNS_CREDENTIALS'],
+          ansible_ssh_user=os.environ['DNS_CREDENTIALS'].split(':', 1)[0])
     # DHCP NODE
-    inv.add_host('dhcp', 'infra',
-        os.environ['DHCP_HOST_NAME'],
-        provider=os.environ['DHCP_PROVIDER'],
-        credentials=os.environ['DHCP_CREDENTIALS'],
-        ansible_ssh_user=os.environ['DHCP_CREDENTIALS'].split(':', 1)[0])
+    infra.add_host('dhcp',
+          os.environ['DHCP_HOST_NAME'],
+          provider=os.environ['DHCP_PROVIDER'],
+          credentials=os.environ['DHCP_CREDENTIALS'],
+          ansible_ssh_user=os.environ['DHCP_CREDENTIALS'].split(':', 1)[0])
 
-    inv.add_group('cluster')
+    cluster = inv.add_group('cluster')
     ipam = IPAddressManager(
         IP_RESERVATIONS,
         os.environ['IP_POOL'])
     # BOOTSTRAP NODE
     ip = ipam['bootstrap']
-    inv.add_host('bootstrap', 'cluster', ip,
-        ansible_ssh_user='core',
-        node_role='bootstrap')
+    cluster.add_host('bootstrap', ip,
+            ansible_ssh_user='core',
+            node_role='bootstrap')
     # CLUSTER CONTROL PLANE NODES
-    inv.add_group('control_plane', 'cluster', node_role='master')
+    cp = cluster.add_group('control_plane', node_role='master')
     node_defs = json.loads(os.environ['CP_NODES'])
     for count, node in enumerate(node_defs):
         ip = ipam[node['mac']]
         mgmt_ip = ipam[node['mgmt_mac']]
-        inv.add_host(node['name'], 'control_plane', ip,
-            mac_address=node['mac'],
-            mgmt_mac_address=node['mgmt_mac'],
-            mgmt_hostname=mgmt_ip,
-            ansible_ssh_user='core',
-            cp_node_id=count)
+        cp.add_host(node['name'], ip,
+           mac_address=node['mac'],
+           mgmt_mac_address=node['mgmt_mac'],
+           mgmt_hostname=mgmt_ip,
+           ansible_ssh_user='core',
+           cp_node_id=count)
+
+    virt = inv.add_group('virtual')
+    # VIRTUAL NODES
+    virt.add_host('bootstrap', 'virtual')
     ipam.save()
 
 
