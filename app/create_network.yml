@@ -2,7 +2,7 @@
 
 - import_playbook: util_vm_facts.yml
 
-- name: Initialize Network Services
+- name: Configure Cluster DNS and DHCP entries
   hosts: cluster
   gather_facts: no
   serial: 1
@@ -76,7 +76,7 @@
     - meta: flush_handlers
 
 
-- name: Initialize bastion DNS entries
+- name: Configure bastion DNS entries
   hosts: bastion_hosts
   gather_facts: no
   serial: 1
@@ -98,7 +98,7 @@
         - bastion
 
 
-- name: Initialize load balancer DNS entries
+- name: Configure load balancer DNS entries
   hosts: dns
   gather_facts: no
   serial: 1
@@ -132,7 +132,7 @@
         - loadbalancer
 
 
-- name: Initialize etcd DNS entries
+- name: Configure etcd DNS entries
   hosts: control_plane
   gather_facts: no
   serial: 1
