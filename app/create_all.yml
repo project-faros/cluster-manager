@@ -1,0 +1,7 @@
+#!/usr/bin/env ansible-playbook
+
+- import_playbook: create_machines.yml
+- import_playbook: create_network.yml
+- import_playbook: create_loadbalancer.yml
+- import_playbook: create_installrepos.yml
+#- import_playbook: create_cluster.yml
