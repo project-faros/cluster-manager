@@ -11,7 +11,6 @@ Available Commands:
     install-repos   Deploys the software/config source repos for install.
     cluster         Installs OpenShift onto the cluster nodes.
 """
-ALL_CMDS="all machines network load-balancer install-repos cluster"
 
 ## PARSE INPUTS
 if [ $# -ne 1 ]; then
@@ -24,36 +23,34 @@ cd /app
 source /data/config.sh
 
 ## EXECUTE
-for cmd in $cmds; do
-    case $cmd in
+case $1 in
 
-        "machines")
-            ansible-playbook /app/create_machines.yml || exit 1
-            ;;
+    "machines")
+        ansible-playbook /app/create_machines.yml || exit 1
+        ;;
 
-        "network")
-            ansible-playbook /app/create_network.yml || exit 1
-            ;;
+    "network")
+        ansible-playbook /app/create_network.yml || exit 1
+        ;;
 
-        "load-balancer")
-            ansible-playbook /app/create_loadbalancer.yml || exit 1
-            ;;
+    "load-balancer")
+        ansible-playbook /app/create_loadbalancer.yml || exit 1
+        ;;
 
-        "install-repos")
-            ansible-playbook /app/create_installrepos.yml || exit 1
-            ;;
+    "install-repos")
+        ansible-playbook /app/create_installrepos.yml || exit 1
+        ;;
 
-        "cluster")
-            echo "c nyi"
-            ;;
+    "cluster")
+        echo "c nyi"
+        ;;
 
-        "all")
-            ansible-playbook /app/create_all.yml || exit 1
-            ;;
+    "all")
+        ansible-playbook /app/create_all.yml || exit 1
+        ;;
 
-        *)
-            echo "$HELP"
-            exit 1
-            ;;
-    esac
-done
+    *)
+        echo "$HELP"
+        exit 1
+        ;;
+esac
