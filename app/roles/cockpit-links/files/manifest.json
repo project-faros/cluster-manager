@@ -1,0 +1,12 @@
+{
+    "version": 0,
+
+    "dashboard": {
+        "index": {
+            "label": "Faros",
+            "order": 130,
+            "icon": "pficon-connected"
+        }
+    }
+
+}

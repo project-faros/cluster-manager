@@ -7,3 +7,13 @@
 
   roles:
     - name: loadbalancer
+
+  post_tasks:
+    - name: create cockpit links
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: Load Balancer Stats
+            url: "http://{{ inventory_hostname }}.{{ cluster_name }}.{{ cluster_domain }}:8080/stats"
+            icon: pficon-route
