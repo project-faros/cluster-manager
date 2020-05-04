@@ -14,6 +14,6 @@
 
   roles:
     - name: virtual-machine
-      virtual_machine_hypervisor: '{{ groups.bastion_hosts.0 }}'
+      virtual_machine_hypervisor: '{{ mgmt_hostname }}'
       virtual_machine_network: bridge=farosbr0
       virtual_machine_disk: size=100,format=qcow2

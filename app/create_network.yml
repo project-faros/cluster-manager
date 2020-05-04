@@ -121,7 +121,6 @@
         - dns
         - bastion
 
-
 - name: Configure load balancer DNS entries
   hosts: dns
   gather_facts: no

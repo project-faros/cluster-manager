@@ -6,10 +6,11 @@ from PyInquirer import Token, prompt, Separator
 
 CONFIG_PATH = '/data/config.sh'
 CONFIG_FOOTER = ''
-MGMT_PROVIDERS = ['ilo']
 
 
 def password_repr(password):
+    if not password:
+        return ''
     return '*********'
 
 
@@ -213,17 +214,21 @@ class configurator(object):
         self.dns = ParameterCollection('dns', 'Cluster DNS Configuration', [
             ChoiceParameter('DNS_PROVIDER', 'DNS Provider', dns_providers),
             Parameter('DNS_HOST_NAME', 'DNS Host Name'),
-            Parameter('DNS_CREDENTIALS', 'DNS Credentials')])
+            Parameter('DNS_USER', 'DNS Admin User'),
+            Parameter('DNS_PASSWORD', 'DNS Admin Password', password_repr)])
         self.dhcp = ParameterCollection('dhcp', 'Cluster DHCP Configuration', [
             ChoiceParameter('DHCP_PROVIDER', 'DHCP Provider', dhcp_providers),
             Parameter('DHCP_HOST_NAME', 'DHCP Host Name'),
-            Parameter('DHCP_CREDENTIALS', 'DHCP Credentials')])
+            Parameter('DHCP_USER', 'DHCP Admin User'),
+            Parameter('DHCP_PASSWORD', 'DHCP Admin Password', password_repr)])
         self.architecture = ParameterCollection('architecture', 'Cluster Architecture', [
             ChoiceParameter('MGMT_PROVIDER', 'Machine Management Provider', mgmt_providers),
+            Parameter('MGMT_USER', 'Machine Management User', password_repr),
+            Parameter('MGMT_PASSWORD', 'Machine Management Password', password_repr),
             Parameter('IP_POOL', 'Static IP Address Pool'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
-                 ('mgmt_mac', 'Management MAC Address'), ('mgmt_credentials', 'Management Credentials')])])
+                 ('mgmt_mac', 'Management MAC Address')])])
 
     def _main_menu(self):
         question = [
@@ -281,12 +286,15 @@ def main():
     dns_providers = ['.'.join(item.split('.')[:-1])
                      for item in
                      next(os.walk('/app/providers/dns/tasks'))[2]]
+    mgmt_providers = ['.'.join(item.split('.')[:-1])
+                      for item in
+                      next(os.walk('/app/providers/management/tasks/netboot'))[2]]
     return configurator(
             CONFIG_PATH,
             CONFIG_FOOTER,
             dns_providers,
             dhcp_providers,
-            MGMT_PROVIDERS).configurate()
+            mgmt_providers).configurate()
 
 
 if __name__ == "__main__":

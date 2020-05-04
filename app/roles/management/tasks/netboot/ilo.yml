@@ -1,0 +1,8 @@
+- name: network boot ilo servers
+  hpilo_boot:
+    host: "{{ management_hostname }}"
+    login: "{{ management_user }}"
+    password: "{{ management_pass }}"
+    media: network
+    state: boot_once
+  delegate_to: localhost

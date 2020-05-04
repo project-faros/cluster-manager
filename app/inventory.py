@@ -127,6 +127,8 @@ def main():
         user_password=os.environ['USER_PASSWORD'],
         pull_secret=json.loads(os.environ['PULL_SECRET']),
         mgmt_provider=os.environ['MGMT_PROVIDER'],
+        mgmt_user=os.environ['MGMT_USER'],
+        mgmt_password=os.environ['MGMT_PASSWORD'],
         install_disk='sda')
 
     infra = inv.add_group('infra')
@@ -140,14 +142,14 @@ def main():
     infra.add_host('dns',
           os.environ['DNS_HOST_NAME'],
           provider=os.environ['DNS_PROVIDER'],
-          credentials=os.environ['DNS_CREDENTIALS'],
-          ansible_ssh_user=os.environ['DNS_CREDENTIALS'].split(':', 1)[0])
+          password=os.environ['DNS_PASSWORD'],
+          ansible_ssh_user=os.environ['DNS_USER'])
     # DHCP NODE
     infra.add_host('dhcp',
           os.environ['DHCP_HOST_NAME'],
           provider=os.environ['DHCP_PROVIDER'],
-          credentials=os.environ['DHCP_CREDENTIALS'],
-          ansible_ssh_user=os.environ['DHCP_CREDENTIALS'].split(':', 1)[0])
+          password=os.environ['DHCP_PASSWORD'],
+          ansible_ssh_user=os.environ['DHCP_USER'])
 
     cluster = inv.add_group('cluster')
     ipam = IPAddressManager(
@@ -171,7 +173,10 @@ def main():
            ansible_ssh_user='core',
            cp_node_id=count)
 
-    virt = inv.add_group('virtual', mgmt_provider='kvm', install_disk='vda')
+    virt = inv.add_group('virtual',
+            mgmt_provider='kvm',
+            mgmt_hostname='bastion',
+            install_disk='vda')
     # VIRTUAL NODES
     virt.add_host('bootstrap')
     ipam.save()

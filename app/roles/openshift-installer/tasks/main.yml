@@ -27,16 +27,10 @@
 - name: get cluster cert age
   shell: >
     expr $(date '+%s') -
-    $(stat -c '%Y' "{{ openshift_installer_dir }}/.openshift_install_state.json")
+    $(stat -c '%Y' "{{ openshift_installer_dir }}/.config_birth")
     || echo '9999999'
   register: cluster_cert_age
   changed_when: cluster_cert_age.stdout | int > 86400
-
-- name: remove expired cluster certs
-  file:
-    path: "{{ openshift_installer_dir }}/.openshift_install_state.json"
-    state: absent
-  when: cluster_cert_age is changed
 
 - name: create cluster install config
   template:
@@ -46,7 +40,9 @@
 
 - name: create ignition files
   shell: >
-    rm {{ openshift_installer_dir }}/.openshift_install_state.json;
+    rm -f {{ openshift_installer_dir }}/.openshift_install_state.json &&
+    rm -f {{ openshift_installer_dir }}/.config_birth &&
     {{ openshift_installer_dir }}/openshift-install create ignition-configs
-    --dir={{ openshift_installer_dir }}
+    --dir={{ openshift_installer_dir }} &&
+    touch {{ openshift_installer_dir }}/.config_birth
   when: install_config is changed or cluster_cert_age is changed

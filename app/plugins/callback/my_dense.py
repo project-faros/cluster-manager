@@ -1,86 +1,25 @@
-# (c) 2016, Dag Wieers <dag@wieers.com>
-# (c) 2017 Ansible Project
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# sourced from dense callback plugin in Ansible 2.9
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-DOCUMENTATION = '''
-callback: dense
-type: stdout
-short_description: minimal stdout output
-extends_documentation_fragment:
-- default_callback
-description:
-- When in verbose mode it will act the same as the default callback
-author:
-- Dag Wieers (@dagwieers)
-version_added: "2.3"
-requirements:
-- set as stdout in configuation
-'''
+DOCUMENTATION = ''
 
-HAS_OD = False
-try:
-    from collections import OrderedDict
-    HAS_OD = True
-except ImportError:
-    pass
+from collections import OrderedDict
+import sys
 
 from ansible.module_utils.six import binary_type, text_type
 from ansible.module_utils.common._collections_compat import MutableMapping, MutableSequence
 from ansible.plugins.callback.default import CallbackModule as CallbackModule_default
 from ansible.utils.color import colorize, hostcolor
 from ansible.utils.display import Display
+from ansible.vars import clean as ansible_clean_module
+from ansible import constants as C
 
-import sys
-
-display = Display()
-
-
-# Design goals:
-#
-#  + On screen there should only be relevant stuff
-#    - How far are we ? (during run, last line)
-#    - What issues occurred
-#    - What changes occurred
-#    - Diff output (in diff-mode)
-#
-#  + If verbosity increases, act as default output
-#    So that users can easily switch to default for troubleshooting
-#
-#  + Rewrite the output during processing
-#    - We use the cursor to indicate where in the task we are.
-#      Output after the prompt is the output of the previous task.
-#    - If we would clear the line at the start of a task, there would often
-#      be no information at all, so we leave it until it gets updated
-#
-#  + Use the same color-conventions of Ansible
-#
-#  + Ensure the verbose output (-v) is also dense.
-#    Remove information that is not essential (eg. timestamps, status)
-
-
-# TODO:
-#
-#  + Properly test for terminal capabilities, and fall back to default
-#  + Modify Ansible mechanism so we don't need to use sys.stdout directly
-#  + Find an elegant solution for progress bar line wrapping
-
-
-# FIXME: Importing constants as C simply does not work, beats me :-/
-# from ansible import constants as C
-class C:
-    COLOR_HIGHLIGHT = 'white'
-    COLOR_VERBOSE = 'blue'
-    COLOR_WARN = 'bright purple'
-    COLOR_ERROR = 'red'
-    COLOR_DEBUG = 'dark gray'
-    COLOR_DEPRECATE = 'purple'
-    COLOR_SKIP = 'cyan'
-    COLOR_UNREACHABLE = 'bright red'
-    COLOR_OK = 'green'
-    COLOR_CHANGED = 'yellow'
+class DisplayNoWarning(Display):
+    def warning(self, msg, formatted=False):
+        pass
+display = DisplayNoWarning()
 
 
 # Taken from Dstat
@@ -118,7 +57,6 @@ class vt100:
     underline = '\033[4m'
 
     clear = '\033[2J'
-#    clearline = '\033[K'
     clearline = '\033[2K'
     save = '\033[s'
     restore = '\033[u'
@@ -156,42 +94,37 @@ class CallbackModule(CallbackModule_default):
     CALLBACK_NAME = 'dense'
 
     def __init__(self):
-
         # From CallbackModule
         self._display = display
+        ansible_clean_module.display = DisplayNoWarning()
 
-        if HAS_OD:
+        self.disabled = False
+        self.super_ref = super(CallbackModule, self)
+        self.super_ref.__init__()
 
-            self.disabled = False
-            self.super_ref = super(CallbackModule, self)
-            self.super_ref.__init__()
+        # Attributes to remove from results for more density
+        self.removed_attributes = (
+            #                'changed',
+            'delta',
+            #                'diff',
+            'end',
+            'failed',
+            'failed_when_result',
+            'invocation',
+            'start',
+            'stdout_lines',
+        )
 
-            # Attributes to remove from results for more density
-            self.removed_attributes = (
-                #                'changed',
-                'delta',
-                #                'diff',
-                'end',
-                'failed',
-                'failed_when_result',
-                'invocation',
-                'start',
-                'stdout_lines',
-            )
+        # Initiate data structures
+        self.hosts = OrderedDict()
+        self.keep = False
+        self.shown_title = False
+        self.count = dict(play=0, handler=0, task=0)
+        self.type = 'foo'
 
-            # Initiate data structures
-            self.hosts = OrderedDict()
-            self.keep = False
-            self.shown_title = False
-            self.count = dict(play=0, handler=0, task=0)
-            self.type = 'foo'
-
-            # Start immediately on the first line
-            sys.stdout.write(vt100.reset + vt100.save + vt100.clearline)
-            sys.stdout.flush()
-        else:
-            display.warning("The 'dense' callback plugin requires OrderedDict which is not available in this version of python, disabling.")
-            self.disabled = True
+        # Start immediately on the first line
+        sys.stdout.write(vt100.reset + vt100.save + vt100.clearline)
+        sys.stdout.flush()
 
     def __del__(self):
         sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)
@@ -222,12 +155,6 @@ class CallbackModule(CallbackModule_default):
         if status in ['failed']:
             self._display_task_banner()
             self._display_error_results(result, status)
-
-#        # Ensure that tasks with changes/failures stay on-screen, and during diff-mode
-#        if status in ['changed', 'failed', 'unreachable'] or (result.get('_diff_mode', False) and result._resultget('diff', False)):
-        # Ensure that tasks with changes/failures stay on-screen
-        #if status in []: #['changed', 'failed', 'unreachable']:
-            #self.keep = True
 
         if self._display.verbosity == 1:
             # Print task title, if needed
@@ -404,8 +331,9 @@ class CallbackModule(CallbackModule_default):
 
         # Write the next task on screen (behind the prompt is the previous output)
         #sys.stdout.write('%s %d.' % (self.type, self.count[self.type]))
-        #sys.stdout.write(vt100.reset)
-        #sys.stdout.flush()
+        sys.stdout.write('%s: ' % (self.task.get_name().strip()))
+        sys.stdout.write(vt100.reset)
+        sys.stdout.flush()
 
     def v2_playbook_on_handler_task_start(self, task):
         # Leave the previous task on screen (as it has changes/errors)
@@ -487,6 +415,12 @@ class CallbackModule(CallbackModule_default):
     def v2_runner_item_on_skipped(self, result):
         self._add_host(result, 'skipped')
 
+    def v2_runner_retry(self, result):
+        pass
+
+    def v2_runner_on_start(self, host, task):
+        pass
+
     def v2_playbook_on_no_hosts_remaining(self):
         if self._display.verbosity == 0 and self.keep:
             sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)
@@ -499,6 +433,10 @@ class CallbackModule(CallbackModule_default):
         sys.stdout.flush()
 
     def v2_playbook_on_include(self, included_file):
+        # hide all retry messages
+        pass
+    def _handle_warnings(self, res):
+        # hide all warnings
         pass
 
     def v2_playbook_on_stats(self, stats):
@@ -506,6 +444,13 @@ class CallbackModule(CallbackModule_default):
             sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)
         else:
             sys.stdout.write(vt100.restore + vt100.reset + vt100.clearline)
+
+        # print post message
+        post_message = stats.custom.get('_run', {}).get('post_message')
+        if post_message:
+            for line in post_message:
+                self._display.display('\n')
+                self._display.display(line)
 
         # In normal mode screen output should be sufficient, summary is redundant
         if self._display.verbosity == 0:
@@ -516,7 +461,6 @@ class CallbackModule(CallbackModule_default):
 
         sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)
         sys.stdout.flush()
-
         hosts = sorted(stats.processed.keys())
         for h in hosts:
             t = stats.summarize(h)
@@ -535,6 +479,6 @@ class CallbackModule(CallbackModule_default):
 
 
 # When using -vv or higher, simply do the default action
-if display.verbosity >= 2 or not HAS_OD:
+if display.verbosity >= 2:
     CallbackModule = CallbackModule_default
 
