@@ -226,13 +226,13 @@ class CallbackModule(CallbackModule_default):
 #        # Ensure that tasks with changes/failures stay on-screen, and during diff-mode
 #        if status in ['changed', 'failed', 'unreachable'] or (result.get('_diff_mode', False) and result._resultget('diff', False)):
         # Ensure that tasks with changes/failures stay on-screen
-        if status in []: #['changed', 'failed', 'unreachable']:
-            self.keep = True
+        #if status in []: #['changed', 'failed', 'unreachable']:
+            #self.keep = True
 
-            if self._display.verbosity == 1:
-                # Print task title, if needed
-                self._display_task_banner()
-                self._display_results(result, status)
+        if self._display.verbosity == 1:
+            # Print task title, if needed
+            self._display_task_banner()
+            self._display_results(result, status)
 
     def _clean_results(self, result):
         # Remove non-essential atributes
@@ -299,7 +299,10 @@ class CallbackModule(CallbackModule_default):
         self._clean_results(result._result)
 
         dump = ''
-        dump = result._result.get('msg', '')
+        error_msg = result._result.get('msg')
+        loop_error_msg = result._result.get('item', {}).get('msg')
+        full_error = str(result._result)
+        dump = error_msg or loop_error_msg or full_error
 
         if result._task.loop and 'results' in result._result:
             self._process_items(result)
@@ -376,7 +379,7 @@ class CallbackModule(CallbackModule_default):
         name = play.get_name().strip()
         if not name:
             name = 'unnamed'
-        sys.stdout.write('PLAY %d: %s' % (self.count['play'], name.upper()))
+        sys.stdout.write('STEP %d: %s' % (self.count['play'], name.upper()))
         sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)
         sys.stdout.flush()
 
@@ -400,9 +403,9 @@ class CallbackModule(CallbackModule_default):
             self.count['task'] += 1
 
         # Write the next task on screen (behind the prompt is the previous output)
-        sys.stdout.write('%s %d.' % (self.type, self.count[self.type]))
-        sys.stdout.write(vt100.reset)
-        sys.stdout.flush()
+        #sys.stdout.write('%s %d.' % (self.type, self.count[self.type]))
+        #sys.stdout.write(vt100.reset)
+        #sys.stdout.flush()
 
     def v2_playbook_on_handler_task_start(self, task):
         # Leave the previous task on screen (as it has changes/errors)
