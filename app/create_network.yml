@@ -21,6 +21,27 @@
 
     - meta: flush_handlers
 
+    - name: setup dns
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dns.provider }}.yml"
+        tasks_from: "{{ hostvars.dns.provider }}.yml"
+        vars_from: "{{ hostvars.dns.provider }}.yml"
+      vars:
+        dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      tags:
+        - dns
+        - cluster
+
+    - meta: flush_handlers
+
+- name: Configure Cluster Management DNS and DHCP entries
+  hosts: cluster:!virtual
+  gather_facts: no
+  serial: 1
+
+  tasks:
     - name: setup mgmt dhcp
       include_role:
         name: dhcp
@@ -37,21 +58,6 @@
         - mgmt_mac_address is defined
       tags:
         - dhcp
-        - cluster
-
-    - meta: flush_handlers
-
-    - name: setup dns
-      include_role:
-        name: dns
-        defaults_from: "main.yml"
-        handlers_from: "{{ hostvars.dns.provider }}.yml"
-        tasks_from: "{{ hostvars.dns.provider }}.yml"
-        vars_from: "{{ hostvars.dns.provider }}.yml"
-      vars:
-        dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
-      tags:
-        - dns
         - cluster
 
     - meta: flush_handlers
@@ -75,6 +81,24 @@
 
     - meta: flush_handlers
 
+- name: Add Management Links to Cockpit
+  hosts: bastion_hosts
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: create cockpit links
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: "{{ machine_name }} Management"
+            url: "https://{{ machine_name }}-mgmt.{{ cluster_name }}.{{ cluster_domain }}"
+            icon: pficon-container-node
+      loop: "{{ groups.cluster }}"
+      loop_control:
+        loop_var: machine_name
+      when: "machine_name not in groups.virtual"
 
 - name: Configure bastion DNS entries
   hosts: bastion_hosts
