@@ -8,10 +8,12 @@ COPY home /root
 COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
-RUN microdnf install python3 jq openssh-clients tar; \
-    #microdnf install gcc python3-devel; \
+RUN microdnf install python3 jq openssh-clients tar wget; \
     pip3 install -r /requirements.txt; \
-    #microdnf remove gcc python3-devel; \
+    cd /usr/bin; \
+    wget -O oc.tgz https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz; \
+    tar xvzf oc.tgz; \
+    microdnf remove wget; \
     microdnf update; \
     rm -rf /var/cache/yum;
 

@@ -8,7 +8,7 @@ UPSTREAM=$(shell cat upstream.txt)
 
 build: clean _build_app
 _build_app:
-	podman build --pull -t $(IMAGE):dev .
+	podman build --rm --pull -t $(IMAGE):dev .
 
 clean: clean_container clean_app_image
 clean_container:
