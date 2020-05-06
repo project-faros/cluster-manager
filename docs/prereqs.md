@@ -56,7 +56,8 @@ server, a web server (http), the cluster load balancer (haproxy), a virtual
 bootstrap server, and a cluster control interface (cockpit).
 
 The bastion node should be a physical node in your cluster. To prepare it,
-simply install RHEL or CentOS 8. EL7 should work as well, but it is not tested.
+simply install RHEL or CentOS 8 using the standard server software packages. 
+RHEL 7 and CentOS 7 should work as well, but they are not tested.
 You may use the default install, but you should set a static IP address during
 the install process. The IP address should be in your subnet but outside of
 the DHCP range and outside the range you will give to Faros. The hostname for
@@ -81,7 +82,7 @@ Once the server has rebooted, connect to it and run the following command to
 install Faros.
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/project-faros/cluster-manager/master/bin/bootstrap-bastion.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/project-faros/cluster_manager/master/bin/bootstrap-bastion.sh)"
 ```
 
 The installer will first have you log in with the user's
