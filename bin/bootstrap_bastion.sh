@@ -2,7 +2,6 @@
 
 # contstants
 # these should be true provided instructions are followed
-CONFIG_DIR='~/.config/faros'
 REPO="https://raw.githubusercontent.com/redhat-faros/deployer/master"
 OC="https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz"
 SELINUX_MODULE="""
@@ -106,9 +105,9 @@ echo 'Installing SSH Keys'
 cp "$privkey" ~/.ssh/id_rsa
 cp "$pubkey" ~/.ssh/id_rsa.pub
 chmod 600 ~/.ssh/id_rsa*
-mkdir -p $CONFIG_DIR/default
-cp "$privkey" $CONFIG_DIR/default
-cp "$pubkey" $CONFIG_DIR/default
+mkdir -p ~/.config/faros/default
+cp "$privkey" ~/.config/faros/default
+cp "$pubkey" ~/.config/faros/default
 
 ## install dependencies
 echo 'Installing Dependencies'
