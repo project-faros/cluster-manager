@@ -145,14 +145,14 @@ function main() {
             update $@
             exit $?
             ;;
-        "context")
-            context $@
-            exit $?
-            ;;
-        "run")
-            run $@
-            exit $?
-            ;;
+        # "context")
+        #     context $@
+        #     exit $?
+        #     ;;
+        # "run")
+        #     run $@
+        #     exit $?
+        #     ;;
         "shell")
             run -it /bin/bash
             exit $?
@@ -161,21 +161,21 @@ function main() {
             dir
             exit $?
             ;;
-        "forget")
-            forget $@
-            exit $?
-            ;;
+        # "forget")
+        #     forget $@
+        #     exit $?
+        #     ;;
         "help")
             commands="$(_app_cmds)"
 
             echo "Usage: $0 COMMAND ..."
             echo ""
             echo "Basic Commands:"
-            echo "    context [NAME]: Check current context, create a new context, or switch contexts."
-            echo "    dir: Print the current context storage directory"
-            echo "    forget CONTEXT: Forget and delete the specified context"
+            # echo "    context [NAME]: Check current context, create a new context, or switch contexts."
+            echo "    dir: Print the cluster context storage directory"
+            # echo "    forget CONTEXT: Forget and delete the specified context"
             echo "    help: Print this text"
-            echo "    run CMD [ARGS]: Run a raw shell command in the application namespace"
+            # echo "    run CMD [ARGS]: Run a raw shell command in the application namespace"
             echo "    shell: Start an interactive bash shell in the application namespace"
             echo "    update: Update this application"
             echo ""
