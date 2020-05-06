@@ -17,6 +17,13 @@ require {
 allow container_t fusefs_t:file relabelto;
 """
 
+function die() {
+echo -e "\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" >&2
+echo "$1" >&2
+echo -e "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n" >&2
+exit 1
+}
+
 function _validate() {
 # validate inputs
 if [[ $1 == "pubkey" ]]; then
@@ -72,53 +79,52 @@ if [ $(getenforce) == "Enforcing" ]; then
         mkdir -p /tmp/faros_install
         cd /tmp/faros_install
         echo "$SELINUX_MODULE" > "$te"
-        sudo checkmodule -M -m -o "$mod" "$te" && sudo semodule_package -o "$pp" -m "$mod" && sudo semodule -i "$pp"
+        sudo checkmodule -M -m -o "$mod" "$te" && sudo semodule_package -o "$pp" -m "$mod" && sudo semodule -i "$pp" || die "Error configuring SELinux"
 	cd -
         rm -rf /tmp/faros_install
     else
-        echo 'Sudo is requried when installing on a machine with SELinux enabled.' >&2
-        exit 1
+        die 'Sudo is requried when installing on a machine with SELinux enabled.'
     fi
 fi
 
 ## configure cockpit
 if [ $can_sudo -eq 0 ]; then
     echo 'Configure cockpit'
-    sudo yum install -y cockpit cockpit-podman cockpit-system
-    sudo systemctl start cockpit.socket
-    sudo systemctl enable cockpit.socket
+    sudo yum install -y cockpit cockpit-podman cockpit-system || die "Error installing cockpit"
+    sudo systemctl start cockpit.socket || die "Error starting cockpit"
+    sudo systemctl enable cockpit.socket || die "Error enabling cockpit"
 fi
 
 ## ensure podman is installed
 if ! rpm -qa | grep -Po '^podman-\d' &> /dev/null; then
     if [ $can_sudo -eq 0 ]; then
         echo 'Install Podman'
-        sudo yum install -y podman
+        sudo yum install -y podman || die "Error installing podman"
     else
-        echo 'Sudo is required to install podman.' >&2
-        exit 1
+        die 'Sudo is required to install podman.'
     fi
 fi
 
 ## copy files
 echo 'Installing SSH Keys'
-cp "$privkey" ~/.ssh/id_rsa
-cp "$pubkey" ~/.ssh/id_rsa.pub
-chmod 600 ~/.ssh/id_rsa*
-mkdir -p ~/.config/faros/default
-cp "$privkey" ~/.config/faros/default
-cp "$pubkey" ~/.config/faros/default
+cp "$privkey" ~/.ssh/id_rsa || die "Error installing SSH keys."
+cp "$pubkey" ~/.ssh/id_rsa.pub || die "Error installing SSH keys."
+chmod 600 ~/.ssh/id_rsa* || die "Error installing SSH keys."
+mkdir -p ~/.config/faros/default || die "Error installing SSH keys."
+cp "$privkey" ~/.config/faros/default || die "Error installing SSH keys."
+cp "$pubkey" ~/.config/faros/default || die "Error installing SSH keys."
 
-## install dependencies
-echo 'Installing Dependencies'
-mkdir -p ~/bin
-cd ~/bin
-wget -O ~/bin/farosctl $REPO/bin/farosctl
-chmod +x ~/bin/farosctl
-wget -O ~/bin/oc.tgz $OC
-tar xvzf oc.tgz
-cd -
+## install faros
+echo 'Installing Faros'
+mkdir -p ~/bin || die "Error installing Faros"
+cd ~/bin || die "Error installing Faros"
+wget -O ~/bin/farosctl $REPO/bin/farosctl || die "Error installing Faros"
+chmod +x ~/bin/farosctl || die "Error installing Faros"
+wget -O ~/bin/oc.tgz $OC || die "Error installing Faros"
+tar xvzf oc.tgz || die "Error installing Faros"
+cd - || die "Error installing Faros"
 
+echo -e '\n\nFAROS INSTALLATION COMPLETED SUCCESSFULLY\n\n'
 }
 
 
