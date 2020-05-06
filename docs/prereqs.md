@@ -82,7 +82,7 @@ Once the server has rebooted, connect to it and run the following command to
 install Faros.
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/project-faros/cluster_manager/master/bin/bootstrap-bastion.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/project-faros/cluster-manager/master/bin/bootstrap_bastion.sh)"
 ```
 
 The installer will first have you log in with the user's
