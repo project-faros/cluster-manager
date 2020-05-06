@@ -74,6 +74,7 @@ if [ $(getenforce) == "Enforcing" ]; then
         cd /tmp/faros_install
         echo "$SELINUX_MODULE" > "$te"
         sudo checkmodule -M -m -o "$mod" "$te" && sudo semodule_package -o "$pp" -m "$mod" && sudo semodule -i "$pp"
+	cd -
         rm -rf /tmp/faros_install
     else
         echo 'Sudo is requried when installing on a machine with SELinux enabled.' >&2
@@ -117,7 +118,7 @@ wget -O ~/bin/farosctl $REPO/bin/farosctl
 chmod +x ~/bin/farosctl
 wget -O ~/bin/oc.tgz $OC
 tar xvzf oc.tgz
-
+cd -
 
 }
 
