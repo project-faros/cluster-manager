@@ -1,4 +1,4 @@
-# Project Faros [![Docker Repository on Quay](https://quay.io/repository/faros/cluster-manager/status "Docker Repository on Quay")](https://quay.io/repository/faros/cluster-manager
+# Project Faros [![Docker Repository on Quay](https://quay.io/repository/faros/cluster-manager/status "Docker Repository on Quay")](https://quay.io/repository/faros/cluster-manager)
 
 Project Faros is a reference implimentation of Red Hat OpenShift 4 on small,
 bare-metal clusters. The project includes reference architectures and automated
