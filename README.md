@@ -25,6 +25,8 @@ farosctl create machines
 # Configure network infrastructure (DNS and DHCP)
 farosctl create network
 
+# Reboot out-of-band controllers to ensure they pick up their assigned IPs.
+
 # Create the cluster load balancer
 farosctl create load-balancer
 
