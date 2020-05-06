@@ -22,6 +22,10 @@ publish:
 	podman push $(UPSTREAM)/$(IMAGE):$(VERS)
 	podman push $(UPSTREAM)/$(IMAGE):latest
 
+publish_dev:
+	podman image tag $(IMAGE):dev $(UPSTREAM)/$(IMAGE):dev
+	podman push $(UPSTREAM)/$(IMAGE):dev
+
 run:
 	podman run --name "$(NAME)" -it $(IMAGE):dev || podman start -ia "$(NAME)"
 

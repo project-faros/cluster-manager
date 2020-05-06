@@ -42,7 +42,7 @@ case $1 in
         ;;
 
     "cluster")
-        echo "c nyi"
+        ansible-playbook /app/create_cluster.yml || exit 1
         ;;
 
     "all")

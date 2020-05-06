@@ -71,7 +71,7 @@
   notify: restart networking
 
 - name: check virtualization bridge child facts
-  shell: nmcli con mod bridge-slave-{{ hypervisor_network_interface }} "{{ key }}" "{{ target }}"
+  shell: nmcli con mod bridge-slave-{{ hypervisor_network_interface }} "{{ item.key }}" "{{ item.target }}"
   loop:
     - key: connection.interface-name
       target: "{{ hypervisor_network_interface }}"
@@ -92,7 +92,7 @@
     default_facts: "{{ default_check.stdout | from_yaml_all | list }}"
 
 - name: migrate existing ipv4 settings to network bridge
-  shell: nmcli con mod farosbr0 "{{ item }}" "{{ default_facts[item] }}"
+  shell: nmcli con mod farosbr0 "{{ item }}" "{{ default_facts[0][item] }}"
   loop:
     - ipv4.method
     - ipv4.dns
@@ -102,14 +102,13 @@
     - ipv4.addresses
     - ipv4.gateway
   when:
-    - br_facts == []
-    - default_facts[0][key] != br_facts[0][key]
+    - br_facts == [] or default_facts[0][item] != br_facts[0][item]
   notify: restart networking
   # shell alternative:
   #   nmcli -f ipv4 con sh eno1 | grep -v '\-\-' | sed 's/(.*)//g;s/: */ /g;s/\n/ /g' | tr '\n' ' ' | xargs nmcli con mod farosbr0
 
 - name: disable the default interface
-  shell: nmcli con mod {{ hypervisor_network_interface }} "{{ key }}" "{{ target }}"
+  shell: nmcli con mod {{ hypervisor_network_interface }} "{{ item.key }}" "{{ item.target }}"
   loop:
     - key: connection.autoconnect
       target: no
