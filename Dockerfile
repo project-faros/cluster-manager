@@ -10,7 +10,7 @@ COPY version.txt /version.txt
 
 RUN microdnf install python3 jq openssh-clients tar wget; \
     pip3 install -r /requirements.txt; \
-    chmod -Rv g-rwx /home/.ssh; chmod -Rv o-rwx /home/.ssh; \
+    chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
     cd /usr/bin; \
     wget -O oc.tgz https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz; \
     tar xvzf oc.tgz; \
