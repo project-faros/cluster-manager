@@ -1,0 +1,46 @@
+#!/usr/bin/env ansible-playbook
+- name: cold start the cluster control plane
+  hosts: control_plane
+  gather_facts: no
+  become: no
+
+  tasks:
+    - include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweron/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ mgmt_user }}"
+        management_pass: "{{ mgmt_password }}"
+      register: poweron
+
+    - name: wait for 3 minutes for nodes to come back up
+      pause:
+        minutes: 3
+      when: poweron is changed
+
+    - name: wait for control plane nodes to come back
+      wait_for_connection:
+
+    - name: get pending CSRs
+      k8s_info:
+        kubeconfig: /data/openshift-installer/auth/kubeconfig
+        api_version: certificates.k8s.io/v1beta1
+        kind: CertificateSigningRequest
+      register: get_csr
+      delegate_to: localhost
+      run_once: yes
+
+    - name: approve pending CSRs
+      shell: >
+        oc --kubeconfig='/data/openshift-installer/auth/kubeconfig'
+        adm certificate approve "{{ item.metadata.name }}"
+      loop: "{{ get_csr.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+      when: item.status.conditions[0].type | default("") != "Approved"
+      delegate_to: localhost
+      run_once: yes
