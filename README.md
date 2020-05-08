@@ -55,3 +55,29 @@ farosctl oc get nodes
 
 Any of the `oc` commands can be executed this way. They will be run as the
 default `kubeadmin` user.
+
+## Starting and Stopping the Cluster
+
+Before shutting down the cluster, it should be left powered on for at least 25
+hours. This gives the bootstrap certificate authority time to rotate the
+certificates used to verify node identity. The initial bootstrap CA is only
+valid for 24 hours.
+
+After the first 25 hours, the cluster can be safely shutdown. However, the
+cluster should be powered on inside of every 30 days to allow the certs to be
+rotated. The standard cluster CA certificates are only valid for 30 days.
+
+*This is very important! If the certificates are allowed to expire, your
+cluster will be unrecoverable!*
+
+```bash
+# Safely bring down the cluster
+farosctl shutdown
+
+# Once the cluster has stopped, the bastion node can be shutdown
+poweroff
+
+# To bring the cluster back up, first power on the bastion node
+# Then, bring the cluster up and restore operations
+farosctl startup
+```
