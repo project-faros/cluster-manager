@@ -2,6 +2,7 @@
   k8s:
     kubeconfig: /data/openshift-installer/auth/kubeconfig
     state: present
+    force: yes
     definition:
       apiVersion: apps/v1
       kind: DaemonSet
@@ -130,6 +131,14 @@
 - name: wait for operators to trigger repair
   pause:
     seconds: 30
+
+- name: scale down bootstrap credential manager
+  k8s:
+    kubeconfig: /data/openshift-installer/auth/kubeconfig
+    state: absent
+    namespace: openshift-machine-config-operator
+    kind: DaemonSet
+    name: kubelet-bootstrap-cred-manager
 
 - name: wait for cluster operators to recover
   k8s_info:
