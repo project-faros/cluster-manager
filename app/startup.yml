@@ -17,13 +17,49 @@
         management_pass: "{{ mgmt_password }}"
       register: poweron
 
-    - name: wait for 3 minutes for nodes to come back up
+    - name: wait 3 minutes for nodes to come back up
       pause:
         minutes: 3
       when: poweron is changed
 
     - name: wait for control plane nodes to come back
       wait_for_connection:
+
+- name: restart the cluster
+  hosts: localhost
+  gather_facts: no
+  become: no
+
+  tasks:
+    - name: wait for cluster to be responsive
+      shell: >
+        oc --kubeconfig='/data/openshift-installer/auth/kubeconfig'
+        get nodes
+      register: get_nodes
+      until: get_nodes is not failed
+      retries: 60
+      delay: 5
+      delegate_to: localhost
+      become: no
+      run_once: yes
+      changed_when: no
+
+    - name: wait 1 minute for the cluster operators to start healing
+      pause:
+        minutes: 1
+
+    - name: wait for cluster operators to recover
+      k8s_info:
+        kubeconfig: /data/openshift-installer/auth/kubeconfig
+        api_version: config.openshift.io/v1
+        kind: ClusterOperator
+      register: get_co
+      until: get_co.resources | ClusterOpCheck
+      retries: 60
+      delay: 5
+      delegate_to: localhost
+      become: no
+      run_once: yes
 
     - name: get pending CSRs
       k8s_info:

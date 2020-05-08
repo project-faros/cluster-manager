@@ -107,6 +107,16 @@
   # shell alternative:
   #   nmcli -f ipv4 con sh eno1 | grep -v '\-\-' | sed 's/(.*)//g;s/: */ /g;s/\n/ /g' | tr '\n' ' ' | xargs nmcli con mod farosbr0
 
+- name: ensure no dhcp booting
+  shell: nmcli con mod farosbr0 "{{ key }}" "{{ target }}"
+  loop:
+    - key: ipv4.method
+      target: manual
+  when:
+    - br_facts != []
+    - br_facts[0][item.key] != item.target
+  notify: restart networking
+
 - name: disable the default interface
   shell: nmcli con mod {{ hypervisor_network_interface }} "{{ item.key }}" "{{ item.target }}"
   loop:

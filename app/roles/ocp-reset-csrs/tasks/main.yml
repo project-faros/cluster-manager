@@ -127,7 +127,7 @@
   delegate_to: localhost
   become: no
 
-- name: wait for operators to repair
+- name: wait for operators to trigger repair
   pause:
     seconds: 30
 
