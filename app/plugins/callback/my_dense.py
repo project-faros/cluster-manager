@@ -479,6 +479,6 @@ class CallbackModule(CallbackModule_default):
 
 
 # When using -vv or higher, simply do the default action
-if display.verbosity >= 0:
+if display.verbosity >= 2:
     CallbackModule = CallbackModule_default
 
