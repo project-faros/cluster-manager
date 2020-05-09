@@ -6,3 +6,6 @@ dnspython==1.16.0
 
 # for management/ilo provider
 python-hpilo==4.3
+
+# For Kubernetes cluster control
+openshift==0.11.0

@@ -86,7 +86,6 @@
         vars_from: "{{ mgmt_provider }}.yml"
         handlers_from: "{{ mgmt_provider }}.yml"
       vars:
-        management_action: netboot
         management_hostname: "{{ mgmt_hostname }}"
         management_user: "{{ mgmt_user }}"
         management_pass: "{{ mgmt_password }}"

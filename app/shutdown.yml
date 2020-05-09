@@ -1,0 +1,26 @@
+#!/usr/bin/env ansible-playbook
+- name: prepare cluster for shutdown
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  roles:
+    - name: ocp-reset-csrs
+
+- name: shutdown control plane
+  hosts: control_plane
+  become: no
+  gather_facts: no
+
+  tasks:
+    - include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweroff/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ mgmt_user }}"
+        management_pass: "{{ mgmt_password }}"
+

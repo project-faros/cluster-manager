@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source /data/config.sh
+password=$(cat /data/openshift-installer/auth/kubeadmin-password)
+echo "oc login -u kubeadmin -p \"$password\" https://api.${CLUSTER_NAME}.${CLUSTER_DOMAIN}:6443"

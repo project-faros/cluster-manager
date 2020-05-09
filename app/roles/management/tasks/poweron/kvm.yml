@@ -1,0 +1,6 @@
+- name: power on kvm server power state
+  virt:
+    name: "{{ inventory_hostname }}"
+    state: running
+  delegate_to: "{{ management_hostname }}"
+  become: yes
