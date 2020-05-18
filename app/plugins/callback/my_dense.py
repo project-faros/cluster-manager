@@ -17,6 +17,10 @@ from ansible.vars import clean as ansible_clean_module
 from ansible import constants as C
 
 class DisplayNoWarning(Display):
+    def __init__(self):
+        super().__init__()
+        self.verbosity = Display().verbosity
+
     def warning(self, msg, formatted=False):
         pass
 display = DisplayNoWarning()
@@ -479,6 +483,7 @@ class CallbackModule(CallbackModule_default):
 
 
 # When using -vv or higher, simply do the default action
-if display.verbosity >= 2:
+if display.verbosity > 0:
+    display = Display()
+    display.verbosity -= 1
     CallbackModule = CallbackModule_default
-
