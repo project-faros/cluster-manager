@@ -137,7 +137,8 @@ def main():
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
             os.environ['BASTION_IP_ADDR'],
             ansible_become_pass=os.environ['USER_PASSWORD'],
-            ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+            ansible_ssh_user=os.environ['BASTION_SSH_USER'],
+            loadbalancer_vip=os.environ['LB_VIP'])
     # DNS NODE
     infra.add_host('dns',
           os.environ['DNS_HOST_NAME'],

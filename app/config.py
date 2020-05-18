@@ -221,6 +221,8 @@ class configurator(object):
             Parameter('DHCP_HOST_NAME', 'DHCP Host Name'),
             Parameter('DHCP_USER', 'DHCP Admin User'),
             Parameter('DHCP_PASSWORD', 'DHCP Admin Password', password_repr)])
+        self.lb = ParameterCollection('lb', 'Cluster Load Balancer Configuration', [
+            Parameter('LB_VIP', 'Virtual IP')])
         self.architecture = ParameterCollection('architecture', 'Cluster Architecture', [
             ChoiceParameter('MGMT_PROVIDER', 'Machine Management Provider', mgmt_providers),
             Parameter('MGMT_USER', 'Machine Management User', password_repr),
@@ -240,6 +242,7 @@ class configurator(object):
                         self.bastion.to_choices() +  \
                         self.dns.to_choices() + \
                         self.dhcp.to_choices() + \
+                        self.lb.to_choices() + \
                         self.architecture.to_choices()
             }
         ]
@@ -258,6 +261,7 @@ class configurator(object):
                     self.bastion.to_bash() + \
                     self.dns.to_bash() + \
                     self.dhcp.to_bash() + \
+                    self.lb.to_bash() + \
                     self.architecture.to_bash():
                 outfile.write(line + '\n')
             outfile.write(self._footer)
