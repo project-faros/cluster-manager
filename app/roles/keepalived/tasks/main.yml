@@ -10,6 +10,13 @@
     mode: "0600"
   notify: restart keepalived
 
+- name: ensure firewall allows vrrp traffic
+  firewalld:
+    rich_rule: rule protocol value="vrrp" accept
+    permanent: yes
+    immediate: yes
+    state: enabled
+
 - name: ensure keepalived is running/enabled
   service:
     name: keepalived

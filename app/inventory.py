@@ -129,7 +129,8 @@ def main():
         mgmt_provider=os.environ['MGMT_PROVIDER'],
         mgmt_user=os.environ['MGMT_USER'],
         mgmt_password=os.environ['MGMT_PASSWORD'],
-        install_disk='sda')
+        install_disk='sda',
+        loadbalancer_vip=os.environ['LB_VIP'])
 
     infra = inv.add_group('infra')
     # BASTION NODE
@@ -137,8 +138,7 @@ def main():
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
             os.environ['BASTION_IP_ADDR'],
             ansible_become_pass=os.environ['USER_PASSWORD'],
-            ansible_ssh_user=os.environ['BASTION_SSH_USER'],
-            loadbalancer_vip=os.environ['LB_VIP'])
+            ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # DNS NODE
     infra.add_host('dns',
           os.environ['DNS_HOST_NAME'],
