@@ -1,0 +1,21 @@
+global_defs {
+  router_id {{ keepalived_router_id }}
+  vrrp_skip_check_adv_addr
+  vrrp_garp_interval 0
+  vrrp_gna_interval 0
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface {{ keepalived_interface }} # calculated
+    virtual_router_id {{ keepalived_virt_router_id }} # USER INPUT
+    priority {{ keepalived_priority }} # calculated
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass {{ keepalived_pass }}  # USER INPUT
+    }
+    virtual_ipaddress {
+        {{ keepalived_ip }} # USER INPUT
+    }
+}

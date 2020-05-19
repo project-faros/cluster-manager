@@ -56,7 +56,7 @@
       register: get_co
       until: get_co.resources | ClusterOpCheck
       retries: 60
-      delay: 5
+      delay: 15
       delegate_to: localhost
       become: no
       run_once: yes

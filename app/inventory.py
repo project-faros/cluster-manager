@@ -129,7 +129,8 @@ def main():
         mgmt_provider=os.environ['MGMT_PROVIDER'],
         mgmt_user=os.environ['MGMT_USER'],
         mgmt_password=os.environ['MGMT_PASSWORD'],
-        install_disk='sda')
+        install_disk='sda',
+        loadbalancer_vip=os.environ['LB_VIP'])
 
     infra = inv.add_group('infra')
     # BASTION NODE

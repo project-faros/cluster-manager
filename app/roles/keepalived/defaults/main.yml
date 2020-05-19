@@ -1,0 +1,5 @@
+keepalived_router_id: kad_router
+keepalived_virt_router_id: 100
+keepalived_interface: eno1
+keepalived_priority: 100
+keepalived_ip: 192.168.1.10

@@ -15,5 +15,6 @@ function ps1() {
 }
 export _CONFIG_LAST_LOAD="0"
 export PROMPT_COMMAND=ps1
+export KUBECONFIG=/data/openshift-installer/auth/kubeconfig
 
 alias ll='ls -la'

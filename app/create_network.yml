@@ -2,7 +2,7 @@
 
 - import_playbook: util_vm_facts.yml
 
-- name: Configure Cluster DNS and DHCP entries
+- name: Configure Cluster Node DNS and DHCP entries
   hosts: cluster
   gather_facts: no
   serial: 1
@@ -36,7 +36,7 @@
 
     - meta: flush_handlers
 
-- name: Configure Cluster Management DNS and DHCP entries
+- name: Configure Cluster Node Management DNS and DHCP entries
   hosts: cluster:!virtual
   gather_facts: no
   serial: 1
@@ -100,13 +100,13 @@
         loop_var: machine_name
       when: "machine_name not in groups.virtual"
 
-- name: Configure bastion DNS entries
+- name: Configure Bastion DNS entries
   hosts: bastion_hosts
   gather_facts: no
   serial: 1
 
   tasks:
-    - name: load balancer DNS entries
+    - name: bastion DNS entries
       include_role:
         name: dns
         defaults_from: "main.yml"
@@ -121,7 +121,22 @@
         - dns
         - bastion
 
-- name: Configure load balancer DNS entries
+    - name: load balancer DNS entries
+      include_role:
+        name: dns
+        defaults_from: "main.yml"
+        handlers_from: "{{ hostvars.dns.provider }}.yml"
+        tasks_from: "{{ hostvars.dns.provider }}.yml"
+        vars_from: "{{ hostvars.dns.provider }}.yml"
+      vars:
+        dns_hostname: "loadbalancer"
+        dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+        dns_value: "{{ loadbalancer_vip }}"
+      tags:
+        - dns
+        - bastion
+
+- name: Configure Cluster DNS entries
   hosts: dns
   gather_facts: no
   serial: 1
@@ -141,19 +156,18 @@
         dns_value: "{{ entry.value }}"
       loop:
         - name: "api"
-          value: "{{ hostvars[groups.bastion_hosts.0].ansible_host }}"
+          value: "{{ hostvars[groups.bastion_hosts.0].loadbalancer_vip }}"
         - name: "api-int"
-          value: "{{ hostvars[groups.bastion_hosts.0].ansible_host }}"
+          value: "{{ hostvars[groups.bastion_hosts.0].loadbalancer_vip }}"
         - name: '*'
           domain: "apps.{{ cluster_name }}.{{ cluster_domain }}"
-          value: "{{ hostvars[groups.bastion_hosts.0].ansible_host }}"
+          value: "{{ hostvars[groups.bastion_hosts.0].loadbalancer_vip }}"
       loop_control:
         loop_var: entry
         label: "{{ entry.name }}"
       tags:
         - dns
         - loadbalancer
-
 
 - name: Configure etcd DNS entries
   hosts: control_plane

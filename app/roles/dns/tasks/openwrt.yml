@@ -8,6 +8,7 @@
   lineinfile:
     line: "address=/{{ dns_domain }}/{{ dns_value }}"
     dest: /etc/dnsmasq.conf
+    regexp: "^address=/{{ dns_domain }}/"
   delegate_to: dns
   when:
     - not dns_configured

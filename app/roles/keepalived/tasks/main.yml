@@ -1,0 +1,24 @@
+- name: ensure keepalived is installed
+  yum:
+    name: keepalived
+    state: installed
+
+- name: ensure keepalived is configured
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    mode: "0600"
+  notify: restart keepalived
+
+- name: ensure firewall allows vrrp traffic
+  firewalld:
+    rich_rule: rule protocol value="vrrp" accept
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+- name: ensure keepalived is running/enabled
+  service:
+    name: keepalived
+    state: started
+    enabled: yes
