@@ -1,3 +1,34 @@
 #!/bin/bash
 
-echo 'TODO'
+CMDS=$(cd /app/cookbook; ls *.yml | sed 's/.yml//g' | awk '{ print "    " $1; }')
+HELP="""
+USAGE: deploy RECIPE [ANSIBLE_ARGS]
+
+Available Recipes:
+    help
+$CMDS
+"""
+
+## PARSE INPUTS
+if [ $# -eq 0 ]; then
+    echo "$HELP"
+    exit 1
+fi
+if [ "$1" == "help" ]; then
+    echo "$HELP"
+    exit 0
+fi
+if ! echo "$CMDS" | grep "$1" &>/dev/null; then
+    echo "$HELP"
+    exit 1
+fi
+
+## PREPARE ENVIRONMENT
+cd /app
+source /data/config.sh
+export KUBECONFIG=/data/openshift-installer/auth/kubeconfig
+
+## EXECUTE
+COMMAND=$1
+shift
+ansible-playbook /app/cookbook/${COMMAND}.yml $@
