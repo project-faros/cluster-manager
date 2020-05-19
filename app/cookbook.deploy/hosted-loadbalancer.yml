@@ -95,6 +95,7 @@
             - create
             - update
             - patch
+            - watch
           - apiGroups:
             - monitoring.coreos.com
             resources:
@@ -135,7 +136,6 @@
             - patch
             - update
             - watch
-
 
     - name: ensure clusterrole exists
       k8s:
@@ -218,6 +218,7 @@
             - create
             - update
             - patch
+            - watch
           - apiGroups:
             - monitoring.coreos.com
             resources:
