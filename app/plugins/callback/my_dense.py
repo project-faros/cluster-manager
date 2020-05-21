@@ -7,7 +7,10 @@ DOCUMENTATION = ''
 
 from collections import OrderedDict
 import sys
+import os
+import yaml
 
+from ansible.utils.unsafe_proxy import AnsibleUnsafeText
 from ansible.module_utils.six import binary_type, text_type
 from ansible.module_utils.common._collections_compat import MutableMapping, MutableSequence
 from ansible.plugins.callback.default import CallbackModule as CallbackModule_default
@@ -456,30 +459,14 @@ class CallbackModule(CallbackModule_default):
                 self._display.display('\n')
                 self._display.display(line)
 
-        # In normal mode screen output should be sufficient, summary is redundant
-        if self._display.verbosity == 0:
-            return
-
-        sys.stdout.write(vt100.bold + vt100.underline)
-        sys.stdout.write('SUMMARY')
-
-        sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)
-        sys.stdout.flush()
-        hosts = sorted(stats.processed.keys())
-        for h in hosts:
-            t = stats.summarize(h)
-            self._display.display(
-                u"%s : %s %s %s %s %s %s" % (
-                    hostcolor(h, t),
-                    colorize(u'ok', t['ok'], C.COLOR_OK),
-                    colorize(u'changed', t['changed'], C.COLOR_CHANGED),
-                    colorize(u'unreachable', t['unreachable'], C.COLOR_UNREACHABLE),
-                    colorize(u'failed', t['failures'], C.COLOR_ERROR),
-                    colorize(u'rescued', t['rescued'], C.COLOR_OK),
-                    colorize(u'ignored', t['ignored'], C.COLOR_WARN),
-                ),
-                screen_only=True
-            )
+        # save stats
+        stats_file = os.environ.get('STATS_FILE')
+        if stats_file:
+            def rep_UnsafeText(dumper, data):
+                return dumper.represent_str(str(data))
+            yaml.add_representer(AnsibleUnsafeText, rep_UnsafeText)
+            with open(stats_file, 'w') as fptr:
+                yaml.dump(stats.custom.get('_run', {}), fptr)
 
 
 # When using -vv or higher, simply do the default action
