@@ -9,7 +9,7 @@
         cluster_nodes: "{{ lookup('k8s', api_version='v1', kind='Node') | json_query('[*].metadata.name')}}"
 
     - name: query cluster node drives
-      shell: oc debug node/{{ item }} -- chroot /host lsblk -o NAME 2>/dev/null | egrep -v '((^ *`|^\|)|^NAME)'
+      shell: oc debug -n default node/{{ item }} -- chroot /host lsblk -o NAME 2>/dev/null | egrep -v '((^ *`|^\|)|^NAME)'
       loop: "{{ cluster_nodes }}"
       register: cluster_drives
       ignore_errors: yes

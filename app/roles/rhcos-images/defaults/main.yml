@@ -1,4 +1,5 @@
-rhcos_images_repo: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest"
+rhcos_images_version: "latest/latest"
+rhcos_images_repo: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ rhcos_images_version }}"
 rhcos_images_initramfs: ""
 rhcos_images_kernel: ""
 rhcos_images_image: ""

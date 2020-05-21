@@ -11,6 +11,7 @@ import os
 import yaml
 
 from ansible.utils.unsafe_proxy import AnsibleUnsafeText
+from ansible.parsing.yaml.objects import AnsibleUnicode
 from ansible.module_utils.six import binary_type, text_type
 from ansible.module_utils.common._collections_compat import MutableMapping, MutableSequence
 from ansible.plugins.callback.default import CallbackModule as CallbackModule_default
@@ -371,7 +372,8 @@ class CallbackModule(CallbackModule_default):
         sys.stdout.flush()
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
-        self._add_host(result, 'failed')
+        #self._add_host(result, 'failed')
+        pass
 
     def v2_runner_on_ok(self, result):
         if result._result.get('changed', False):
@@ -413,7 +415,8 @@ class CallbackModule(CallbackModule_default):
         self.v2_runner_item_on_failed(result)
 
     def v2_runner_item_on_failed(self, result):
-        self._add_host(result, 'failed')
+        #self._add_host(result, 'failed')
+        pass
 
     # Old definition in v2.0
     def v2_playbook_item_on_skipped(self, result):
@@ -465,6 +468,7 @@ class CallbackModule(CallbackModule_default):
             def rep_UnsafeText(dumper, data):
                 return dumper.represent_str(str(data))
             yaml.add_representer(AnsibleUnsafeText, rep_UnsafeText)
+            yaml.add_representer(AnsibleUnicode, rep_UnsafeText)
             with open(stats_file, 'w') as fptr:
                 yaml.dump(stats.custom.get('_run', {}), fptr)
 
