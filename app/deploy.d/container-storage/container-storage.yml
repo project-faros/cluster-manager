@@ -56,6 +56,8 @@
     - name: wait for operator to become ready
       assert:
         that: "lookup('k8s', resource_definition=k8s_obj)[0].status.phase | default('error') == 'Succeeded'"
+      register: op_lkp
+      until: op_lkp is success
       retries: 60
       delay: 15
 
