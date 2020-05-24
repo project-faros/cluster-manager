@@ -6,20 +6,17 @@ __metaclass__ = type
 DOCUMENTATION = ''
 
 from collections import OrderedDict
+import shutil
 import sys
-import os
-import yaml
 
-from ansible.utils.unsafe_proxy import AnsibleUnsafeText
-from ansible.parsing.yaml.objects import AnsibleUnicode
-from ansible.module_utils.six import binary_type, text_type
 from ansible.module_utils.common._collections_compat import MutableMapping, MutableSequence
+from ansible.module_utils.six import binary_type, text_type
 from ansible.plugins.callback.default import CallbackModule as CallbackModule_default
-from ansible.utils.color import colorize, hostcolor
 from ansible.utils.display import Display
 from ansible.vars import clean as ansible_clean_module
-from ansible import constants as C
 
+
+# Force all warnings to be hidden in non-verbose mode
 class DisplayNoWarning(Display):
     def __init__(self):
         super().__init__()
@@ -102,13 +99,13 @@ class CallbackModule(CallbackModule_default):
     CALLBACK_NAME = 'dense'
 
     def __init__(self):
-        # From CallbackModule
+        # Initialize displays and callback modules
         self._display = display
         ansible_clean_module.display = DisplayNoWarning()
-
         self.disabled = False
         self.super_ref = super(CallbackModule, self)
         self.super_ref.__init__()
+        self.line = ''
 
         # Attributes to remove from results for more density
         self.removed_attributes = (
@@ -161,13 +158,9 @@ class CallbackModule(CallbackModule_default):
         if status in ['changed']:
             self.keep = True
         if status in ['failed']:
+            self.keep = True
             self._display_task_banner()
             self._display_error_results(result, status)
-
-        if self._display.verbosity == 1:
-            # Print task title, if needed
-            self._display_task_banner()
-            self._display_results(result, status)
 
     def _clean_results(self, result):
         # Remove non-essential atributes
@@ -189,27 +182,32 @@ class CallbackModule(CallbackModule_default):
             if self._display.verbosity == 1:
                 return "An exception occurred during task execution. To see the full traceback, use -vvv."
 
+    def _line_write(self, data):
+        # get the console size
+        sh_size = shutil.get_terminal_size((80, 20))
+        if len(self.line) + len(data) > sh_size.columns:
+            return
+        self.line += data
+        sys.stdout.write(data)
+
     def _display_progress(self, result=None):
         # Always rewrite the complete line
+        self.line = ''
         sys.stdout.write(vt100.restore + vt100.reset + vt100.clearline + vt100.nolinewrap + vt100.underline)
-        # sys.stdout.write('%s %d: ' % (self.type, self.count[self.type]))
-        sys.stdout.write('%s: ' % (self.task.get_name().strip()))
+        self._line_write('%s %d: ' % (self.type, self.count[self.type]))
         sys.stdout.write(vt100.reset)
         sys.stdout.flush()
 
         # Print out each host in its own status-color
         for name in self.hosts:
-            sys.stdout.write(' ')
+            self._line_write(' ')
             if self.hosts[name].get('delegate', None):
-                sys.stdout.write(self.hosts[name]['delegate'] + '>')
-            sys.stdout.write(colors[self.hosts[name]['state']] + name + vt100.reset)
+                self._line_write(self.hosts[name]['delegate'] + '>')
+            sys.stdout.write(colors[self.hosts[name]['state']])
+            self._line_write(name)
+            sys.stdout.write(vt100.reset)
             sys.stdout.flush()
-
-#        if result._result.get('diff', False):
-#            sys.stdout.write('\n' + vt100.linewrap)
         sys.stdout.write(vt100.linewrap)
-
-#        self.keep = True
 
     def _display_task_banner(self):
         if not self.shown_title:
@@ -324,7 +322,8 @@ class CallbackModule(CallbackModule_default):
             sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline + vt100.underline)
         else:
             # Do not clear line, since we want to retain the previous output
-            sys.stdout.write(vt100.restore + vt100.reset + vt100.underline)
+            # sys.stdout.write(vt100.restore + vt100.reset + vt100.underline)
+            sys.stdout.write(vt100.restore + vt100.reset + vt100.clearline)
 
         # Reset at the start of each task
         self.keep = False
@@ -367,13 +366,10 @@ class CallbackModule(CallbackModule_default):
         sys.stdout.flush()
 
     def v2_playbook_on_cleanup_task_start(self, task):
-        # TBD
-        sys.stdout.write('cleanup.')
         sys.stdout.flush()
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
-        #self._add_host(result, 'failed')
-        pass
+        self._add_host(result, 'failed')
 
     def v2_runner_on_ok(self, result):
         if result._result.get('changed', False):
@@ -382,7 +378,7 @@ class CallbackModule(CallbackModule_default):
             self._add_host(result, 'ok')
 
     def v2_runner_on_skipped(self, result):
-        self._add_host(result, 'skipped')
+        pass
 
     def v2_runner_on_unreachable(self, result):
         self._add_host(result, 'unreachable')
@@ -391,14 +387,10 @@ class CallbackModule(CallbackModule_default):
         pass
 
     def v2_runner_on_file_diff(self, result, diff):
-        sys.stdout.write(vt100.bold)
-        self.super_ref.v2_runner_on_file_diff(result, diff)
-        sys.stdout.write(vt100.reset)
+        pass
 
     def v2_on_file_diff(self, result):
-        sys.stdout.write(vt100.bold)
-        self.super_ref.v2_on_file_diff(result)
-        sys.stdout.write(vt100.reset)
+        pass
 
     # Old definition in v2.0
     def v2_playbook_item_on_ok(self, result):
@@ -415,8 +407,7 @@ class CallbackModule(CallbackModule_default):
         self.v2_runner_item_on_failed(result)
 
     def v2_runner_item_on_failed(self, result):
-        #self._add_host(result, 'failed')
-        pass
+        self._add_host(result, 'failed')
 
     # Old definition in v2.0
     def v2_playbook_item_on_skipped(self, result):
@@ -455,25 +446,8 @@ class CallbackModule(CallbackModule_default):
         else:
             sys.stdout.write(vt100.restore + vt100.reset + vt100.clearline)
 
-        # print post message
-        post_message = stats.custom.get('_run', {}).get('post_message')
-        if post_message:
-            for line in post_message:
-                self._display.display('\n')
-                self._display.display(line)
 
-        # save stats
-        stats_file = os.environ.get('STATS_FILE')
-        if stats_file:
-            def rep_UnsafeText(dumper, data):
-                return dumper.represent_str(str(data))
-            yaml.add_representer(AnsibleUnsafeText, rep_UnsafeText)
-            yaml.add_representer(AnsibleUnicode, rep_UnsafeText)
-            with open(stats_file, 'w') as fptr:
-                yaml.dump(stats.custom.get('_run', {}), fptr)
-
-
-# When using -vv or higher, simply do the default action
+# In verbose mode, use the default stdout plugin
 if display.verbosity > 0:
     display = Display()
     display.verbosity -= 1
