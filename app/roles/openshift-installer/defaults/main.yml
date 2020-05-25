@@ -1,5 +1,6 @@
 openshift_installer_dir: /data/openshift-installer
-openshift_installer_source: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz
+openshift_installer_version: latest
+openshift_installer_source: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ openshift_installer_version }}/openshift-install-linux.tar.gz
 openshift_installer_base_domain: example.com
 openshift_installer_control_plane: []
 openshift_installer_cluster_id: ocp

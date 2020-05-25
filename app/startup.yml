@@ -54,7 +54,7 @@
         api_version: config.openshift.io/v1
         kind: ClusterOperator
       register: get_co
-      until: get_co.resources | ClusterOpCheck
+      until: get_co | ClusterOpCheck
       retries: 60
       delay: 15
       delegate_to: localhost

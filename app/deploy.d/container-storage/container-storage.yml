@@ -1,0 +1,97 @@
+- name: install openshift container storage
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+    - name: ensure project exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            labels:
+              openshift.io/cluster-monitoring: "true"
+            name: openshift-storage
+          spec: {}
+
+    - name: ensure operatorgroup exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1
+          kind: OperatorGroup
+          metadata:
+            name: openshift-storage
+            namespace: openshift-storage
+          spec:
+            targetNamespaces:
+            - openshift-storage
+
+    - name: ensure subscription exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: ocs-operator
+            namespace: openshift-storage
+          spec:
+            channel: "{{ lookup('ini', 'container_storage section=operators file=/app/versions.ini') }}"
+            name: ocs-operator
+            source: redhat-operators
+            sourceNamespace: openshift-marketplace
+            installPlanApproval: "Automatic"
+      register: op_subscribe
+
+    - name: wait for operators to begin install
+      pause:
+        seconds: 15
+      when: oc_subscribe is cchanged
+
+    - name: save clusterserviceversion object
+      set_fact:
+        k8s_obj:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: ClusterServiceVersion
+          name: ocs-operator*
+          namepace: openshift-storage
+
+    - name: wait for operator to become ready
+      assert:
+        that: "lookup('k8s', resource_definition=k8s_obj)[0].status.phase | default('error') == 'Succeeded'"
+      register: op_lkp
+      until: op_lkp is success
+      retries: 60
+      delay: 15  ## NOT WORKING
+
+    - name: ensure storagecluster exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: ocs.openshift.io/v1
+          kind: StorageCluster
+          metadata:
+            name: ocs-storagecluster
+            namespace: openshift-storage
+          spec:
+            manageNodes: false
+            monDataDirHostPath: /var/lib/rook
+            storageDeviceSets:
+            - count: "{{ drives_per_node }}"
+              dataPVCTemplate:
+                spec:
+                  accessModes:
+                  - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 1Gi
+                  storageClassName: localblock
+                  volumeMode: Block
+              name: ocs-deviceset
+              placement: {}
+              portable: false
+              replica: 3
+              resources: {}

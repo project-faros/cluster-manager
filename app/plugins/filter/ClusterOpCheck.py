@@ -7,7 +7,10 @@ TARGET = {
 }
 
 
-def ClusterOpCheck(resources):
+def ClusterOpCheck(operator_status):
+    resources = operator_status.get('resources', [])
+    if not resources:
+        return False
     for resource in resources:
         for cond in resource['status']['conditions']:
             target = TARGET[cond['type']]

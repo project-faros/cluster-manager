@@ -1,11 +1,11 @@
 #!/bin/bash
 
-export COOKBOOK=/app/cookbook.deploy
-CMDS=$(cd $COOKBOOK; ls *.yml | sed 's/.yml//g' | awk '{ print "    " $1; }')
+export COOKBOOK=/app/deploy.d
+CMDS=$(cd $COOKBOOK; ls -d * | awk '{ print "    " $1; }')
 HELP="""
-USAGE: deploy RECIPE [ANSIBLE_ARGS]
+USAGE: deploy COMMAND [COMMAND_ARGS]
 
-Available Recipes:
+Available Commands:
     help
 $CMDS
 """
@@ -32,4 +32,4 @@ export KUBECONFIG=/data/openshift-installer/auth/kubeconfig
 ## EXECUTE
 RECIPE=$1
 shift
-ansible-playbook ${COOKBOOK}/${RECIPE}.yml $@
+/bin/bash $COOKBOOK/$RECIPE/main.sh $@
