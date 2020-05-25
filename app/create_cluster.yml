@@ -19,14 +19,20 @@
       changed_when: cluster_cert_age.stdout | int > 86400
 
     - name: ensure certificates are not expired
-      assert:
-        that:
-          - cluster_cert_age is not changed
-        fail_msg: >
-          The cluster bootstrap certificate has expired.
-          Please re-create the installation repositories.
-        success_msg: Cluster certificates are valid.
-        quiet: yes
+      set_stats:
+        data:
+          post_message:
+            - "The cluster bootstrap certificate has expired. Please re-create the installation repositories to regenerate that installation configuration."
+            - ""
+            - "Recreate the install configs with:"
+            - ">> farosctl create install-repos"
+            - ""
+      when: cluster_cert_age is changed
+
+    - name: ensure certificates are not expired
+      fail:
+        msg: The installation certificate has expired.
+      when: cluster_cert_age is changed
 
 - name: Ensure all cluster nodes are powered down
   hosts: cluster
