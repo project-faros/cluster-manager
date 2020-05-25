@@ -13,6 +13,7 @@
       loop: "{{ cluster_nodes }}"
       register: cluster_drives
       ignore_errors: yes
+      changed_when: no
 
     - name: save discovered hosts
       set_stats:
