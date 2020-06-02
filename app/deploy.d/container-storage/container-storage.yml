@@ -1,4 +1,4 @@
-- name: install openshift container storage
+ name: install openshift container storage
   hosts: localhost
   become: no
   gather_facts: no
@@ -49,7 +49,7 @@
     - name: wait for operators to begin install
       pause:
         seconds: 15
-      when: oc_subscribe is cchanged
+      when: oc_subscribe is changed
 
     - name: save clusterserviceversion object
       set_fact:
@@ -65,7 +65,7 @@
       register: op_lkp
       until: op_lkp is success
       retries: 60
-      delay: 15  ## NOT WORKING
+      delay: 15
 
     - name: ensure storagecluster exists
       k8s:
