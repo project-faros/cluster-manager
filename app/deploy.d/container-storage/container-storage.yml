@@ -1,4 +1,4 @@
- name: install openshift container storage
+- name: install openshift container storage
   hosts: localhost
   become: no
   gather_facts: no
