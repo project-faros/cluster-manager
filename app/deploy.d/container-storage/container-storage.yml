@@ -49,7 +49,7 @@
     - name: wait for operators to begin install
       pause:
         seconds: 15
-      when: oc_subscribe is changed
+      when: op_subscribe is changed
 
     - name: save clusterserviceversion object
       set_fact:
