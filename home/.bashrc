@@ -3,6 +3,12 @@ if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
 
+# data directory initialization
+if [ ! -e /data/config.sh ]; then
+  cp /data.skel/config.sh /data/config.sh
+fi
+mkdir -p /data/ansible
+
 # User specific environment and startup programs
 function ps1() {
         _CONFIG_LAST_MODIFY=$(stat -c %Z /data/config.sh)
