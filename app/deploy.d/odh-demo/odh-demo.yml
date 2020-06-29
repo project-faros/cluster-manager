@@ -336,7 +336,7 @@
             name: pipeline
             namespace: odh-demo
             labels:
-              mlmodel: yes
+              mlmodel: "yes"
           spec:
             selector:
               app: pipeline
@@ -363,5 +363,5 @@
               - targetPort: 8080
             selector:
               matchLabels:
-                mlmodel: yes
+                mlmodel: "yes"
 
