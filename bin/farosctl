@@ -9,11 +9,9 @@ CONTAINER="faros-manager"
 CONTEXT="default"
 
 # DEBUG OPTIONS
-if basename "$0" | grep '.dev$' &>/dev/null; then
-    echo 'DEVELOPMENT MODE'
-    # set -x
-    IMAGE="localhost/cluster-manager"
-    VERSION="dev"
+if basename "$0" | grep '.' &>/dev/null; then
+    VERSION=$(basename "$0" | awk -F'.' '!($1=""){ print $0 }' | xargs echo | tr ' ' '.')
+    echo "PINNED VERSION - $VERSION"
 fi
 
 
