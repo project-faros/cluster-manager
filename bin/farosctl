@@ -53,10 +53,20 @@ function run() {
         shift
     fi
 
+    DEFAULT_IF=$(ip route show default | tail -n 1 | grep -o -P 'dev [a-z0-1]*' | awk '{ print $2 }')
+    DEFAULT_IP=$(ip addr show dev ens1 scope global primary | grep -o -P 'inet [0-9]+.[0-9]+.[0-9]+.[0-9]+' | awk '{ print $2 }')
+    BASTION_HOST_NAME=$(hostame -s)
+    CLUSTER_DOMAIN=$(hostname -d | awk -F'.' '!($1=""){print $0}' | xargs echo | tr ' ' '.')
+    CLUSTER_NAME=$(hostname -d | awk -F'.' '{print $0}')
+    USER=$(whoami)
+
     $ENGINE run --rm $it \
         -v "${CONFIG_DIR}/${CONTEXT}:/data:Z" \
-        -e "TEST=$(hostname)" \
-        -e "TEST2=asdf" \
+        -e "BASTION_IP_ADDR=${DEFAULT_IP}" \
+        -e "BASTION_HOST_NAME=${BASTION_HOSTNAME}" \
+        -e "BASTION_SSH_USER=${USER}" \
+        -e "CLUSTER_DOMAIN=${CLUSTER_DOMAIN}" \
+        -e "CLUSTER_NAME=${CLUSTER_NAME}" \
         ${IMAGE}:${VERSION} \
         $@
 }

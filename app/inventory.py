@@ -117,6 +117,9 @@ def parse_args():
 
 def main():
     args = parse_args()
+    ipam = IPAddressManager(
+        IP_RESERVATIONS,
+        os.environ['IP_POOL'])
 
     inv = Inventory(0 if args.list else 1, args.host)
     inv.add_group('all', None,
@@ -124,20 +127,26 @@ def main():
         cluster_name=os.environ['CLUSTER_NAME'],
         cluster_domain=os.environ['CLUSTER_DOMAIN'],
         admin_password=os.environ['ADMIN_PASSWORD'],
-        user_password=os.environ['USER_PASSWORD'],
         pull_secret=json.loads(os.environ['PULL_SECRET']),
         mgmt_provider=os.environ['MGMT_PROVIDER'],
         mgmt_user=os.environ['MGMT_USER'],
         mgmt_password=os.environ['MGMT_PASSWORD'],
         install_disk='sda',
-        loadbalancer_vip=os.environ['LB_VIP'])
+        loadbalancer_vip=ipam['loadbalancer'],
+        wan_ip=os.environ['BASTION_IP_ADDR'])
 
     infra = inv.add_group('infra')
+    # WAN INTERFACE
+    wan = infra.add_group('wan')
+    wan.add_host('wan_interface',
+        os.environ['BASTION_IP_ADDR'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # BASTION NODE
     bastion = infra.add_group('bastion_hosts')
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
-            os.environ['BASTION_IP_ADDR'],
-            ansible_become_pass=os.environ['USER_PASSWORD'],
+            ipam['bastion'],
+            ansible_become_pass=os.environ['ADMIN_PASSWORD'],
             ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # DNS NODE
     infra.add_host('dns',
@@ -153,9 +162,6 @@ def main():
           ansible_ssh_user=os.environ['DHCP_USER'])
 
     cluster = inv.add_group('cluster')
-    ipam = IPAddressManager(
-        IP_RESERVATIONS,
-        os.environ['IP_POOL'])
     # BOOTSTRAP NODE
     ip = ipam['bootstrap']
     cluster.add_host('bootstrap', ip,

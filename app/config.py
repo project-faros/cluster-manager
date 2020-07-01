@@ -202,15 +202,8 @@ class configurator(object):
         self._path = path
         self._footer = footer
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
-            Parameter('CLUSTER_NAME', 'Cluster Name'),
-            Parameter('CLUSTER_DOMAIN', 'Cluster Domain'),
             Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
-            Parameter('USER_PASSWORD', 'User Password', password_repr),
             Parameter('PULL_SECRET', 'Pull Secret', password_repr)])
-        self.bastion = ParameterCollection('bastion', 'Bastion Node Configuration', [
-            Parameter('BASTION_HOST_NAME', 'Bastion Host Name'),
-            Parameter('BASTION_IP_ADDR', 'Bastion IP Address'),
-            Parameter('BASTION_SSH_USER', 'Bastion SSH User')])
         self.dns = ParameterCollection('dns', 'Cluster DNS Configuration', [
             ChoiceParameter('DNS_PROVIDER', 'DNS Provider', dns_providers),
             Parameter('DNS_HOST_NAME', 'DNS Host Name'),
@@ -239,7 +232,6 @@ class configurator(object):
                 'message': 'Which items would you like to change?',
                 'name': 'parameters',
                 'choices': self.cluster.to_choices() + \
-                        self.bastion.to_choices() +  \
                         self.dns.to_choices() + \
                         self.dhcp.to_choices() + \
                         self.lb.to_choices() + \
@@ -258,7 +250,6 @@ class configurator(object):
     def dump(self):
         with open(self._path, 'w') as outfile:
             for line in self.cluster.to_bash() + \
-                    self.bastion.to_bash() + \
                     self.dns.to_bash() + \
                     self.dhcp.to_bash() + \
                     self.lb.to_bash() + \
