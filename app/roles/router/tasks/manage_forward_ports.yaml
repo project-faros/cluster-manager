@@ -1,0 +1,13 @@
+- name: check to see if rule exists
+  shell: 'firewall-cmd --zone=external --list-all | grep -c "{{ outer.rule }}"'
+  register: rule_check
+  changed_when: no
+  ignore_errors: yes
+
+- name: check to see if rule should exist
+  set_fact:
+    action: '{% if outer.exist %}add-forward-port{% else %}remove-forward-port{% endif %}'
+
+- name: ensure rule is configured
+  command: "firewall-cmd --zone=external --{{ action }}={{ outer.rule }}"
+  when: "rule_check is failed == outer.exist"

@@ -70,19 +70,26 @@ class Inventory(object):
 
 class IPAddressManager(dict):
 
-    def __init__(self, save_file, pool):
+    def __init__(self, save_file, subnet, subnet_mask):
         super().__init__()
-        self._pool = pool
         self._save_file = save_file
 
-        subnet = ipaddress.ip_network(pool)
-        self._generator = subnet.hosts()
+        # parse the subnet definition into a static and dynamic pool
+        subnet = ipaddress.ip_network(f'{subnet}/{subnet_mask}', strict=False)
+        divided = subnet.subnets()
+        self._static_pool = next(divided)
+        self._dynamic_pool = next(divided)
+        self._generator = self._static_pool.hosts()
 
+        # load the last saved state
         try:
             restore = pickle.load(open(save_file, 'rb'))
         except:
             restore = {}
         self.update(restore)
+
+        # reserve the first ip for the bastion
+        _ = self['bastion']
 
     def __getitem__(self, key):
         key = key.lower()
@@ -119,7 +126,7 @@ def main():
     args = parse_args()
     ipam = IPAddressManager(
         IP_RESERVATIONS,
-        os.environ['IP_POOL'])
+        os.environ['SUBNET'], os.environ['SUBNET_MASK'])
 
     inv = Inventory(0 if args.list else 1, args.host)
     inv.add_group('all', None,
@@ -136,10 +143,20 @@ def main():
         wan_ip=os.environ['BASTION_IP_ADDR'])
 
     infra = inv.add_group('infra')
-    # WAN INTERFACE
-    wan = infra.add_group('wan')
-    wan.add_host('wan_interface',
+    # ROUTER INTERFACES
+    router = infra.add_group('router',
+        wan_interface=os.environ['WAN_INT'],
+        lan_interfaces=json.loads(os.environ['ROUTER_LAN_INT']),
+        all_interfaces=os.environ['BASTION_INTERFACES'].split(),
+        subnet=os.environ['SUBNET'],
+        subnet_mask=os.environ['SUBNET_MASK'],
+        allowed_services=json.loads(os.environ['ALLOWED_SERVICES']))
+    router.add_host('wan',
         os.environ['BASTION_IP_ADDR'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    router.add_host('lan',
+        ipam['bastion'],
         ansible_become_pass=os.environ['ADMIN_PASSWORD'],
         ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # BASTION NODE

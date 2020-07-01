@@ -53,9 +53,9 @@ function run() {
         shift
     fi
 
-    DEFAULT_IF=$(ip route show default | tail -n 1 | grep -o -P 'dev [a-z0-1]*' | awk '{ print $2 }')
+    WAN_INT=$(ip route show default | tail -n 1 | grep -o -P 'dev [a-z0-1]*' | awk '{ print $2 }')
     BASTION_IP_ADDR=$(ip addr show dev ens1 scope global primary | grep -o -P 'inet [0-9]+.[0-9]+.[0-9]+.[0-9]+' | awk '{ print $2 }')
-    BASTION_INTERFACES=$(nmcli --fields DEVICE,TYPE device status | grep -P '(ethernet|bond)\s*$' | awk '{ print $1 }' | grep -v "$DEFAULT_IF" | xargs echo)
+    BASTION_INTERFACES=$(nmcli --fields DEVICE,TYPE device status | grep -P '(ethernet|bond)\s*$' | awk '{ print $1 }' | grep -v "$WAN_INT" | xargs echo)
     BASTION_HOST_NAME=$(hostname -s)
     BASTION_SSH_USER=$(whoami)
     CLUSTER_DOMAIN=$(hostname -d | awk -F'.' '!($1=""){print $0}' | xargs echo | tr ' ' '.')
@@ -63,6 +63,7 @@ function run() {
 
     $ENGINE run --rm $it \
         -v "${CONFIG_DIR}/${CONTEXT}:/data:Z" \
+        -e "WAN_INT=${WAN_INT}" \
         -e "BASTION_IP_ADDR=${BASTION_IP_ADDR}" \
         -e "BASTION_INTERFACES=${BASTION_INTERFACES}" \
         -e "BASTION_HOST_NAME=${BASTION_HOST_NAME}" \

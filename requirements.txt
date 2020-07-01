@@ -1,5 +1,5 @@
 pyinquirer==1.0.3
-ansible>=2.9<2.10
+ansible<2.10
 
 # for dns/openwrt provider
 dnspython==1.16.0

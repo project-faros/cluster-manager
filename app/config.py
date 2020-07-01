@@ -80,6 +80,34 @@ class ChoiceParameter(Parameter):
         self._value = answer['choice']
 
 
+class CheckParameter(Parameter):
+
+    def __init__(self, name, prompt, choices, value_reprfun=str):
+        self._name = name
+        self._value = json.loads(os.environ.get(self._name, ''))
+        self._prompt = prompt
+        self._choices = choices
+        self._value_reprfun = value_reprfun
+        self._choices = [{'name': f'{choice}',
+                          'checked': f'{choice}' in self._value}
+                         for choice in choices]
+
+    def update(self):
+        question = [
+            {
+                'type': 'checkbox',
+                'message': self._prompt,
+                'name': 'choice',
+                'choices': self._choices
+            }
+        ]
+        answer = prompt(question)
+        self._value = answer['choice']
+
+    def to_bash(self):
+        return "export {}='{}'".format(self.name, json.dumps(self.value))
+
+
 class ListDictParameter(Parameter):
 
     def __init__(self, name, prompt, keys):
@@ -198,9 +226,15 @@ class ParameterCollection(list):
 
 class configurator(object):
 
-    def __init__(self, path, footer, dns_providers, dhcp_providers, mgmt_providers):
+    def __init__(self, path, footer, rtr_interfaces, dns_providers, dhcp_providers, mgmt_providers):
         self._path = path
         self._footer = footer
+
+        self.router = ParameterCollection('router', 'Network Router Configuration', [
+            CheckParameter('ROUTER_LAN_INT', 'LAN Interfaces', rtr_interfaces),
+            Parameter('SUBNET', 'Subnet'),
+            ChoiceParameter('SUBNET_MASK', 'Subnet Mask', ['20', '21', '22', '23', '24', '25', '26', '27']),
+            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps'])])
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
             Parameter('PULL_SECRET', 'Pull Secret', password_repr)])
@@ -214,16 +248,15 @@ class configurator(object):
             Parameter('DHCP_HOST_NAME', 'DHCP Host Name'),
             Parameter('DHCP_USER', 'DHCP Admin User'),
             Parameter('DHCP_PASSWORD', 'DHCP Admin Password', password_repr)])
-        self.lb = ParameterCollection('lb', 'Cluster Load Balancer Configuration', [
-            Parameter('LB_VIP', 'Virtual IP')])
         self.architecture = ParameterCollection('architecture', 'Cluster Architecture', [
             ChoiceParameter('MGMT_PROVIDER', 'Machine Management Provider', mgmt_providers),
             Parameter('MGMT_USER', 'Machine Management User', password_repr),
             Parameter('MGMT_PASSWORD', 'Machine Management Password', password_repr),
-            Parameter('IP_POOL', 'Static IP Address Pool'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
                  ('mgmt_mac', 'Management MAC Address')])])
+
+        self.all = [self.router, self.cluster, self.dns, self.dhcp, self.architecture]
 
     def _main_menu(self):
         question = [
@@ -231,11 +264,7 @@ class configurator(object):
                 'type': 'checkbox',
                 'message': 'Which items would you like to change?',
                 'name': 'parameters',
-                'choices': self.cluster.to_choices() + \
-                        self.dns.to_choices() + \
-                        self.dhcp.to_choices() + \
-                        self.lb.to_choices() + \
-                        self.architecture.to_choices()
+                'choices': [val for section in self.all for val in section.to_choices()]
             }
         ]
         return prompt(question)
@@ -249,12 +278,7 @@ class configurator(object):
 
     def dump(self):
         with open(self._path, 'w') as outfile:
-            for line in self.cluster.to_bash() + \
-                    self.dns.to_bash() + \
-                    self.dhcp.to_bash() + \
-                    self.lb.to_bash() + \
-                    self.architecture.to_bash():
-                outfile.write(line + '\n')
+            _ = [outfile.write(line + '\n') for section in self.all for line in section.to_bash()]
             outfile.write(self._footer)
 
     def configurate(self):
@@ -274,7 +298,6 @@ class configurator(object):
 
 
 def main():
-    print('Configurator 9000\n')
     dhcp_providers = ['.'.join(item.split('.')[:-1])
                       for item in
                       next(os.walk('/app/providers/dhcp/tasks'))[2]]
@@ -284,9 +307,11 @@ def main():
     mgmt_providers = ['.'.join(item.split('.')[:-1])
                       for item in
                       next(os.walk('/app/providers/management/tasks/netboot'))[2]]
+    rtr_interfaces = os.environ['BASTION_INTERFACES'].split()
     return configurator(
             CONFIG_PATH,
             CONFIG_FOOTER,
+            rtr_interfaces,
             dns_providers,
             dhcp_providers,
             mgmt_providers).configurate()
