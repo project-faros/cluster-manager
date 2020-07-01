@@ -113,6 +113,14 @@ class IPAddressManager(dict):
         with open(self._save_file, 'wb') as handle:
             pickle.dump(dict(self), handle)
 
+    @property
+    def static_pool(self):
+        return str(self._static_pool)
+
+    @property
+    def dynamic_pool(self):
+        return str(self._dynamic_pool)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -138,7 +146,7 @@ def main():
         mgmt_provider=os.environ['MGMT_PROVIDER'],
         mgmt_user=os.environ['MGMT_USER'],
         mgmt_password=os.environ['MGMT_PASSWORD'],
-        install_disk='sda',
+        install_disk=os.environ['BOOT_DRIVE'],
         loadbalancer_vip=ipam['loadbalancer'],
         wan_ip=os.environ['BASTION_IP_ADDR'])
 
@@ -150,6 +158,7 @@ def main():
         all_interfaces=os.environ['BASTION_INTERFACES'].split(),
         subnet=os.environ['SUBNET'],
         subnet_mask=os.environ['SUBNET_MASK'],
+        dynamic_ip_range=ipam.dynamic_range,
         allowed_services=json.loads(os.environ['ALLOWED_SERVICES']))
     router.add_host('wan',
         os.environ['BASTION_IP_ADDR'],

@@ -1,0 +1,38 @@
+- name: ensure dhcp server packages are installed
+  yum:
+    name: dhcp-server
+    state: installed
+
+- name: ensure dhcp server is configured
+  template:
+    src: dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+    mode: 0640
+    owner: root
+    group: root
+  notify: restart dhcpd
+
+- name: ensure custom dhcpd conf file exists
+  file:
+    path: /etc/dhcp/dhcpd.custom.conf
+    owner: root
+    group: root
+    mode: 0640
+    state: file
+  register: custom_conf_check
+  ignore_errors: yes
+
+- name: create custom dhcpd conf file
+  file:
+    path: /etc/dhcp/dhcpd.custom.conf
+    owner: root
+    group: root
+    mode: 0640
+    state: touch
+  when: custom_conf_check is failed
+
+- name: ensure dhcp server is running/enabled
+  service:
+    name: dhcpd
+    state: started
+    enabled: yes

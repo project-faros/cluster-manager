@@ -13,6 +13,11 @@
       router_subnet_mask: "{{ subnet_mask }}"
       router_wan_interface: "{{ wan_interface }}"
       router_loadbalancer: "{{ loadbalancer_vip }}"
-    # - name: dhcp-server
+    - name: dhcp-server
+      dhcp_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      dhcp_server_bastion_lan_ip: "{{ hostvars.lan.ansible_host }}"
+      dhcp_server_subnet: "{{ subnet }}/{{ subnet_mask }}"
+      dhcp_server_dyn_range: "{{ dynamic_ip_range }}"
     # - name: dns-server
     # - name: hardening # look the root account, etc
+    # - name: ntp-server
