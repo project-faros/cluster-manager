@@ -1,0 +1,3 @@
+dns_server_domain: "example.com"
+dns_server_ip: "192.168.8.1"
+dns_server_reverse_domain: "8.168.192.in-addr.arpa"

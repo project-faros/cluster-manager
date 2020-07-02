@@ -81,6 +81,15 @@ class IPAddressManager(dict):
         self._dynamic_pool = next(divided)
         self._generator = self._static_pool.hosts()
 
+        # calculate reverse dns zone
+        classful_prefix = [32, 24, 16, 8, 0]
+        classful = subnet
+        while classful.prefixlen not in classful_prefix:
+            classful = classful.supernet()
+        host_octets = classful_prefix.index(classful.prefixlen)
+        self._reverse_ptr_zone = \
+            '.'.join(classful.reverse_pointer.split('.')[host_octets:])
+
         # load the last saved state
         try:
             restore = pickle.load(open(save_file, 'rb'))
@@ -121,6 +130,10 @@ class IPAddressManager(dict):
     def dynamic_pool(self):
         return str(self._dynamic_pool)
 
+    @property
+    def reverse_ptr_zone(self):
+        return str(self._reverse_ptr_zone)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -158,7 +171,8 @@ def main():
         all_interfaces=os.environ['BASTION_INTERFACES'].split(),
         subnet=os.environ['SUBNET'],
         subnet_mask=os.environ['SUBNET_MASK'],
-        dynamic_ip_range=ipam.dynamic_range,
+        dynamic_ip_range=ipam.dynamic_pool,
+        reverse_ptr_zone=ipam.reverse_ptr_zone,
         allowed_services=json.loads(os.environ['ALLOWED_SERVICES']))
     router.add_host('wan',
         os.environ['BASTION_IP_ADDR'],

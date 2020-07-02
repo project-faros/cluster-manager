@@ -18,6 +18,8 @@
       dhcp_server_bastion_lan_ip: "{{ hostvars.lan.ansible_host }}"
       dhcp_server_subnet: "{{ subnet }}/{{ subnet_mask }}"
       dhcp_server_dyn_range: "{{ dynamic_ip_range }}"
-    # - name: dns-server
+    - name: dns-server
+      dns_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      dns_server_reverse_domain: "{{ reverse_ptr_zone }}"
     # - name: hardening # look the root account, etc
     # - name: ntp-server
