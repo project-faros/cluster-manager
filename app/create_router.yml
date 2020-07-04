@@ -21,5 +21,6 @@
     - name: dns-server
       dns_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
       dns_server_reverse_domain: "{{ reverse_ptr_zone }}"
-    # - name: hardening # look the root account, etc
-    # - name: ntp-server
+    - name: ntp-server
+      ntp_server_allowed: "{{ subnet }}/{{ subnet_mask }}"
+    - name: router-hardening

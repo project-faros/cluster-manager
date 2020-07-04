@@ -1,0 +1,25 @@
+- name: ensure chrony is installed
+  yum:
+    name: chrony
+    state: installed
+
+- name: ensure chrony is configured for local network access
+  lineinfile:
+    path: /etc/chrony.conf
+    line: allow {{ ntp_server_allowed }}
+    regexp: '#*\s*allow'
+    firstmatch: yes
+  when: ntp_server_allowed != omit
+  notify: restart chronyd
+
+- name: ensure chrony is allowed through the firewall
+  firewalld:
+    service: ntp
+    state: enabled
+    permanent: yes
+
+- name: ensure chrony is running/enabled
+  service:
+    name: chronyd
+    state: started
+    enabled: yes
