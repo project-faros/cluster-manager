@@ -107,6 +107,8 @@ function context() {
 
 function update() {
     $ENGINE pull $IMAGE:$VERSION
+    run ""
+    echo ""
 }
 
 
