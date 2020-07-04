@@ -43,5 +43,6 @@ _devel_run:
 	podman run --name "$(NAME)" \
 		--env-file ./bin/devel.env \
 		-v $(DEVDIR)/app:/app:Z -v $(DEVDIR)/data:/data:Z \
-		-it $(UPSTREAM)/$(IMAGE):dev
+		-it $(UPSTREAM)/$(IMAGE):dev \
+		/bin/bash
 

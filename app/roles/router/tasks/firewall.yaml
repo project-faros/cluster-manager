@@ -7,28 +7,6 @@
     state: enabled
   loop:
     - external
-    - internal
-
-- name: get all firewall direct rules
-  command: firewall-cmd --direct --get-all-rules
-  register: direct_rules
-  changed_when: False
-
-- name: allow internal->public packets to be routed - immediate
-  command: firewall-cmd --direct --add-rule {{ item }}
-  loop:
-    - ipv4 nat POSTROUTING 0 -o {{ router_wan_interface }} -j MASQUERADE
-    - ipv4 filter FORWARD 0 -i faroslan -o {{ router_wan_interface }} -j ACCEPT
-    - ipv4 filter FORWARD 0 -i {{ router_wan_interface }} -o faroslan -m state --state RELATED,ESTABLISHED -j ACCEPT
-  when: "item not in direct_rules.stdout_lines"
-
-- name: allow internal->public packets to be routed - permanent
-  command: firewall-cmd --direct --permanent --add-rule {{ item }}
-  loop:
-    - ipv4 nat POSTROUTING 0 -o {{ router_wan_interface }} -j MASQUERADE
-    - ipv4 filter FORWARD 0 -i faroslan -o {{ router_wan_interface }} -j ACCEPT
-    - ipv4 filter FORWARD 0 -i {{ router_wan_interface }} -o faroslan -m state --state RELATED,ESTABLISHED -j ACCEPT
-  when: "item not in direct_rules.stdout_lines"
 
 - name: enable ingress ssh to bastion
   firewalld:

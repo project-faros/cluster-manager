@@ -7,7 +7,7 @@
 #
 
 options {
-    listen-on           port 53 { faroslan; };
+    listen-on           port 53 { {{ dns_server_ip }}; };
     directory           "/var/named";
     dump-file           "/var/named/data/cache_dump.db";
     statistics-file     "/var/named/data/named_stats.txt";
