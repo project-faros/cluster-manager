@@ -60,7 +60,7 @@ function run() {
     BASTION_SSH_USER=$(whoami)
     CLUSTER_DOMAIN=$(hostname -d | awk -F'.' '!($1=""){print $0}' | xargs echo | tr ' ' '.')
     CLUSTER_NAME=$(hostname -d | awk -F'.' '{print $1}')
-    BOOT_DRIVE=$(mount -fv /boot | grep -Po '/dev/[a-z]+' | awk -F'/' '{ print $3 }')
+    BOOT_DRIVE=$(mount | grep " on /boot " | grep -Po '/dev/[a-z]+' | awk -F'/' '{ print $3 }')
 
     $ENGINE run --rm $it \
         -v "${CONFIG_DIR}/${CONTEXT}:/data:Z" \
@@ -81,6 +81,12 @@ function _context_init() {
     if [ ! -e $CONFIG_DIR/$CONTEXT ]; then
         echo "Initializing context: ${CONTEXT}"
         mkdir -p $CONFIG_DIR/$CONTEXT
+        if (echo n | ssh-keygen -q -N "" -f "$CONFIG_DIR/$CONTEXT/id_rsa" -C "Faros | ${CONTEXT}"); then
+            mkdir -p ~/.ssh; chown $(id -u):$(id -g) ~/.ssh; chmod 0700 ~/.ssh
+            cat "$CONFIG_DIR/$CONTEXT/id_rsa.pub" >> ~/.ssh/authorized_keys
+            ln -fs "$CONFIG_DIR/$CONTEXT/id_rsa" ~/.ssh/id_rsa.faros_${CONTEXT}
+            ln -fs "$CONFIG_DIR/$CONTEXT/id_rsa.pub" ~/.ssh/id_rsa.faros_${CONTEXT}.pub
+        fi
         run ""
         echo ""
     fi
