@@ -8,16 +8,6 @@
   set_fact:
     br_facts: "{{ br_check.stdout | from_yaml_all | list }}"
 
-- name: get wan settings
-  shell: nmcli con sh "{{ router_wan_interface }}" | grep -v 802-3
-  changed_when: no
-  failed_when: no
-  register: wan_check
-
-- name: parse wan settings
-  set_fact:
-    wan_facts: "{{ wan_check.stdout | from_yaml_all | list }}"
-
 - name: create the lan bridge
   shell: >
     nmcli con add
@@ -73,13 +63,4 @@
   when:
     - br_facts != []
     - br_facts[0][item.key] != item.target
-  notify: restart networking
-
-- name: verify wan configuration
-  shell: nmcli con mod "{{ router_wan_interface }}" "{{ item.key }}" "{{ item.target }}"
-  loop:
-    - key: connection.zone
-      target: external
-  when:
-    - wan_facts[0][item.key] != item.target
   notify: restart networking

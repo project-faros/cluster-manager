@@ -5,6 +5,8 @@
     create: yes
   notify: enable ip forwarding
 
-- import_tasks: ifconfig.yaml
+- import_tasks: wan_config.yaml
+
+- import_tasks: lan_config.yaml
 
 - import_tasks: firewall.yaml
