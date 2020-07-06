@@ -6,6 +6,13 @@
   become: yes
 
   roles:
+    - name: router
+      router_all_interfaces: "{{ all_interfaces }}"
+      router_lan_interfaces: "{{ lan_interfaces }}"
+      router_lan_address: "{{ hostvars.lan.ansible_host }}"
+      router_subnet_mask: "{{ subnet_mask }}"
+      router_wan_interface: "{{ wan_interface }}"
+      router_loadbalancer: "{{ loadbalancer_vip }}"
     - name: dhcp-server
       dhcp_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
       dhcp_server_bastion_lan_ip: "{{ hostvars.lan.ansible_host }}"
@@ -14,13 +21,6 @@
     - name: dns-server
       dns_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
       dns_server_reverse_domain: "{{ reverse_ptr_zone }}"
-    - name: router
-      router_all_interfaces: "{{ all_interfaces }}"
-      router_lan_interfaces: "{{ lan_interfaces }}"
-      router_lan_address: "{{ hostvars.lan.ansible_host }}"
-      router_subnet_mask: "{{ subnet_mask }}"
-      router_wan_interface: "{{ wan_interface }}"
-      router_loadbalancer: "{{ loadbalancer_vip }}"
     - name: ntp-server
       ntp_server_allowed: "{{ subnet }}/{{ subnet_mask }}"
     - name: router-hardening
