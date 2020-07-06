@@ -10,6 +10,7 @@
       router_all_interfaces: "{{ all_interfaces }}"
       router_lan_interfaces: "{{ lan_interfaces }}"
       router_lan_address: "{{ hostvars.lan.ansible_host }}"
+      router_lan_subnet: "{{ subnet }}/{{ subnet_mask }}"
       router_subnet_mask: "{{ subnet_mask }}"
       router_wan_interface: "{{ wan_interface }}"
       router_loadbalancer: "{{ loadbalancer_vip }}"

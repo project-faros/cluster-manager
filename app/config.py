@@ -234,7 +234,7 @@ class configurator(object):
             CheckParameter('ROUTER_LAN_INT', 'LAN Interfaces', rtr_interfaces),
             Parameter('SUBNET', 'Subnet'),
             ChoiceParameter('SUBNET_MASK', 'Subnet Mask', ['20', '21', '22', '23', '24', '25', '26', '27']),
-            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps'])])
+            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps', 'External to Internal Routing - DANGER'])])
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
             Parameter('PULL_SECRET', 'Pull Secret', password_repr)])

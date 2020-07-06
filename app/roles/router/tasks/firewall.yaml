@@ -26,6 +26,24 @@
     state: disabled
   when: '"SSH to Bastion" not in allowed_services'
 
+- name: enable ingress network routing
+  firewalld:
+    zone: external
+    rich_rule: "rule family=ipv4 destination address={{ router_lan_subnet }} drop"
+    permanent: yes
+    immediate: yes
+    state: disabled
+  when: '"External to Internal Routing - DANGER" in allowed_services'
+
+- name: disable ingress network routing
+  firewalld:
+    zone: external
+    rich_rule: "rule family=ipv4 destination address={{ router_lan_subnet }} drop"
+    permanent: yes
+    immediate: yes
+    state: enabled
+  when: '"External to Internal Routing - DANGER" not in allowed_services'
+
 - include_tasks: manage_forward_ports.yaml
   loop:
     - name: ingress https to cluster api
