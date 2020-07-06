@@ -24,25 +24,6 @@ echo -e "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n" >&2
 exit 1
 }
 
-function _validate() {
-# validate inputs
-if [[ $1 == "pubkey" ]]; then
-    ssh-keygen -l -f "$2" &> /dev/null && ! grep PRIVATE "$2" &> /dev/null && return 0
-    echo "$2 is not a public key."
-    return 1
-elif [[ $1 == "privkey" ]]; then
-    ssh-keygen -l -f "$2" &> /dev/null && grep PRIVATE "$2" &> /dev/null && return 0
-    echo "$2 is not a private key."
-    return 1
-elif [[ $1 == "text" ]]; then
-    test "x${2}" != "x" && return 0
-    echo "respoinse is empty"
-    return 1
-fi
-echo "$0 is not a valid option."
-return 1
-}
-
 function main() {
 ## gather input
 echo ''
@@ -53,20 +34,6 @@ if [ $can_sudo -eq 0 ]; then
 else
     echo 'The installer will attempt to continue without sudo rights.'
 fi
-_validate pubkey "$pubkey" &> /dev/null
-while [[ "$?" -gt 0 ]]; do
-    echo ''
-    echo 'Path to SSH public key: '
-    read pubkey
-    _validate pubkey "$pubkey"
-done
-_validate privkey "$privkey" &> /dev/null
-while [[ "$?" -gt 0 ]]; do
-    echo ''
-    echo 'Path to SSH private key: '
-    read privkey
-    _validate privkey "$privkey"
-done
 echo ''
 
 ## CONFIGURE SELINUX
@@ -104,15 +71,6 @@ if ! rpm -qa | grep -Po '^podman-\d' &> /dev/null; then
         die 'Sudo is required to install podman.'
     fi
 fi
-
-## copy files
-echo 'Installing SSH Keys'
-cp "$privkey" ~/.ssh/id_rsa || die "Error installing SSH keys."
-cp "$pubkey" ~/.ssh/id_rsa.pub || die "Error installing SSH keys."
-chmod 600 ~/.ssh/id_rsa* || die "Error installing SSH keys."
-mkdir -p ~/.config/faros/default || die "Error installing SSH keys."
-cp "$privkey" ~/.config/faros/default || die "Error installing SSH keys."
-cp "$pubkey" ~/.config/faros/default || die "Error installing SSH keys."
 
 ## install faros
 echo 'Installing Faros'
