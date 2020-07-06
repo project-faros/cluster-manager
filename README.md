@@ -5,10 +5,58 @@ bare-metal clusters. The project includes reference architectures and automated
 deployment tools. We are looking to bring OpenShift everywhere, even to the
 edge.
 
-## Installation
+## Hardware and Architecture
 
-Please follow [these instructions](./docs/prereqs.md) to ensure all of the
-prerequisites are met and to install the Faros cluster manager.
+The Faros installer assumes a 4 node cluster with a layer 2 Ethernet
+interconnect. Each node in the cluster must have out-of-band management and
+management interfaces must be on the same layer 2 network. One node in the
+cluster will be used as a bastion node and router. The remaining three will be
+used as a schedulable OpenShift Control Plane. It is preferred to run RHEL8 on
+the bastion/router node. CentOS 8 should work, but it is untested. The
+bastion/router node will require an uplink to either a corporate network or
+directly to the internet. This uplink will be called the WAN link.
+
+## Prerequisites
+
+### DNS
+
+Before begining, determine the cluster name and DNS domain/zone you would like
+to use for the install. The DNS zone should be one that you are able to modify.
+All of the required DNS entries for the cluster will exist in a subdomain
+that matches: `CLUSTER_NAME.DNS_ZONE`. For example: If you named your cluster
+`edge` and used the DNS zone `mycompany.com`, then your Kubernetes API will be
+hosted at `api.edge.mycompany.com`. It is very important that you are able to
+create the public DNS entries for the cluster. This is not handled by the
+installer.
+
+### Hardware and Bastion Node
+
+To prepare your cluster for installation:
+- Ensure the Layer 2 interconnect connects to all nodes. It is preferred to
+  leave the out of band management interfaces off the network for the time
+  being. They will be connected later.
+- Connect the WAN link to the bastion/router node.
+- Install RHEL 8 onto the bastion/router node. During the install:
+  - The hostname *must* be statically set to `bastion.CLUSTER_NAME.DNS_ZONE`.
+  - The WAN interface should be configured during the install. This may be
+    configured as a normal network connection.
+  - It is highly recommended to perform a standard RHEL 8 install with the
+    package set called: `RHEL Server without GUI`.
+
+If you are using Red Hat, subscribe to RHSM. For all operating systems: apply
+all available patches and reboot.
+
+### Install Faros
+
+Run the following command to install Faros.
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/project-faros/cluster-manager/master/bin/bootstrap_bastion.sh)"
+```
+
+The installer requires SUDO rights as it will need to install dependencies,
+configure SELinux, and enable cockpit. Cockpit may be disabled once the install
+is complete.
 
 ## Cluster Deployment
 
@@ -17,6 +65,9 @@ Run the following commands from your bastion node:
 ```bash
 # Launch the interactive cluster configuration TUI
 farosctl config
+
+# Create the edge router, DNS server, and DHCP server
+farosctl create router
 
 # Create the required virtual infrastructure
 # (bootstrap and virtual bastion app node)
