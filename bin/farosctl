@@ -140,7 +140,7 @@ function main() {
             exit $?
             ;;
         "shell")
-            run -it
+            run -it /bin/bash
             exit $?
             ;;
         "dir")
