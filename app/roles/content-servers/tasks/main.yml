@@ -13,6 +13,14 @@
     name: tftp-server, syslinux
     state: installed
 
+- name: Ensure tftp is allowed on local network
+  firewalld:
+    zone: internal
+    service: tftp
+    state: enabled
+    permanent: yes
+    immediate: yes
+
 - name: Create TFTP config
   file:
     path: /var/lib/tftpboot/pxelinux.cfg
