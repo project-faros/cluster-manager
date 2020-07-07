@@ -77,7 +77,7 @@ farosctl create machines
 # Configure network infrastructure records and cockpit links
 farosctl apply host-records
 
-# Connect out-of-band controllers to the network
+# Manually connect out-of-band controllers to the network
 # Then, wait for them to get their IP
 farosctl wait-for management-interfaces
 

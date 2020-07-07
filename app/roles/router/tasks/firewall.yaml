@@ -1,12 +1,10 @@
 - name: ensure masquerading is enabled
   firewalld:
-    zone: "{{ item }}"
+    zone: "external"
     masquerade: 'yes'
     permanent: yes
     immediate: yes
     state: enabled
-  loop:
-    - external
 
 - name: enable ingress ssh to bastion
   firewalld:
@@ -62,17 +60,35 @@
     state: enabled
   when: '"External to Internal Routing - DANGER" not in allowed_services'
 
+- name: ensure internal masquerading is enabled
+  firewalld:
+    zone: "internal"
+    masquerade: 'yes'
+    permanent: yes
+    immediate: yes
+    state: enabled
+  when: '"External to Internal Routing - DANGER" in allowed_services'
+
+- name: ensure internal masquerading is disabled
+  firewalld:
+    zone: "internal"
+    masquerade: 'no'
+    permanent: yes
+    immediate: yes
+    state: enabled
+  when: '"External to Internal Routing - DANGER" not in allowed_services'
+
 - include_tasks: manage_forward_ports.yaml
   loop:
     - name: ingress https to cluster api
       rule: port=6443:proto=tcp:toport=6443:toaddr={{ router_loadbalancer }}
-      exist: '{{ "HTTPS to Cluster API" in allowed_services }}'
+      exist: '{{ "HTTPS to Cluster API" in allowed_services and "External to Internal Routing - DANGER" not in allowed_services }}'
     - name: ingress http to cluster apps
       rule: port=80:proto=tcp:toport=80:toaddr={{ router_loadbalancer }}
-      exist: '{{ "HTTP to Cluster Apps" in allowed_services }}'
+      exist: '{{ "HTTP to Cluster Apps" in allowed_services and "External to Internal Routing - DANGER" not in allowed_services }}'
     - name: ingress https to cluster apps
       rule: port=443:proto=tcp:toport=443:toaddr={{ router_loadbalancer }}
-      exist: '{{ "HTTPS to Cluster Apps" in allowed_services }}'
+      exist: '{{ "HTTPS to Cluster Apps" in allowed_services and "External to Internal Routing - DANGER" not in allowed_services }}'
   loop_control:
     loop_var: "outer"
     label: "{{ outer.name }}"

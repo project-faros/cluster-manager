@@ -1,7 +1,6 @@
 #!/usr/bin/env ansible-playbook
 
-- import_playbook: util_vm_facts.yml
-
+- import_playbook: /app/playbooks/util_vm_facts.yml
 
 - name: create red hat coreos ignition files
   hosts: localhost
@@ -18,7 +17,6 @@
       openshift_installer_pull_secret: '{{ pull_secret | to_json }}'
       openshift_installer_version: "{{ lookup('ini', 'installer section=cluster file=/app/versions.ini') }}"
 
-
 - name: create openshift installation source repositories
   hosts: bastion_hosts
   gather_facts: yes
@@ -31,16 +29,6 @@
       rhcos_images_master_ign: /data/openshift-installer/master.ign
       rhcos_images_worker_ign: /data/openshift-installer/worker.ign
       rhcos_images_version: "{{ lookup('ini', 'rhcos section=cluster file=/app/versions.ini') }}"
-
-  post_tasks:
-    - name: setup dhcp
-      include_role:
-        name: dhcp-nextserver
-        defaults_from: "main.yml"
-        handlers_from: "{{ hostvars.dhcp.provider }}.yml"
-        tasks_from: "{{ hostvars.dhcp.provider }}.yml"
-        vars_from: "{{ hostvars.dhcp.provider }}.yml"
-
 
 - name: create pxelinux kickstart files
   hosts: cluster
