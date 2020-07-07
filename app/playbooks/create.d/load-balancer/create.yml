@@ -10,7 +10,7 @@
     - name: keepalived
       keepalived_router_id: ocp_hosted_lb
       keepalived_virt_router_id: 100
-      keepalived_interface: farosbr0
+      keepalived_interface: faroslan
       keepalived_priority: 10
       keepalived_pass: "{{ lookup('password', '/data/keepalived.pass chars=ascii_letters length=8') }}"
       keepalived_ip: "{{ loadbalancer_vip }}"
