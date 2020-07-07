@@ -61,6 +61,14 @@
     regexp: ^Listen
     path: /etc/httpd/conf/httpd.conf
 
+- name: Ensure tftp is allowed on local network
+  firewalld:
+    zone: internal
+    port: 8081/tcp
+    state: enabled
+    permanent: yes
+    immediate: yes
+
 - name: configure selinux booleans for http
   seboolean:
     name: httpd_can_network_connect
@@ -86,13 +94,3 @@
     name: httpd
     enabled: yes
     state: started
-
-- name: open firewall ports
-  firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: yes
-    immediate: yes
-  loop:
-    - 8081/tcp
-    - 69/udp
