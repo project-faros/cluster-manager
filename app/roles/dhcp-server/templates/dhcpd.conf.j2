@@ -27,3 +27,5 @@ subnet {{ dhcp_server_subnet | ipaddr('network') }} netmask {{ dhcp_server_subne
         range {{ dhcp_server_dyn_range | ipaddr('next_usable') }} {{ dhcp_server_dyn_range | ipaddr('last_usable') }};
     }
 }
+
+include             "/etc/dhcp/dhcpd.static.conf";

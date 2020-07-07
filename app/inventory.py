@@ -149,6 +149,10 @@ def main():
         IP_RESERVATIONS,
         os.environ['SUBNET'], os.environ['SUBNET_MASK'])
 
+    extra_nodes = json.loads(os.environ.get('EXTRA_NODES', '[]'))
+    for idx, item in enumerate(extra_nodes):
+        extra_nodes[idx].update({'ip': ipam[item['mac']]})
+
     inv = Inventory(0 if args.list else 1, args.host)
     inv.add_group('all', None,
         ansible_ssh_private_key_file=SSH_PRIVATE_KEY,
@@ -161,19 +165,20 @@ def main():
         mgmt_password=os.environ['MGMT_PASSWORD'],
         install_disk=os.environ['BOOT_DRIVE'],
         loadbalancer_vip=ipam['loadbalancer'],
-        wan_ip=os.environ['BASTION_IP_ADDR'])
+        dynamic_ip_range=ipam.dynamic_pool,
+        reverse_ptr_zone=ipam.reverse_ptr_zone,
+        subnet=os.environ['SUBNET'],
+        subnet_mask=os.environ['SUBNET_MASK'],
+        wan_ip=os.environ['BASTION_IP_ADDR'],
+        extra_nodes=extra_nodes)
 
     infra = inv.add_group('infra')
-    # ROUTER INTERFACES
     router = infra.add_group('router',
         wan_interface=os.environ['WAN_INT'],
         lan_interfaces=json.loads(os.environ['ROUTER_LAN_INT']),
         all_interfaces=os.environ['BASTION_INTERFACES'].split(),
-        subnet=os.environ['SUBNET'],
-        subnet_mask=os.environ['SUBNET_MASK'],
-        dynamic_ip_range=ipam.dynamic_pool,
-        reverse_ptr_zone=ipam.reverse_ptr_zone,
         allowed_services=json.loads(os.environ['ALLOWED_SERVICES']))
+    # ROUTER INTERFACES
     router.add_host('wan',
         os.environ['BASTION_IP_ADDR'],
         ansible_become_pass=os.environ['ADMIN_PASSWORD'],
@@ -182,24 +187,29 @@ def main():
         ipam['bastion'],
         ansible_become_pass=os.environ['ADMIN_PASSWORD'],
         ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    # DNS NODE
+    router.add_host('dns',
+        ipam['bastion'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    # DHCP NODE
+    router.add_host('dhcp',
+        ipam['bastion'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    # LOAD BALANCER NODE
+    router.add_host('loadbalancer',
+        ipam['loadbalancer'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # BASTION NODE
     bastion = infra.add_group('bastion_hosts')
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
             ipam['bastion'],
+            mgmt_mac_address=os.environ['BASTION_MGMT_MAC'],
+            mgmt_hostname=ipam[os.environ['BASTION_MGMT_MAC']],
             ansible_become_pass=os.environ['ADMIN_PASSWORD'],
             ansible_ssh_user=os.environ['BASTION_SSH_USER'])
-    # DNS NODE
-    infra.add_host('dns',
-          os.environ['DNS_HOST_NAME'],
-          provider=os.environ['DNS_PROVIDER'],
-          password=os.environ['DNS_PASSWORD'],
-          ansible_ssh_user=os.environ['DNS_USER'])
-    # DHCP NODE
-    infra.add_host('dhcp',
-          os.environ['DHCP_HOST_NAME'],
-          provider=os.environ['DHCP_PROVIDER'],
-          password=os.environ['DHCP_PASSWORD'],
-          ansible_ssh_user=os.environ['DHCP_USER'])
 
     cluster = inv.add_group('cluster')
     # BOOTSTRAP NODE

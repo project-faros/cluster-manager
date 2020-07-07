@@ -1,0 +1,60 @@
+- name: update saved serial
+  shell: date +%s | tee /var/named/serial.{{ dns_domain }}
+  register: serial_update
+  run_once: yes
+  delegate_to: dns
+  become: yes
+  listen:
+    - update serial
+
+- name: publish new serial to forward zone
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: /var/named/zone.{{ dns_domain }}
+    owner: root
+    group: root
+    mode: 0644
+    create: yes
+  loop:
+    - line: "@ IN SOA ns.{{ dns_domain }}. {{ dns_domain }}. {{ serial_update.stdout }} 1D 1W 1W 3H;"
+      regexp: "IN\\sSOA"
+      label: "SOA Record"
+  loop_control:
+    label: "{{ item.label }}"
+  run_once: yes
+  delegate_to: dns
+  become: yes
+  listen:
+    - update serial
+
+- name: publish new serial to reverse zone
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: /var/named/zone.{{ dns_reverse_domain }}
+    owner: root
+    group: root
+    mode: 0644
+    create: yes
+  loop:
+    - line: "@ IN SOA ns.{{ dns_domain }}. {{ dns_domain }}. {{ serial_update.stdout }} 1D 1W 1W 3H;"
+      regexp: "IN\\sSOA"
+      label: "SOA Record"
+  loop_control:
+    label: "{{ item.label }}"
+  run_once: yes
+  delegate_to: dns
+  become: yes
+  listen:
+    - update serial
+
+- name: restart named
+  service:
+    name: named
+    state: restarted
+  run_once: yes
+  delegate_to: dns
+  become: yes
+  listen:
+    - update serial

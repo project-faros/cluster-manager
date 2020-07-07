@@ -26,6 +26,24 @@
     state: disabled
   when: '"SSH to Bastion" not in allowed_services'
 
+- name: enable ingress https to cockpit
+  firewalld:
+    zone: external
+    service: cockpit
+    permanent: yes
+    immediate: yes
+    state: enabled
+  when: '"HTTPS to Cockpit Panel" in allowed_services'
+
+- name: disable ingress https to cockpit
+  firewalld:
+    zone: external
+    service: cockpit
+    permanent: yes
+    immediate: yes
+    state: disabled
+  when: '"HTTPS to Cockpit Panel" not in allowed_services'
+
 - name: enable ingress network routing
   firewalld:
     zone: external

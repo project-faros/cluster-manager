@@ -1,0 +1,29 @@
+#!/usr/bin/env ansible-playbook
+
+- name: Add Management Links to Cockpit
+  hosts: bastion_hosts
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: create cockpit links to bastion node management
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: "Bastion Management"
+            url: "https://bastion-mgmt.{{ cluster_name }}.{{ cluster_domain }}"
+            icon: pficon-container-node
+
+    - name: create cockpit links to cluster node management
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: "{{ machine_name }} Management"
+            url: "https://{{ machine_name }}-mgmt.{{ cluster_name }}.{{ cluster_domain }}"
+            icon: pficon-container-node
+      loop: "{{ groups.cluster }}"
+      loop_control:
+        loop_var: machine_name
+      when: "machine_name not in groups.virtual"

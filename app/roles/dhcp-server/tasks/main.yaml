@@ -31,6 +31,25 @@
     state: touch
   when: custom_conf_check is failed
 
+- name: ensure static dhcpd conf file exists
+  file:
+    path: /etc/dhcp/dhcpd.static.conf
+    owner: root
+    group: root
+    mode: 0640
+    state: file
+  register: custom_static_check
+  ignore_errors: yes
+
+- name: create static dhcpd conf file
+  file:
+    path: /etc/dhcp/dhcpd.static.conf
+    owner: root
+    group: root
+    mode: 0640
+    state: touch
+  when: custom_static_check is failed
+
 - name: ensure dhcp server is running/enabled
   service:
     name: dhcpd

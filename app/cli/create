@@ -7,7 +7,8 @@ Available Commands:
     all             Creates an OpenShift cluster.
     router          Create a network router on the bastion host.
     machines        Create any required virtual machines (like bootstrap).
-    network         Deploys network dependencies for the cluster.
+    dhcp-records    Creates the DHCP reservations required for the cluster.
+    dns-records     Creates the DNS records required for the cluster.
     load-balancer   Deploys the load balancer for the cluster.
     install-repos   Deploys the software/config source repos for install.
     cluster         Installs OpenShift onto the cluster nodes.
@@ -34,8 +35,12 @@ case $1 in
         ansible-playbook /app/create_machines.yml || exit 1
         ;;
 
-    "network")
-        ansible-playbook /app/create_network.yml || exit 1
+    "dns-records")
+        ansible-playbook /app/create_dns_records.yml || exit 1
+        ;;
+
+    "dhcp-records")
+        ansible-playbook /app/create_dhcp_records.yml || exit 1
         ;;
 
     "load-balancer")

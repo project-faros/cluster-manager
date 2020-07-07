@@ -15,3 +15,6 @@ jmespath==0.10.0
 
 # For ipaddr filter
 netaddr==0.7.20
+
+# For config.py
+prompt-toolkit==1.0.14

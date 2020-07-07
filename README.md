@@ -64,19 +64,22 @@ Run the following commands from your bastion node:
 
 ```bash
 # Launch the interactive cluster configuration TUI
+# Configuration details [avilable here](/project-faros/cluster-manager/docs/config.md).
 farosctl config
 
-# Create the edge router, DNS server, and DHCP server
-farosctl create router
+# Configure the edge router, DNS server, and DHCP server
+farosctl apply router
 
 # Create the required virtual infrastructure
 # (bootstrap and virtual bastion app node)
 farosctl create machines
 
-# Configure network infrastructure (DNS and DHCP)
-farosctl create network
+# Configure network infrastructure records and cockpit links
+farosctl apply host-records
 
-# Reboot out-of-band controllers to ensure they pick up their assigned IPs.
+# Connect out-of-band controllers to the network
+# Then, wait for them to get their IP
+farosctl wait-for management-interfaces
 
 # Create the cluster load balancer
 farosctl create load-balancer

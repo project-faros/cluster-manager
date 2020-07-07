@@ -2,10 +2,13 @@
 import sys
 import os
 import json
-from PyInquirer import Token, prompt, Separator
+from PyInquirer import prompt, Separator, default_style
+from prompt_toolkit.shortcuts import Token, print_tokens
+
 
 CONFIG_PATH = '/data/config.sh'
 CONFIG_FOOTER = ''
+STYLE = default_style
 
 
 def password_repr(password):
@@ -15,12 +18,14 @@ def password_repr(password):
 
 
 class Parameter(object):
+    disabled = False
 
-    def __init__(self, name, prompt, value_reprfun=str):
+    def __init__(self, name, prompt, value_reprfun=str, disabled=False):
         self._name = name
         self._value = os.environ.get(self._name, '')
         self._prompt = prompt
         self._value_reprfun = value_reprfun
+        self.disabled = disabled
 
     @property
     def name(self):
@@ -108,6 +113,13 @@ class CheckParameter(Parameter):
         return "export {}='{}'".format(self.name, json.dumps(self.value))
 
 
+class StaticParameter(Parameter):
+
+    def __init__(self, name, prompt, value, value_reprfun=str):
+        super().__init__(name, prompt, value_reprfun, 'Static Value')
+        self._value = value
+
+
 class ListDictParameter(Parameter):
 
     def __init__(self, name, prompt, keys):
@@ -120,13 +132,27 @@ class ListDictParameter(Parameter):
     def _value_reprfun(self, value):
         return '{} items'.format(len(self.value))
 
+    def print_status(self):
+        tokens = []
+        tokens += [(Token.QuestionMark, '!'),
+                   (Token.Question, f' Current {self._prompt}:\n')]
+        for entry in self._value:
+            for idx, key in enumerate(self._keys):
+                if idx == 0:
+                    ptr = '  - '
+                else:
+                    ptr = '    '
+                tokens += [(Token.Pointer, ptr),
+                           (Token.Arboted, f'{key[1]}: {entry[key[0]]}\n')]
+        print_tokens(tokens, style=STYLE)
+        sys.stdout.write('\n\n')
+
     def update(self):
-        # expand - remove add edit done
-        # remove:edit -> list -> 3xinput
-        # add -> 3xinput
         done = False
 
         while not done:
+            self.print_status()
+
             question = [
                 {
                     'type': 'expand',
@@ -208,10 +234,14 @@ class ParameterCollection(list):
         self._prompt = prompt
 
     def to_choices(self):
-        return [Separator(self._prompt)] + \
-            [{'name': repr(item),
-              'description': str(item.value),
-              'value': '{}|{}'.format(self._name, item.name)} for item in self]
+        out = [Separator(self._prompt)]
+        for item in self:
+            out += [{'name': repr(item),
+                     'description': str(item.value),
+                     'value': '{}|{}'.format(self._name, item.name)}]
+            if item.disabled:
+                out[-1].update({'disabled': item.disabled})
+        return out
 
     def to_bash(self):
         return ['# {}'.format(self._prompt.upper())] + [item.to_bash() for item in self]
@@ -226,37 +256,31 @@ class ParameterCollection(list):
 
 class configurator(object):
 
-    def __init__(self, path, footer, rtr_interfaces, dns_providers, dhcp_providers, mgmt_providers):
+    def __init__(self, path, footer, rtr_interfaces):
         self._path = path
         self._footer = footer
 
-        self.router = ParameterCollection('router', 'Network Router Configuration', [
+        self.router = ParameterCollection('router', 'Router Configuration', [
             CheckParameter('ROUTER_LAN_INT', 'LAN Interfaces', rtr_interfaces),
             Parameter('SUBNET', 'Subnet'),
             ChoiceParameter('SUBNET_MASK', 'Subnet Mask', ['20', '21', '22', '23', '24', '25', '26', '27']),
-            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps', 'External to Internal Routing - DANGER'])])
+            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps', 'HTTPS to Cockpit Panel', 'External to Internal Routing - DANGER'])])
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
             Parameter('PULL_SECRET', 'Pull Secret', password_repr)])
-        self.dns = ParameterCollection('dns', 'Cluster DNS Configuration', [
-            ChoiceParameter('DNS_PROVIDER', 'DNS Provider', dns_providers),
-            Parameter('DNS_HOST_NAME', 'DNS Host Name'),
-            Parameter('DNS_USER', 'DNS Admin User'),
-            Parameter('DNS_PASSWORD', 'DNS Admin Password', password_repr)])
-        self.dhcp = ParameterCollection('dhcp', 'Cluster DHCP Configuration', [
-            ChoiceParameter('DHCP_PROVIDER', 'DHCP Provider', dhcp_providers),
-            Parameter('DHCP_HOST_NAME', 'DHCP Host Name'),
-            Parameter('DHCP_USER', 'DHCP Admin User'),
-            Parameter('DHCP_PASSWORD', 'DHCP Admin Password', password_repr)])
-        self.architecture = ParameterCollection('architecture', 'Cluster Architecture', [
-            ChoiceParameter('MGMT_PROVIDER', 'Machine Management Provider', mgmt_providers),
-            Parameter('MGMT_USER', 'Machine Management User', password_repr),
+        self.architecture = ParameterCollection('architecture', 'Host Record Configuration', [
+            StaticParameter('MGMT_PROVIDER', 'Machine Management Provider', 'ilo'),
+            Parameter('MGMT_USER', 'Machine Management User'),
             Parameter('MGMT_PASSWORD', 'Machine Management Password', password_repr),
+            Parameter('BASTION_MGMT_MAC', 'Bastion Node Management MAC Address'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
                  ('mgmt_mac', 'Management MAC Address')])])
+        self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
+            ListDictParameter('EXTRA_NODES', 'Extra Records',
+                [('name', 'Node Name'), ('mac', 'MAC Address')])])
 
-        self.all = [self.router, self.cluster, self.dns, self.dhcp, self.architecture]
+        self.all = [self.router, self.cluster, self.architecture, self.extra]
 
     def _main_menu(self):
         question = [
@@ -298,23 +322,11 @@ class configurator(object):
 
 
 def main():
-    dhcp_providers = ['.'.join(item.split('.')[:-1])
-                      for item in
-                      next(os.walk('/app/providers/dhcp/tasks'))[2]]
-    dns_providers = ['.'.join(item.split('.')[:-1])
-                     for item in
-                     next(os.walk('/app/providers/dns/tasks'))[2]]
-    mgmt_providers = ['.'.join(item.split('.')[:-1])
-                      for item in
-                      next(os.walk('/app/providers/management/tasks/netboot'))[2]]
     rtr_interfaces = os.environ['BASTION_INTERFACES'].split()
     return configurator(
             CONFIG_PATH,
             CONFIG_FOOTER,
-            rtr_interfaces,
-            dns_providers,
-            dhcp_providers,
-            mgmt_providers).configurate()
+            rtr_interfaces).configurate()
 
 
 if __name__ == "__main__":
