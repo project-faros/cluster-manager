@@ -10,7 +10,7 @@
     regexp: "{{ item.regexp }}"
     path: /var/named/zone.{{ dns_server_domain }}
     owner: root
-    group: root
+    group: named
     mode: 0644
     create: yes
   loop:
@@ -28,7 +28,7 @@
     regexp: "{{ item.regexp }}"
     path: /var/named/zone.{{ dns_server_reverse_domain }}
     owner: root
-    group: root
+    group: named
     mode: 0644
     create: yes
   loop:

@@ -1,13 +1,16 @@
-- name: check to see if port forwarding rule exists
+- name: get PAT status
   shell: 'firewall-cmd --zone=external --list-all | grep -c "{{ outer.rule }}"'
   register: rule_check
   changed_when: no
   ignore_errors: yes
 
-- name: check to see if port forwarding rule should exist
+- name: calculate PAT desired state
   set_fact:
     action: '{% if outer.exist %}add-forward-port{% else %}remove-forward-port{% endif %}'
 
-- name: ensure port forwarding rule is configured
+- name: configure PAT
   command: "firewall-cmd --zone=external --{{ action }}={{ outer.rule }}"
+  when: "rule_check is failed == outer.exist"
+- name: configure PAT
+  command: "firewall-cmd --zone=external --permanent --{{ action }}={{ outer.rule }}"
   when: "rule_check is failed == outer.exist"
