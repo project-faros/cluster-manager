@@ -47,6 +47,7 @@
     permanent: yes
     immediate: yes
     state: enabled
+    zone: internal
   loop:
     - 6443/tcp
     - 22623/tcp
