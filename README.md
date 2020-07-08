@@ -35,6 +35,11 @@ To prepare your cluster for installation:
 - Ensure the Layer 2 interconnect connects to all nodes. It is preferred to
   leave the out of band management interfaces off the network for the time
   being. They will be connected later.
+- In the BIOS for each node:
+  - Ensure the boot order is set to Hard Drive and then the NIC that will be
+    used by the cluster.
+  - All cluster nodes must use the same username and password for their out of
+    band management.
 - Connect the WAN link to the bastion/router node.
 - Install RHEL 8 onto the bastion/router node. During the install:
   - The hostname *must* be statically set to `bastion.CLUSTER_NAME.DNS_ZONE`.
@@ -42,6 +47,9 @@ To prepare your cluster for installation:
     configured as a normal network connection.
   - It is highly recommended to perform a standard RHEL 8 install with the
     package set called: `RHEL Server without GUI`.
+  - A single user should be configured on the bastion node that will be used
+    for deploying the cluster. The password for this user should be the same as
+    the cluster admin password that will be configured during installation.
 
 If you are using Red Hat, subscribe to RHSM. For all operating systems: apply
 all available patches and reboot.
