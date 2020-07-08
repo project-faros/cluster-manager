@@ -12,7 +12,7 @@
       vars:
         cockpit_links:
           - name: "Bastion Management"
-            url: "https://bastion-mgmt.{{ cluster_name }}.{{ cluster_domain }}"
+            url: "https://{{ mgmt_hostname}}"
             icon: pficon-container-node
 
     - name: create cockpit links to cluster node management
@@ -21,7 +21,7 @@
       vars:
         cockpit_links:
           - name: "{{ machine_name }} Management"
-            url: "https://{{ machine_name }}-mgmt.{{ cluster_name }}.{{ cluster_domain }}"
+            url: "https://{{ hostvars[machine_name].mgmt_hostname }}"
             icon: pficon-container-node
       loop: "{{ groups.cluster }}"
       loop_control:
