@@ -11,4 +11,3 @@
   delegate_to: localhost
   become: no
   listen: restart dhcpd
-  become: yes
