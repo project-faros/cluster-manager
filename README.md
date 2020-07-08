@@ -5,7 +5,7 @@ footprint, bare-metal clusters. The project includes reference architectures
 and automated deployment tools. We are looking to bring OpenShift everywhere,
 even to the edge.
 
-![Cluster Install](https://raw.githubusercontent.com/project-faros/assets/master/demos/install/0-full_install.gif)
+![Cluster Install](https://raw.githubusercontent.com/project-faros/assets/master/demos/install/8-cluster.gif)
 
 ## Hardware and Architecture
 
