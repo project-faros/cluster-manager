@@ -102,16 +102,6 @@
         sleep: 15
         timeout: 3600
 
-    - name: wait for machine config server to come up
-      uri:
-        url: "https://api-int.{{ cluster_name }}.{{ cluster_domain }}:22623"
-        status_code: 404
-        validate_certs: no
-      register: result
-      until: "result is not failed"
-      retries: 180
-      delay: 10
-
 - name: Wait for the OpenShift Installation to Complete
   hosts: localhost
   become: no
