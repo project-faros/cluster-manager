@@ -170,7 +170,8 @@ def main():
         subnet=os.environ['SUBNET'],
         subnet_mask=os.environ['SUBNET_MASK'],
         wan_ip=os.environ['BASTION_IP_ADDR'],
-        extra_nodes=extra_nodes)
+        extra_nodes=extra_nodes,
+        ignored_macs=os.environ['IGNORE_MACS'])
 
     infra = inv.add_group('infra')
     router = infra.add_group('router',
@@ -225,7 +226,6 @@ def main():
         mgmt_ip = ipam[node['mgmt_mac']]
         cp.add_host(node['name'], ip,
            mac_address=node['mac'],
-           nic=node['nic'],
            mgmt_mac_address=node['mgmt_mac'],
            mgmt_hostname=mgmt_ip,
            ansible_ssh_user='core',

@@ -3,13 +3,11 @@
 {% set image = pxelinux_kickstarts_content_server + '/image.raw.gz' %}
 {% set ign = pxelinux_kickstarts_content_server + '/' + pxelinux_kickstarts_host_role + '.ign' %}
 {% set disk = pxelinux_kickstarts_install_disk %}
-{% set nic = pxelinux_kickstarts_nic %}
-{% if nic != '' %}{% set ip = 'ip=' + nic + ':dhcp' %}{% else %}{% set ip = 'ip=dhcp' %}{% endif %}
 
 DEFAULT pxeboot
 TIMEOUT 20
 PROMPT 0
 LABEL pxeboot
     KERNEL {{ kernel }}
-    APPEND {{ ip }} rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.inst.image_url={{ image }} coreos.inst.ignition_url={{ ign }}
+    APPEND ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.inst.image_url={{ image }} coreos.inst.ignition_url={{ ign }}
 

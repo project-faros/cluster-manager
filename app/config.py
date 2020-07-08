@@ -275,11 +275,12 @@ class configurator(object):
             Parameter('BASTION_MGMT_MAC', 'Bastion Node Management MAC Address'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
-                 ('nic', 'Network Interface'),
                  ('mgmt_mac', 'Management MAC Address')])])
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Extra Records',
-                [('name', 'Node Name'), ('mac', 'MAC Address')])])
+                [('name', 'Node Name'), ('mac', 'MAC Address')]),
+            ListDictParameter('IGNORE_MACS', 'Ignored MAC Addresses',
+                [('name', 'Entry Name'), ('mac', 'MAC Address')])])
 
         self.all = [self.router, self.cluster, self.architecture, self.extra]
 

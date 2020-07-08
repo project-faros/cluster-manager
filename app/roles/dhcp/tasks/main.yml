@@ -1,6 +1,6 @@
 #!/usr/bin/env ansible-playbook
 
-- name: configure dhcp entry
+- name: configure dhcp reservation
   blockinfile:
     path: /etc/dhcp/dhcpd.static.conf
     block: |
@@ -16,4 +16,22 @@
   notify: restart dhcpd
   delegate_to: dhcp
   become: yes
+  when: not dhcp_ignore
 
+- name: configure dhcp ignoring
+  blockinfile:
+    path: /etc/dhcp/dhcpd.static.conf
+    block: |
+      host faros_ignore_{{ dhcp_name }} {
+        hardware ethernet {{ dhcp_mac_address }};
+        ignore booting;
+      }
+    marker: "# {mark} MANAGED RECORD - ignore_{{ dhcp_name }}"
+    create: yes
+    owner: root
+    group: root
+    mode: 0640
+  notify: restart dhcpd
+  delegate_to: dhcp
+  become: yes
+  when: dhcp_ignore
