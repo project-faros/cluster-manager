@@ -1,0 +1,12 @@
+- name: ensure ip forwarding is configured
+  lineinfile:
+    path: /etc/sysctl.d/99-faros.conf
+    line: net.ipv4.ip_forwarding = 1
+    create: yes
+  notify: enable ip forwarding
+
+- import_tasks: wan_config.yaml
+
+- import_tasks: lan_config.yaml
+
+- import_tasks: firewall.yaml

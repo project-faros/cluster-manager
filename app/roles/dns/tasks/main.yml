@@ -1,0 +1,42 @@
+#!/usr/bin/env ansible-playbook
+- name: calculate dns facts
+  set_fact:
+    dns_fqdn: "{{ dns_hostname }}.{{ dns_domain }}."
+    dns_fwd_zone_db: "/var/named/zone.{{ dns_domain }}"
+    dns_rev_zone_db: "/var/named/zone.{{ dns_reverse_domain }}"
+    dns_zone_serial: "/var/named/serial.{{ dns_domain }}"
+  delegate_to: dns
+  become: yes
+
+- name: ensure forward entry exists in zone (not SRV)
+  lineinfile:
+    line: "{{ dns_hostname }} IN {{ dns_type }} {{ dns_value }}"
+    dest: "{{ dns_fwd_zone_db }}"
+    regexp: ";*\\w*{{ dns_hostname | replace('*', '\\*') }} IN"
+    create: yes
+  delegate_to: dns
+  become: yes
+  when: dns_type != "SRV"
+  notify: update serial
+
+- name: ensure forward entry exists in zone (SRV)
+  lineinfile:
+    line: "{{ dns_hostname }} IN {{ dns_type }} {{ dns_value }}"
+    dest: "{{ dns_fwd_zone_db }}"
+    create: yes
+  delegate_to: dns
+  become: yes
+  when: dns_type == "SRV"
+  notify: update serial
+
+- name: ensure reverse entry exists in zone
+  lineinfile:
+    line: "{{ dns_value | ipaddr('revdns') }} IN PTR {{ dns_fqdn }}"
+    dest: "{{ dns_rev_zone_db }}"
+    regexp: ";*\\w*{{ dns_value | ipaddr('revdns') }}\\w+"
+  when:
+    - dns_reverse
+    - dns_type == "A"
+  delegate_to: dns
+  become: yes
+  notify: update serial

@@ -1,0 +1,115 @@
+- name: ensure dns server is installed
+  yum:
+    name: bind
+    state: installed
+
+- name: ensure the dns server is configured
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+    owner: root
+    group: named
+    mode: 0640
+  notify: restart named
+
+- name: ensure custom dns conf file exists
+  file:
+    path: /etc/named.custom.conf
+    owner: root
+    group: named
+    mode: 0640
+    state: file
+  register: custom_conf_check
+  ignore_errors: yes
+  notify: restart named
+
+- name: create custom dns conf file
+  file:
+    path: /etc/named.custom.conf
+    owner: root
+    group: named
+    mode: 0640
+    state: touch
+  when: custom_conf_check is failed
+  notify: restart named
+
+- name: read dns zone serial
+  command: cat /var/named/serial.{{ dns_server_domain }}
+  register: serial
+  changed_when: no
+  ignore_errors: yes
+
+- name: initialize dns zone serial
+  shell: date +%s | tee /var/named/serial.{{ dns_server_domain }}
+  when: serial is failed
+  changed_when: yes
+
+- name: read dns zone serial
+  command: cat /var/named/serial.{{ dns_server_domain }}
+  register: serial
+  changed_when: no
+
+- name: ensure forward dns zone is configured
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: /var/named/zone.{{ dns_server_domain }}
+    owner: root
+    group: named
+    mode: 0644
+    create: yes
+  loop:
+    - line: "$TTL 1D"
+      regexp: "^\\$TTL"
+      label: "Default TTL"
+    - line: "@ IN SOA ns.{{ dns_server_domain }}. {{ dns_server_domain }}. {{ serial.stdout }} 1D 1W 1W 3H;"
+      regexp: "IN\\sSOA"
+      label: "SOA Record"
+    - line: "@ IN NS ns.{{ dns_server_domain }}."
+      regexp: "IN\\sNS"
+      label: "NS Record"
+    - line: "ns IN A {{ dns_server_ip }}"
+      regexp: "ns\\sIN\\sA"
+      label: "DNS Server A Record"
+  loop_control:
+    label: "{{ item.label }}"
+  notify: update zone serial
+
+- name: ensure reverse dns zone is configured
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: /var/named/zone.{{ dns_server_reverse_domain }}
+    owner: root
+    group: named
+    mode: 0644
+    create: yes
+  loop:
+    - line: "$TTL 1D"
+      regexp: "^\\$TTL"
+      label: "Default TTL"
+    - line: "@ IN SOA ns.{{ dns_server_domain }}. {{ dns_server_domain }}. {{ serial.stdout }} 1D 1W 1W 3H;"
+      regexp: "IN\\sSOA"
+      label: "SOA Record"
+    - line: "@ IN NS ns.{{ dns_server_domain }}."
+      regexp: "IN\\sNS"
+      label: "NS Record"
+  loop_control:
+    label: "{{ item.label }}"
+  notify: update zone serial
+
+- name: ensure dns server is running and enabled
+  service:
+    name: named
+    state: started
+    enabled: yes
+
+- name: ensure firewall allows internal access to dns
+  firewalld:
+    zone: internal
+    port: 53/{{ item }}
+    state: enabled
+    permanent: yes
+  loop:
+    - tcp
+    - udp

@@ -1,0 +1,7 @@
+router_all_interfaces: []
+router_lan_interfaces: []
+router_lan_address: '192.168.1.1'
+router_subnet_mask: 24
+router_wan_interface: eth0
+router_loadbalancer: '192.168.1.2'
+router_lan_subnet: "192.168.1.0/24"

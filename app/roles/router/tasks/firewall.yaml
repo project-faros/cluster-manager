@@ -1,0 +1,103 @@
+- name: calculate desired firewall state
+  set_fact:
+    router_ingress_routing: '{{ "External to Internal Routing - DANGER" in allowed_services }}'
+- name: calculate desired firewall state
+  set_fact:
+    router_ext_masq: 'yes'
+    router_int_masq: 'no'
+    router_external_target: '{% if router_ingress_routing %}default{% else %}DROP{% endif %}'
+    router_ingress_ssh: '{% if "SSH to Bastion" in allowed_services %}enabled{% else %}disabled{% endif %}'
+    router_ingress_cockpit: '{% if "HTTPS to Cockpit Panel" in allowed_services %}enabled{% else %}disabled{% endif %}'
+    router_ingress_api: '{% if router_ingress_routing and "HTTPS to Cluster API" in allowed_services %}enabled{% else %}disabled{% endif %}'
+    router_ingress_http: '{% if router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services %}enabled{% else %}disabled{% endif %}'
+    router_ingress_https: '{% if router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services %}enabled{% else %}disabled{% endif %}'
+    router_ingress_target: '{% if router_ingress_routing %}default{% else %}DROP{% endif %}'
+    router_forward_api: '{{ not router_ingress_routing and "HTTPS to Cluster API" in allowed_services }}'
+    router_forward_http: '{{ not router_ingress_routing and "HTTP to Cluster Apps" in allowed_services }}'
+    router_forward_https: '{{ not router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services }}'
+
+- name: query current firewall state
+  command: firewall-cmd --zone=external --permanent --get-target
+  register: router_external_target_current
+  changed_when: no
+
+# MASQUERADING
+- name: ensure masquerading is enabled
+  firewalld:
+    zone: "external"
+    masquerade: '{{ router_ext_masq }}'
+    permanent: yes
+    immediate: yes
+    state: enabled
+- name: ensure internal masquerading is configured
+  firewalld:
+    zone: "internal"
+    masquerade: '{{ router_int_masq }}'
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+# DEFAULT ACTION / PACKET FORWARDING ACTION
+- name: configure the external default target
+  command: "firewall-cmd --zone=external --permanent --set-target={{ router_external_target }}"
+  changed_when: yes
+  when: router_external_target != router_external_target_current.stdout
+- name: reload firewall with new default external target
+  command: "firewall-cmd --reload"
+  changed_when: yes
+  when: router_external_target != router_external_target_current.stdout
+
+# INGRESS SERVICES - LOCAL
+- name: configure ingress ssh to bastion
+  firewalld:
+    zone: external
+    service: ssh
+    permanent: yes
+    immediate: yes
+    state: '{{ router_ingress_ssh }}'
+- name: configure ingress https to cockpit
+  firewalld:
+    zone: external
+    service: cockpit
+    permanent: yes
+    immediate: yes
+    state: '{{ router_ingress_cockpit }}'
+
+# INGRESS SERVICES - NAT
+- name: configure https to cluster api NAT
+  firewalld:
+    zone: "external"
+    port: 6443/tcp
+    permanent: yes
+    immediate: yes
+    state: '{{ router_ingress_api }}'
+- name: configure https to cluster apps NAT
+  firewalld:
+    zone: "external"
+    port: 443/tcp
+    permanent: yes
+    immediate: yes
+    state: '{{ router_ingress_https }}'
+- name: configure http to cluster apps NAT
+  firewalld:
+    zone: "external"
+    port: 80/tcp
+    permanent: yes
+    immediate: yes
+    state: '{{ router_ingress_http }}'
+
+# INGRESS SERVICES - PAT
+- include_tasks: manage_forward_ports.yaml
+  loop:
+    - name: ingress https to cluster api
+      rule: port=6443:proto=tcp:toport=6443:toaddr={{ router_loadbalancer }}
+      exist: '{{ "HTTPS to Cluster API" in allowed_services and "External to Internal Routing - DANGER" not in allowed_services }}'
+    - name: ingress http to cluster apps
+      rule: port=80:proto=tcp:toport=80:toaddr={{ router_loadbalancer }}
+      exist: '{{ "HTTP to Cluster Apps" in allowed_services and "External to Internal Routing - DANGER" not in allowed_services }}'
+    - name: ingress https to cluster apps
+      rule: port=443:proto=tcp:toport=443:toaddr={{ router_loadbalancer }}
+      exist: '{{ "HTTPS to Cluster Apps" in allowed_services and "External to Internal Routing - DANGER" not in allowed_services }}'
+  loop_control:
+    loop_var: "outer"
+    label: "{{ outer.name }}"

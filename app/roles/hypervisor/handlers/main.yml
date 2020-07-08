@@ -1,4 +1,0 @@
-- name: restart networking
-  shell: nmcli networking off; nmcli networking on
-  async: 120
-  poll: 5

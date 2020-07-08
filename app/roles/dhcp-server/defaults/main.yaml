@@ -1,0 +1,4 @@
+dhcp_server_domain: 'example.com'
+dhcp_server_bastion_lan_ip: '192.168.10.1'
+dhcp_server_dyn_range: '192.168.10.150/28'
+dhcp_server_subnet: '192.168.10.0/24'

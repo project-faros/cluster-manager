@@ -1,0 +1,66 @@
+- name: check for lan bridge
+  shell: nmcli con sh faroslan | grep -v 802-3
+  changed_when: no
+  failed_when: no
+  register: br_check
+
+- name: parse bridge settings
+  set_fact:
+    br_facts: "{{ br_check.stdout | from_yaml_all | list }}"
+
+- name: create the lan bridge
+  shell: >
+    nmcli con add
+    ifname faroslan type bridge con-name faroslan autoconnect yes
+    ip4 {{ router_lan_address }}/{{ router_subnet_mask }}
+    --
+    connection.zone internal
+    ipv4.method manual
+  when: br_facts == []
+  notify: restart networking
+
+- name: check interfaces for bridge membership
+  shell: nmcli con sh faroslan-{{ item }} | grep -v 802-3
+  loop: "{{ router_all_interfaces }}"
+  changed_when: no
+  failed_when: no
+  register: member_check
+
+- name: add interfaces to the lan bridge
+  shell: >
+    nmcli con add
+    type bridge-slave ifname {{ item.item }} con-name faroslan-{{ item.item }} autoconnect yes
+    master faroslan
+    --
+    connection.zone internal
+  loop: "{{ member_check.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when:
+    - item.item is in router_lan_interfaces
+    - item.stdout == ""
+  notify: restart networking
+
+- name: remove interfaces from the lan bridge
+  shell: nmcli con del faroslan-{{ item }}
+  loop: "{{ member_check.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when:
+    - item.item is not in router_lan_interfaces
+    - item.stdout != ""
+  notify: restart networking
+
+- name: verify faroslan configuration
+  shell: nmcli con mod faroslan "{{ item.key }}" "{{ item.target }}"
+  loop:
+    - key: ipv4.method
+      target: manual
+    - key: connection.zone
+      target: internal
+    - key: ipv4.addresses
+      target: "{{ router_lan_address }}/{{ router_subnet_mask }}"
+  when:
+    - br_facts != []
+    - br_facts[0][item.key] != item.target
+  notify: restart networking

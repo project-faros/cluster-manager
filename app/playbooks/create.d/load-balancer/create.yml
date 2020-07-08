@@ -1,0 +1,26 @@
+#!/usr/bin/env ansible-playbook
+
+- name: deploy openshift load balancer
+  hosts: bastion_hosts
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - name: loadbalancer
+    - name: keepalived
+      keepalived_router_id: ocp_hosted_lb
+      keepalived_virt_router_id: 100
+      keepalived_interface: faroslan
+      keepalived_priority: 10
+      keepalived_pass: "{{ lookup('password', '/data/keepalived.pass chars=ascii_letters length=8') }}"
+      keepalived_ip: "{{ loadbalancer_vip }}"
+
+  post_tasks:
+    - name: create cockpit links
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: External Load Balancer Stats
+            url: "http://{{ inventory_hostname }}.{{ cluster_name }}.{{ cluster_domain }}:8080/stats"
+            icon: pficon-route

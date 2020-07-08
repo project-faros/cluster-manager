@@ -1,0 +1,13 @@
+- name: restart dhcpd service
+  service:
+    name: dhcpd
+    state: restarted
+  listen: restart dhcpd
+  delegate_to: dhcp
+  become: yes
+
+- name: sleep
+  command: sleep 1
+  delegate_to: localhost
+  become: no
+  listen: restart dhcpd

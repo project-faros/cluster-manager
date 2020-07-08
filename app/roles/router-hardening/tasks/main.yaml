@@ -1,0 +1,12 @@
+- name: ensure the root user password is disabled
+  user:
+    name: root
+    password_lock: yes
+
+- name: do not allow root ssh logins
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: PermitRootLogin no
+    regexp: '#*\s*PermitRootLogin'
+    firstmatch: yes
+  notify: restart sshd

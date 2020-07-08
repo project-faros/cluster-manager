@@ -1,0 +1,7 @@
+- name: enable ip forwarding
+  command: sysctl -w net.ipv4.ip_forward=1
+
+- name: restart networking
+  shell: nmcli networking off; nmcli networking on
+  async: 120
+  poll: 5

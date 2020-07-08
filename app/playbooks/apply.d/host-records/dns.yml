@@ -1,0 +1,106 @@
+#!/usr/bin/env ansible-playbook
+
+- import_playbook: /app/playbooks/util_vm_facts.yml
+
+- name: Configure Cluster Node DNS Records
+  hosts: cluster
+  gather_facts: no
+  serial: 1
+
+  vars:
+    dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    dns_reverse_domain: "{{ reverse_ptr_zone }}"
+
+  roles:
+    - name: dns
+
+- name: Configure Cluster Node Management DNS Records
+  hosts: cluster:!virtual
+  gather_facts: no
+  serial: 1
+
+  vars:
+    dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    dns_reverse_domain: "{{ reverse_ptr_zone }}"
+
+  roles:
+    - name: dns
+      dns_hostname: "{{ inventory_hostname }}-mgmt"
+      dns_value: "{{ mgmt_hostname }}"
+
+- name: Configure Bastion DNS entries
+  hosts: bastion_hosts
+  gather_facts: no
+  serial: 1
+
+  vars:
+    dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    dns_reverse_domain: "{{ reverse_ptr_zone }}"
+
+  roles:
+    - name: dns
+      dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    - name: dns
+      dns_hostname: "{{ inventory_hostname }}-mgmt"
+      dns_value: "{{ mgmt_hostname }}"
+
+- name: Configure Load Balanced DNS entries
+  hosts: loadbalancer
+  gather_facts: no
+  serial: 1
+
+  vars:
+    dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    dns_reverse_domain: "{{ reverse_ptr_zone }}"
+
+  roles:
+    - name: dns
+      dns_hostname: "api"
+      dns_reverse: no
+    - name: dns
+      dns_hostname: "api-int"
+      dns_reverse: no
+    - name: dns
+      dns_hostname: "*.apps"
+      dns_reverse: no
+    - name: dns
+      dns_hostname: "loadbalancer"
+
+- name: Configure etcd DNS entries
+  hosts: control_plane
+  gather_facts: no
+  serial: 1
+
+  vars:
+    dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    dns_reverse_domain: "{{ reverse_ptr_zone }}"
+
+  roles:
+    - name: dns
+      dns_hostname: "etcd-{{ cp_node_id }}"
+      dns_reverse: no
+    - name: dns
+      dns_hostname: "_etcd-server-ssl.tcp"
+      dns_type: 'SRV'
+      dns_value: "0 10 2380 etcd-{{ cp_node_id }}.{{ cluster_name }}.{{ cluster_domain }}."
+
+- name: Configure extra DNS records
+  hosts: localhost
+  gather_facts: no
+  serial: 1
+
+  vars:
+    dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+    dns_reverse_domain: "{{ reverse_ptr_zone }}"
+
+  tasks:
+    - name: configure extra records
+      include_role:
+        name: dns
+      vars:
+        dns_hostname: "{{ node.name }}"
+        dns_value: "{{ node.ip }}"
+      loop: "{{ extra_nodes }}"
+      loop_control:
+        loop_var: node
+

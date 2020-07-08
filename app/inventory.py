@@ -70,19 +70,35 @@ class Inventory(object):
 
 class IPAddressManager(dict):
 
-    def __init__(self, save_file, pool):
+    def __init__(self, save_file, subnet, subnet_mask):
         super().__init__()
-        self._pool = pool
         self._save_file = save_file
 
-        subnet = ipaddress.ip_network(pool)
-        self._generator = subnet.hosts()
+        # parse the subnet definition into a static and dynamic pool
+        subnet = ipaddress.ip_network(f'{subnet}/{subnet_mask}', strict=False)
+        divided = subnet.subnets()
+        self._static_pool = next(divided)
+        self._dynamic_pool = next(divided)
+        self._generator = self._static_pool.hosts()
 
+        # calculate reverse dns zone
+        classful_prefix = [32, 24, 16, 8, 0]
+        classful = subnet
+        while classful.prefixlen not in classful_prefix:
+            classful = classful.supernet()
+        host_octets = classful_prefix.index(classful.prefixlen)
+        self._reverse_ptr_zone = \
+            '.'.join(classful.reverse_pointer.split('.')[host_octets:])
+
+        # load the last saved state
         try:
             restore = pickle.load(open(save_file, 'rb'))
         except:
             restore = {}
         self.update(restore)
+
+        # reserve the first ip for the bastion
+        _ = self['bastion']
 
     def __getitem__(self, key):
         key = key.lower()
@@ -106,6 +122,18 @@ class IPAddressManager(dict):
         with open(self._save_file, 'wb') as handle:
             pickle.dump(dict(self), handle)
 
+    @property
+    def static_pool(self):
+        return str(self._static_pool)
+
+    @property
+    def dynamic_pool(self):
+        return str(self._dynamic_pool)
+
+    @property
+    def reverse_ptr_zone(self):
+        return str(self._reverse_ptr_zone)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -117,6 +145,13 @@ def parse_args():
 
 def main():
     args = parse_args()
+    ipam = IPAddressManager(
+        IP_RESERVATIONS,
+        os.environ['SUBNET'], os.environ['SUBNET_MASK'])
+
+    extra_nodes = json.loads(os.environ.get('EXTRA_NODES', '[]'))
+    for idx, item in enumerate(extra_nodes):
+        extra_nodes[idx].update({'ip': ipam[item['mac']]})
 
     inv = Inventory(0 if args.list else 1, args.host)
     inv.add_group('all', None,
@@ -124,38 +159,60 @@ def main():
         cluster_name=os.environ['CLUSTER_NAME'],
         cluster_domain=os.environ['CLUSTER_DOMAIN'],
         admin_password=os.environ['ADMIN_PASSWORD'],
-        user_password=os.environ['USER_PASSWORD'],
         pull_secret=json.loads(os.environ['PULL_SECRET']),
         mgmt_provider=os.environ['MGMT_PROVIDER'],
         mgmt_user=os.environ['MGMT_USER'],
         mgmt_password=os.environ['MGMT_PASSWORD'],
-        install_disk='sda',
-        loadbalancer_vip=os.environ['LB_VIP'])
+        install_disk=os.environ['BOOT_DRIVE'],
+        loadbalancer_vip=ipam['loadbalancer'],
+        dynamic_ip_range=ipam.dynamic_pool,
+        reverse_ptr_zone=ipam.reverse_ptr_zone,
+        subnet=os.environ['SUBNET'],
+        subnet_mask=os.environ['SUBNET_MASK'],
+        wan_ip=os.environ['BASTION_IP_ADDR'],
+        extra_nodes=extra_nodes,
+        ignored_macs=os.environ['IGNORE_MACS'])
 
     infra = inv.add_group('infra')
+    router = infra.add_group('router',
+        wan_interface=os.environ['WAN_INT'],
+        lan_interfaces=json.loads(os.environ['ROUTER_LAN_INT']),
+        all_interfaces=os.environ['BASTION_INTERFACES'].split(),
+        allowed_services=json.loads(os.environ['ALLOWED_SERVICES']))
+    # ROUTER INTERFACES
+    router.add_host('wan',
+        os.environ['BASTION_IP_ADDR'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    router.add_host('lan',
+        ipam['bastion'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    # DNS NODE
+    router.add_host('dns',
+        ipam['bastion'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    # DHCP NODE
+    router.add_host('dhcp',
+        ipam['bastion'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+    # LOAD BALANCER NODE
+    router.add_host('loadbalancer',
+        ipam['loadbalancer'],
+        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
+        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
     # BASTION NODE
     bastion = infra.add_group('bastion_hosts')
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
-            os.environ['BASTION_IP_ADDR'],
-            ansible_become_pass=os.environ['USER_PASSWORD'],
+            ipam['bastion'],
+            mgmt_mac_address=os.environ['BASTION_MGMT_MAC'],
+            mgmt_hostname=ipam[os.environ['BASTION_MGMT_MAC']],
+            ansible_become_pass=os.environ['ADMIN_PASSWORD'],
             ansible_ssh_user=os.environ['BASTION_SSH_USER'])
-    # DNS NODE
-    infra.add_host('dns',
-          os.environ['DNS_HOST_NAME'],
-          provider=os.environ['DNS_PROVIDER'],
-          password=os.environ['DNS_PASSWORD'],
-          ansible_ssh_user=os.environ['DNS_USER'])
-    # DHCP NODE
-    infra.add_host('dhcp',
-          os.environ['DHCP_HOST_NAME'],
-          provider=os.environ['DHCP_PROVIDER'],
-          password=os.environ['DHCP_PASSWORD'],
-          ansible_ssh_user=os.environ['DHCP_USER'])
 
     cluster = inv.add_group('cluster')
-    ipam = IPAddressManager(
-        IP_RESERVATIONS,
-        os.environ['IP_POOL'])
     # BOOTSTRAP NODE
     ip = ipam['bootstrap']
     cluster.add_host('bootstrap', ip,

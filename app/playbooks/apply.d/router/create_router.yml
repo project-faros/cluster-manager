@@ -1,0 +1,27 @@
+#!/usr/bin/env ansible-playbook
+
+- name: Configure layer 3 routing and network services
+  hosts: wan
+  gather_facts: no
+  become: yes
+
+  roles:
+    - name: router
+      router_all_interfaces: "{{ all_interfaces }}"
+      router_lan_interfaces: "{{ lan_interfaces }}"
+      router_lan_address: "{{ hostvars.lan.ansible_host }}"
+      router_lan_subnet: "{{ subnet }}/{{ subnet_mask }}"
+      router_subnet_mask: "{{ subnet_mask }}"
+      router_wan_interface: "{{ wan_interface }}"
+      router_loadbalancer: "{{ loadbalancer_vip }}"
+    - name: dhcp-server
+      dhcp_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      dhcp_server_bastion_lan_ip: "{{ hostvars.lan.ansible_host }}"
+      dhcp_server_subnet: "{{ subnet }}/{{ subnet_mask }}"
+      dhcp_server_dyn_range: "{{ dynamic_ip_range }}"
+    - name: dns-server
+      dns_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
+      dns_server_reverse_domain: "{{ reverse_ptr_zone }}"
+    - name: ntp-server
+      ntp_server_allowed: "{{ subnet }}/{{ subnet_mask }}"
+    - name: router-hardening
