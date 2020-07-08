@@ -143,7 +143,7 @@ class ListDictParameter(Parameter):
                 else:
                     ptr = '    '
                 tokens += [(Token.Pointer, ptr),
-                           (Token.Arboted, f'{key[1]}: {entry[key[0]]}\n')]
+                           (Token.Arboted, f'{key[1]}: {entry.get(key[0], "")}\n')]
         print_tokens(tokens, style=STYLE)
         sys.stdout.write('\n\n')
 
@@ -275,6 +275,7 @@ class configurator(object):
             Parameter('BASTION_MGMT_MAC', 'Bastion Node Management MAC Address'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
+                 ('nic', 'Network Interface'),
                  ('mgmt_mac', 'Management MAC Address')])])
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Extra Records',

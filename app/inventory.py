@@ -225,6 +225,7 @@ def main():
         mgmt_ip = ipam[node['mgmt_mac']]
         cp.add_host(node['name'], ip,
            mac_address=node['mac'],
+           nic=node['nic'],
            mgmt_mac_address=node['mgmt_mac'],
            mgmt_hostname=mgmt_ip,
            ansible_ssh_user='core',
