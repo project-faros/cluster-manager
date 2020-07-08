@@ -6,77 +6,61 @@
     immediate: yes
     state: enabled
 
-- name: enable ingress ssh to bastion
+- name: configure ingress ssh to bastion
   firewalld:
     zone: external
     service: ssh
     permanent: yes
     immediate: yes
-    state: enabled
-  when: '"SSH to Bastion" in allowed_services'
+    state: '{% if "SSH to Bastion" in allowed_services %}enabled{% else %}disabled{% endif %}'
 
-- name: disable ingress ssh to bastion
-  firewalld:
-    zone: external
-    service: ssh
-    permanent: yes
-    immediate: yes
-    state: disabled
-  when: '"SSH to Bastion" not in allowed_services'
-
-- name: enable ingress https to cockpit
+- name: configure ingress https to cockpit
   firewalld:
     zone: external
     service: cockpit
     permanent: yes
     immediate: yes
-    state: enabled
-  when: '"HTTPS to Cockpit Panel" in allowed_services'
+    state: '{% if "HTTPS to Cockpit Panel" in allowed_services %}enabled{% else %}disabled{% endif %}'
 
-- name: disable ingress https to cockpit
-  firewalld:
-    zone: external
-    service: cockpit
-    permanent: yes
-    immediate: yes
-    state: disabled
-  when: '"HTTPS to Cockpit Panel" not in allowed_services'
-
-- name: enable ingress network routing
+- name: configure ingress network routing
   firewalld:
     zone: external
     rich_rule: "rule family=ipv4 destination address={{ router_lan_subnet }} drop"
     permanent: yes
     immediate: yes
-    state: disabled
-  when: '"External to Internal Routing - DANGER" in allowed_services'
+    state: '{% if "External to Internal Routing - DANGER" in allowed_services %}disabled{% else %}enabled{% endif %}'
 
-- name: disable ingress network routing
-  firewalld:
-    zone: external
-    rich_rule: "rule family=ipv4 destination address={{ router_lan_subnet }} drop"
-    permanent: yes
-    immediate: yes
-    state: enabled
-  when: '"External to Internal Routing - DANGER" not in allowed_services'
-
-- name: ensure internal masquerading is enabled
+- name: ensure internal masquerading is configured
   firewalld:
     zone: "internal"
-    masquerade: 'yes'
+    masquerade: '{% if "External to Internal Routing - DANGER" in allowed_services %}yes{% else %}no{% endif %}'
     permanent: yes
     immediate: yes
     state: enabled
-  when: '"External to Internal Routing - DANGER" in allowed_services'
 
-- name: ensure internal masquerading is disabled
+- name: ensure https to cluster api is routed
   firewalld:
-    zone: "internal"
-    masquerade: 'no'
+    zone: "external"
+    port: 6443/tcp
     permanent: yes
     immediate: yes
-    state: enabled
-  when: '"External to Internal Routing - DANGER" not in allowed_services'
+    state: '{% if "HTTPS to Cluster API" in allowed_services and "External to Internal Routing - DANGER" in allowed_services %}enabled{% else %}disabled{% endif %}'
+
+- name: ensure https to cluster apps is routed
+  firewalld:
+    zone: "external"
+    port: 443/tcp
+    permanent: yes
+    immediate: yes
+    state: '{% if "HTTPS to Cluster Apps" in allowed_services and "External to Internal Routing - DANGER" in allowed_services %}enabled{% else %}disabled{% endif %}'
+
+- name: ensure http to cluster apps is routed
+  firewalld:
+    zone: "external"
+    port: 80/tcp
+    permanent: yes
+    immediate: yes
+    state: '{% if "HTTPS to Cluster Apps" in allowed_services and "External to Internal Routing - DANGER" in allowed_services %}enabled{% else %}disabled{% endif %}'
 
 - include_tasks: manage_forward_ports.yaml
   loop:
