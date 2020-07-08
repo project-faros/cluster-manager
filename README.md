@@ -5,6 +5,8 @@ footprint, bare-metal clusters. The project includes reference architectures
 and automated deployment tools. We are looking to bring OpenShift everywhere,
 even to the edge.
 
+![Cluster Install](https://raw.githubusercontent.com/project-faros/assets/master/demos/install/0-full_install.gif)
+
 ## Hardware and Architecture
 
 The Faros installer assumes a 4 node cluster with a layer 2 Ethernet
@@ -72,7 +74,6 @@ Run the following commands from your bastion node:
 
 ```bash
 # Launch the interactive cluster configuration TUI
-# Configuration details [avilable here](/project-faros/cluster-manager/docs/config.md).
 farosctl config
 
 # Configure the edge router, DNS server, and DHCP server
