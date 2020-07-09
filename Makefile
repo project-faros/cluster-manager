@@ -41,7 +41,7 @@ devel: clean_container _devel_run
 
 _devel_run:
 	podman run --name "$(NAME)" \
-		--env-file ./bin/devel.env \
+		--env-file ./devel.env \
 		-v $(DEVDIR)/app:/app:Z -v $(DEVDIR)/data:/data:Z \
 		-it $(UPSTREAM)/$(IMAGE):dev \
 		/bin/bash
