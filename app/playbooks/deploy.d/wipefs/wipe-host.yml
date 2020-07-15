@@ -1,0 +1,23 @@
+- name: get associated vgs
+  shell: "oc debug -n default node/{{ outer.host }} -- chroot /host pvdisplay /dev/{{ item }} | grep 'VG Name' | awk '{print $3}'"
+  loop: "{{ outer.drives }}"
+  register: vgs
+  changed_when: no
+  ignore_errors: yes
+
+- name: delete associated vgs
+  shell: "oc debug -n default node/{{ outer.host }} -- chroot /host vgremove --force --noudevsync '{{ item.stdout }}'"
+  changed_when: yes
+  when: item.stdout != ""
+  loop: "{{ vgs.results }}"
+
+- name: remove pvs
+  shell: "oc debug -n default node/{{ outer.host }} -- chroot /host pvremove '/dev/{{ item }}'"
+  loop: "{{ outer.drives }}"
+  changed_when: yes
+  ignore_errors: yes
+
+- name: wipe filesystem
+  shell: "oc debug -n default node/{{ outer.host }} -- chroot /host wipefs -a '/dev/{{ item }}'"
+  loop: "{{ outer.drives }}"
+  changed_when: yes

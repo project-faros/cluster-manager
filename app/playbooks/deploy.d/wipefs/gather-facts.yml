@@ -1,0 +1,27 @@
+- name: query cluster facts
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  pre_tasks:
+    - name: lookup cluster nodes
+      set_fact:
+        cluster_nodes: "{{ lookup('k8s', api_version='v1', kind='Node') | json_query('[*].metadata.name')}}"
+
+    - name: query cluster node drives
+      shell: oc debug -n default node/{{ item }} -- chroot /host lsblk -o NAME 2>/dev/null | egrep -v '((^ *`|^\|)|^NAME)'
+      loop: "{{ cluster_nodes }}"
+      register: cluster_drives
+      ignore_errors: yes
+      changed_when: no
+
+    - name: save discovered hosts
+      set_stats:
+        data:
+          cluster_nodes: "{{ cluster_nodes }}"
+
+    - name: save discovered drives
+      set_stats:
+        data:
+          cluster_drives: "{{ {item.item: item.stdout_lines} }}"
+      loop: "{{ cluster_drives.results }}"

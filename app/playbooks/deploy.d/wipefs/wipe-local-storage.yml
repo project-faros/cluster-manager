@@ -1,0 +1,11 @@
+- name: wipe local storage
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+    - name: wipe drives per host
+      include_tasks: wipe-host.yml
+      loop: "{{ stg_drives }}"
+      loop_control:
+        loop_var: outer
