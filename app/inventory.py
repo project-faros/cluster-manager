@@ -203,6 +203,7 @@ def main():
         ipam['loadbalancer'],
         ansible_become_pass=os.environ['ADMIN_PASSWORD'],
         ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+
     # BASTION NODE
     bastion = infra.add_group('bastion_hosts')
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
@@ -212,6 +213,7 @@ def main():
             ansible_become_pass=os.environ['ADMIN_PASSWORD'],
             ansible_ssh_user=os.environ['BASTION_SSH_USER'])
 
+    # CLUSTER NODES
     cluster = inv.add_group('cluster')
     # BOOTSTRAP NODE
     ip = ipam['bootstrap']
@@ -231,12 +233,22 @@ def main():
            ansible_ssh_user='core',
            cp_node_id=count)
 
+    # VIRTUAL NODES
     virt = inv.add_group('virtual',
             mgmt_provider='kvm',
             mgmt_hostname='bastion',
             install_disk='vda')
-    # VIRTUAL NODES
     virt.add_host('bootstrap')
+
+    # MGMT INTERFACES
+    mgmt = inv.add_group('management',
+        ansible_ssh_user=os.environ['MGMT_USER'],
+        ansible_ssh_pass=os.environ['MGMT_PASSWORD'])
+    mgmt.add_host('bootstrap-mgmt', ipam[os.environ['BASTION_MGMT_MAC']])
+    for count, node in enumerate(node_defs):
+        mgmt.add_host(node['name'] + '-mgmt', ipam[node['mgmt_mac']])
+
+    # save IP reservations
     ipam.save()
 
 

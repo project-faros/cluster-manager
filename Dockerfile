@@ -8,14 +8,17 @@ COPY home /root
 COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
-RUN microdnf install python3 jq openssh-clients tar wget; \
+RUN microdnf update; \
+    microdnf install python3 jq openssh-clients tar wget; \
+    curl https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel.rpm; \
+    rpm -i /tmp/epel.rpm; \
+    microdnf install sshpass; \
     pip3 install -r /requirements.txt; \
     chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
     cd /usr/bin; \
     wget -O oc.tgz https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz; \
     tar xvzf oc.tgz; \
     microdnf remove wget; \
-    microdnf update; \
-    rm -rf /var/cache/yum;
+    rm -rf /var/cache/yum /tmp/*;
 
 CMD /app/bin/entry.sh

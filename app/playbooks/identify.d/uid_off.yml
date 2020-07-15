@@ -1,0 +1,11 @@
+- name: turn off uid light
+  hosts: cluster
+  become: no
+  gather_facts: no
+
+  tasks:
+    - name: turn off uid light (ilo)
+      raw: uid off
+      changed_when: true
+      delegate_to: "{{ inventory_hostname }}-mgmt"
+      register: test
