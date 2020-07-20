@@ -1,4 +1,4 @@
-.PHONY : build _dockerfile publish clean clean_container clean_image run join start stop devel _devel_run
+.PHONY : build _build_app publish publish_dev clean clean_container clean_app_image run join start stop devel _devel_run release
 
 IMAGE=cluster-manager
 VERS=$(shell cat version.txt)
@@ -15,6 +15,9 @@ clean_container:
 	podman container rm "$(NAME)" || :
 clean_app_image:
 	podman image rm -f $(UPSTREAM)/$(IMAGE):dev || :
+
+release:
+	echo "{\"tag_name\": \"v$(cat version.txt)\", \"target_commitish\": \"master\", \"name\": \"v$(cat version.txt)\", \"body\": \"Release of version $(cat version.txt)\", \"draft\": false, \"prerelease\": false}" | gh api https://api.github.com/repos/:owner/:repo/releases -X POST --input /dev/stdin
 
 publish:
 	podman image tag $(UPSTREAM)/$(IMAGE):dev $(UPSTREAM)/$(IMAGE):$(VERS)
