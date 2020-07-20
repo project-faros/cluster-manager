@@ -17,7 +17,11 @@ clean_app_image:
 	podman image rm -f $(UPSTREAM)/$(IMAGE):dev || :
 
 release:
-	echo "{\"tag_name\": \"v$(cat version.txt)\", \"target_commitish\": \"master\", \"name\": \"v$(cat version.txt)\", \"body\": \"Release of version $(cat version.txt)\", \"draft\": false, \"prerelease\": false}" | gh api https://api.github.com/repos/:owner/:repo/releases -X POST --input /dev/stdin
+	TMPFILE=/tmp/release-message-v$(VERS)-$$(cat /dev/urandom | head -c 32 | tr -dc _A-Z-a-z-0-9); \
+	vim $$TMPFILE; \
+	MSG=$$(cat $$TMPFILE); \
+	rm $$TMPFILE; \
+	echo "{\"tag_name\": \"v$(VERS)\", \"target_commitish\": \"master\", \"name\": \"v$(VERS)\", \"body\": \"$$MSG\", \"draft\": false, \"prerelease\": false}" | gh api https://api.github.com/repos/:owner/:repo/releases -X POST --input /dev/stdin
 
 publish:
 	podman image tag $(UPSTREAM)/$(IMAGE):dev $(UPSTREAM)/$(IMAGE):$(VERS)
@@ -48,4 +52,3 @@ _devel_run:
 		-v $(DEVDIR)/app:/app:Z -v $(DEVDIR)/data:/data:Z \
 		-it $(UPSTREAM)/$(IMAGE):dev \
 		/bin/bash
-
