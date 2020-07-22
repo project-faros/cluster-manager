@@ -1,0 +1,57 @@
+- name: Install tftp required packages
+  yum:
+    name: tftp-server, syslinux, grub2-efi-x64
+    state: installed
+
+- name: Ensure tftp is allowed on local network
+  firewalld:
+    zone: internal
+    service: tftp
+    state: enabled
+    permanent: yes
+    immediate: yes
+
+- name: Create TFTP directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /var/lib/tftpboot/pxelinux.cfg
+    - /var/lib/tftpboot/uefi
+  notify:
+    - restart tftp
+
+- name: Copy pxelinux.0
+  shell: "cp -ra /usr/share/syslinux/* /var/lib/tftpboot/; chmod 644 /var/lib/tftpboot/pxelinux.0"
+  args:
+    creates: "/var/lib/tftpboot/pxelinux.0"
+
+- name: Copy bootx64.efi
+  shell: "cp -a /boot/efi/EFI/BOOT/BOOTX64.EFI /var/lib/tftpboot/uefi/bootx64.efi; chmod 644 /var/lib/tftpboot/uefi/bootx64.efi"
+  args:
+    creates: "/var/lib/tftpboot/uefi/bootx64.efi"
+
+- name: Copy grubx64.efi
+  shell: "cp /boot/efi/EFI/redhat/grubx64.efi /var/lib/tftpboot/uefi/grubx64.efi; chmod 644 /var/lib/tftpboot/uefi/grubx64.efi"
+  args:
+    creates: "/var/lib/tftpboot/uefi/grubx64.efi"
+
+- name: Generate the default pxe config files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - src: default.j2
+      dest: /var/lib/tftpboot/pxelinux.cfg/default
+    - src: grub.cfg.j2
+      dest: /var/lib/tftpboot/uefi/grub.cfg
+  notify:
+    - restart tftp
+
+- name: Starting PXE services
+  service:
+    name: tftp.socket
+    enabled: yes
+    state: started

@@ -1,0 +1,44 @@
+- name: install httpd
+  yum:
+    name: httpd
+    state: installed
+
+- name: set httpd port
+  lineinfile:
+    line: Listen 8081
+    regexp: ^Listen
+    path: /etc/httpd/conf/httpd.conf
+
+- name: Ensure tftp is allowed on local network
+  firewalld:
+    zone: internal
+    port: 8081/tcp
+    state: enabled
+    permanent: yes
+    immediate: yes
+
+- name: configure selinux booleans for http
+  seboolean:
+    name: httpd_can_network_connect
+    persistent: yes
+    state: yes
+  ignore_errors: yes
+
+- name: deploy custom selinux te file for http
+  copy:
+    src: faros_http.te
+    dest: /root/faros_http.te
+  register: http_selinux
+
+- name: compile custom selinux te file for http
+  shell: >
+    checkmodule -M -m -o "/root/faros_http.mod" "/root/faros_http.te" &&
+    semodule_package -o "/root/faros_http.pp" -m "/root/faros_http.mod" &&
+    semodule -i "/root/faros_http.pp"
+  when: http_selinux is changed
+
+- name: start http services
+  service:
+    name: httpd
+    enabled: yes
+    state: started

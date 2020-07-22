@@ -1,7 +1,12 @@
 - name: deploy kickstarts
   template:
-    src: pxelinux.cfg.j2
-    dest: /var/lib/tftpboot/pxelinux.cfg/01-{{ mac_address | regex_replace (':', '-') }}
-    mode: 0555
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - src: pxelinux.cfg.j2
+      dest: "/var/lib/tftpboot/pxelinux.cfg/01-{{ mac_address | lower | regex_replace (':', '-') }}"
+    - src: grub.cfg.j2
+      dest: "/var/lib/tftpboot/uefi/grub.cfg-01-{{ mac_address | lower | regex_replace (':', '-') }}"
   delegate_to: "{{ pxelinux_kickstarts_pxe_server }}"
   become: yes
