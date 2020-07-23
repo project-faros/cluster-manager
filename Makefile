@@ -19,8 +19,9 @@ clean_app_image:
 release:
 	TMPFILE=/tmp/release-message-v$(VERS)-$$(cat /dev/urandom | head -c 32 | tr -dc _A-Z-a-z-0-9); \
 	vim $$TMPFILE; \
-	MSG=$$(cat $$TMPFILE); \
+	MSG=$$(cat $$TMPFILE | awk '{printf "%s\\n", $$0}'); \
 	rm $$TMPFILE; \
+	echo "{\"tag_name\": \"v$(VERS)\", \"target_commitish\": \"master\", \"name\": \"v$(VERS)\", \"body\": \"$$MSG\", \"draft\": false, \"prerelease\": false}"; \
 	echo "{\"tag_name\": \"v$(VERS)\", \"target_commitish\": \"master\", \"name\": \"v$(VERS)\", \"body\": \"$$MSG\", \"draft\": false, \"prerelease\": false}" | gh api https://api.github.com/repos/:owner/:repo/releases -X POST --input /dev/stdin
 
 publish:
