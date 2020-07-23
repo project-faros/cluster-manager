@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM registry.fedoraproject.org/fedora-minimal:32
 LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 
 WORKDIR /app
@@ -9,16 +9,14 @@ COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
 RUN microdnf update; \
-    microdnf install python3 jq openssh-clients tar wget; \
-    curl https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel.rpm; \
-    rpm -i /tmp/epel.rpm; \
-    microdnf install sshpass; \
+    microdnf install python3 jq openssh-clients tar wget sshpass; \
     pip3 install -r /requirements.txt; \
     chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
     cd /usr/bin; \
     wget -O oc.tgz https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz; \
     tar xvzf oc.tgz; \
     microdnf remove wget; \
-    rm -rf /var/cache/yum /tmp/*;
+    microdnf clean all; \
+    rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/bin/oc.tgz /usr/lib64/python3.8/__pycache__;
 
 CMD /app/bin/entry.sh
