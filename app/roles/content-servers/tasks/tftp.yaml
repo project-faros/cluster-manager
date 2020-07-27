@@ -50,6 +50,11 @@
   notify:
     - restart tftp
 
+- name: Verify selinux context on all TFTP files
+  command: restorecon -Rv /var/lib/tftpboot/
+  register: restorecon
+  changed_when: restorecon.stdout | length > 0
+
 - name: Starting PXE services
   service:
     name: tftp.socket
