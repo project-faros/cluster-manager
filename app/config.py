@@ -11,20 +11,15 @@ CONFIG_FOOTER = ''
 STYLE = default_style
 
 
-def password_repr(password):
-    if not password:
-        return ''
-    return '*********'
-
 
 class Parameter(object):
     disabled = False
+    _value_reprfun = str
 
-    def __init__(self, name, prompt, value_reprfun=str, disabled=False):
+    def __init__(self, name, prompt, disabled=False):
         self._name = name
         self._value = os.environ.get(self._name, '')
         self._prompt = prompt
-        self._value_reprfun = value_reprfun
         self.disabled = disabled
 
     @property
@@ -62,6 +57,27 @@ class Parameter(object):
         return "export {}='{}'".format(self.name, self.value)
 
 
+class PasswordParameter(Parameter):
+
+    def __init__(self, name, prompt, disabled=False):
+        super().__init__(name, prompt, disabled)
+
+    def _value_reprfun(self, password):
+        if not password:
+            return ''
+        return '*********'
+
+    def update(self):
+        question = [
+            {
+                'type': 'password',
+                'name': 'newval',
+                'message': self.prompt
+            }
+        ]
+        answer = prompt(question)
+        self.value = answer['newval']
+
 class ChoiceParameter(Parameter):
 
     def __init__(self, name, prompt, choices, value_reprfun=str):
@@ -87,12 +103,11 @@ class ChoiceParameter(Parameter):
 
 class CheckParameter(Parameter):
 
-    def __init__(self, name, prompt, choices, value_reprfun=str):
+    def __init__(self, name, prompt, choices):
         self._name = name
         self._value = json.loads(os.environ.get(self._name, ''))
         self._prompt = prompt
         self._choices = choices
-        self._value_reprfun = value_reprfun
         self._choices = [{'name': f'{choice}',
                           'checked': f'{choice}' in self._value}
                          for choice in choices]
@@ -115,8 +130,8 @@ class CheckParameter(Parameter):
 
 class StaticParameter(Parameter):
 
-    def __init__(self, name, prompt, value, value_reprfun=str):
-        super().__init__(name, prompt, value_reprfun, 'Static Value')
+    def __init__(self, name, prompt, value):
+        super().__init__(name, prompt, 'Static Value')
         self._value = value
 
 
@@ -266,12 +281,12 @@ class configurator(object):
             ChoiceParameter('SUBNET_MASK', 'Subnet Mask', ['20', '21', '22', '23', '24', '25', '26', '27']),
             CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps', 'HTTPS to Cockpit Panel', 'External to Internal Routing - DANGER'])])
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
-            Parameter('ADMIN_PASSWORD', 'Adminstrator Password', password_repr),
-            Parameter('PULL_SECRET', 'Pull Secret', password_repr)])
+            PasswordParameter('ADMIN_PASSWORD', 'Adminstrator Password'),
+            PasswordParameter('PULL_SECRET', 'Pull Secret')])
         self.architecture = ParameterCollection('architecture', 'Host Record Configuration', [
             StaticParameter('MGMT_PROVIDER', 'Machine Management Provider', 'ilo'),
             Parameter('MGMT_USER', 'Machine Management User'),
-            Parameter('MGMT_PASSWORD', 'Machine Management Password', password_repr),
+            PasswordParameter('MGMT_PASSWORD', 'Machine Management Password'),
             Parameter('BASTION_MGMT_MAC', 'Bastion Node Management MAC Address'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
