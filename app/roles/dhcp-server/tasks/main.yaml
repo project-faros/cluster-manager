@@ -55,3 +55,13 @@
     name: dhcpd
     state: started
     enabled: yes
+
+- name: ensure firewall allows internal access to dhcp
+  firewalld:
+    zone: internal
+    port: 67/{{ item }}
+    state: enabled
+    permanent: yes
+  loop:
+    - tcp
+    - udp

@@ -6,6 +6,7 @@
     router_ext_masq: 'yes'
     router_int_masq: 'no'
     router_external_target: '{% if router_ingress_routing %}default{% else %}DROP{% endif %}'
+    router_internal_target: 'ACCEPT'
     router_ingress_ssh: '{% if "SSH to Bastion" in allowed_services %}enabled{% else %}disabled{% endif %}'
     router_ingress_cockpit: '{% if "HTTPS to Cockpit Panel" in allowed_services %}enabled{% else %}disabled{% endif %}'
     router_ingress_api: '{% if router_ingress_routing and "HTTPS to Cluster API" in allowed_services %}enabled{% else %}disabled{% endif %}'
@@ -16,9 +17,13 @@
     router_forward_http: '{{ not router_ingress_routing and "HTTP to Cluster Apps" in allowed_services }}'
     router_forward_https: '{{ not router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services }}'
 
-- name: query current firewall state
+- name: query current external firewall state
   command: firewall-cmd --zone=external --permanent --get-target
   register: router_external_target_current
+  changed_when: no
+- name: query current internal firewall state
+  command: firewall-cmd --zone=internal --permanent --get-target
+  register: router_internal_target_current
   changed_when: no
 
 # MASQUERADING
@@ -42,10 +47,16 @@
   command: "firewall-cmd --zone=external --permanent --set-target={{ router_external_target }}"
   changed_when: yes
   when: router_external_target != router_external_target_current.stdout
+- name: configure the internal default target
+  command: "firewall-cmd --zone=internal --permanent --set-target={{ router_internal_target }}"
+  changed_when: yes
+  when: router_internal_target != router_internal_target_current.stdout
 - name: reload firewall with new default external target
   command: "firewall-cmd --reload"
   changed_when: yes
-  when: router_external_target != router_external_target_current.stdout
+  when: >
+    router_external_target != router_external_target_current.stdout or
+    router_internal_target != router_internal_target_current.stdout
 
 # INGRESS SERVICES - LOCAL
 - name: configure ingress ssh to bastion
