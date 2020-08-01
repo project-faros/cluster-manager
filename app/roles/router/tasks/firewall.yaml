@@ -17,6 +17,12 @@
     router_forward_http: '{{ not router_ingress_routing and "HTTP to Cluster Apps" in allowed_services }}'
     router_forward_https: '{{ not router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services }}'
 
+- name: ensure firewalld is running/enabled
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
 - name: query current external firewall state
   command: firewall-cmd --zone=external --permanent --get-target
   register: router_external_target_current
