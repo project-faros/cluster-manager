@@ -62,6 +62,7 @@
     port: 67/{{ item }}
     state: enabled
     permanent: yes
+    immediate: yes
   loop:
     - tcp
     - udp
