@@ -134,7 +134,7 @@
             msg: "{{ '\n'.join(cluster_install.stdout_lines) }}"
 
 - name: Power down the bootstrap node
-  hosts: boostrap
+  hosts: bootstrap
   become: no
   gather_facts: no
   serial: 1
