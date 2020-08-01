@@ -131,7 +131,7 @@
       rescue:
         - name: there was an error during install
           fail:
-            msg: "{{ '\n'.join(cluster_install.stdout_lines) }}"
+            msg: "{{ '\n'.join(cluster_install.stdout_lines | default ([])) }}"
 
 - name: Power down the bootstrap node
   hosts: bootstrap
