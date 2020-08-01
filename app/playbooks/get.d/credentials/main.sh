@@ -9,7 +9,7 @@ echo """
 Cluster Console:
 https://console-openshift-console.apps.${CLUSTER_NAME}.${CLUSTER_DOMAIN}
 
-Cluster Console:
+Cluster API:
 https://api.${CLUSTER_NAME}.${CLUSTER_DOMAIN}:6443
 
 Cluster Admin Account:
