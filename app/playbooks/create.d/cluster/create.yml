@@ -13,16 +13,16 @@
     - name: get cluster cert age
       shell: >
         expr $(date '+%s') -
-        $(stat -c '%Y' "{{ openshift_installer_dir }}/.config_birth")
+        $(stat -c '%Y' "{{ openshift_installer_dir }}/.openshift_install_state.json")
         || echo '9999999'
       register: cluster_cert_age
-      changed_when: cluster_cert_age.stdout | int > 86400
+      changed_when: cluster_cert_age.stdout | int > 43200
 
     - name: ensure certificates are not expired
       set_stats:
         data:
           post_message:
-            - "The cluster bootstrap certificate has expired. Please re-create the installation repositories to regenerate that installation configuration."
+            - "The cluster bootstrap certificate has probably expired. Please recreate the installation repositories to deploy new ignition files."
             - ""
             - "Recreate the install configs with:"
             - ">> farosctl create install-repos"

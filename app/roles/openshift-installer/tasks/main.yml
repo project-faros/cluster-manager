@@ -18,31 +18,20 @@
     warn: no
   when: pkg_download is changed
 
-- name: create cluster install config - permanent copy
-  template:
-    src: install-config.yaml.j2
-    dest: "{{ openshift_installer_dir }}/install-config.yaml.bkp"
-  register: install_config
-
-- name: get cluster cert age
-  shell: >
-    expr $(date '+%s') -
-    $(stat -c '%Y' "{{ openshift_installer_dir }}/.config_birth")
-    || echo '9999999'
-  register: cluster_cert_age
-  changed_when: cluster_cert_age.stdout | int > 86400
-
 - name: create cluster install config
   template:
     src: install-config.yaml.j2
-    dest: "{{ openshift_installer_dir }}/install-config.yaml"
-  when: install_config is changed or cluster_cert_age is changed
+    dest: "{{ item }}"
+  loop:
+    - "{{ openshift_installer_dir }}/install-config.yaml"
+    - "{{ openshift_installer_dir }}/install-config.yaml.bkp"
 
 - name: create ignition files
   shell: >
     rm -f {{ openshift_installer_dir }}/.openshift_install_state.json &&
-    rm -f {{ openshift_installer_dir }}/.config_birth &&
+    rm -f {{ openshift_installer_dir }}/.openshift_install.log &&
+    rm -f {{ openshift_installer_dir }}/metadata.json &&
+    rm -f {{ openshift_installer_dir }}/*.ign &&
+    rm -rf {{ openshift_installer_dir }}/auth &&
     {{ openshift_installer_dir }}/openshift-install create ignition-configs
-    --dir={{ openshift_installer_dir }} &&
-    touch {{ openshift_installer_dir }}/.config_birth
-  when: install_config is changed or cluster_cert_age is changed
+    --dir={{ openshift_installer_dir }}
