@@ -157,7 +157,7 @@ class CallbackModule(CallbackModule_default):
 
         if status in ['changed']:
             self.keep = True
-        if status in ['failed']:
+        if status not in ['ignored', 'ok', 'changed']:
             self.keep = True
             self._display_task_banner()
             self._display_error_results(result, status)
