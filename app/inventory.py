@@ -208,8 +208,6 @@ def main():
     bastion = infra.add_group('bastion_hosts')
     bastion.add_host(os.environ['BASTION_HOST_NAME'],
             ipam['bastion'],
-            mgmt_mac_address=os.environ['BASTION_MGMT_MAC'],
-            mgmt_hostname=ipam[os.environ['BASTION_MGMT_MAC']],
             ansible_become_pass=os.environ['ADMIN_PASSWORD'],
             ansible_ssh_user=os.environ['BASTION_SSH_USER'])
 
@@ -244,7 +242,6 @@ def main():
     mgmt = inv.add_group('management',
         ansible_ssh_user=os.environ['MGMT_USER'],
         ansible_ssh_pass=os.environ['MGMT_PASSWORD'])
-    mgmt.add_host('bootstrap-mgmt', ipam[os.environ['BASTION_MGMT_MAC']])
     for count, node in enumerate(node_defs):
         mgmt.add_host(node['name'] + '-mgmt', ipam[node['mgmt_mac']])
 

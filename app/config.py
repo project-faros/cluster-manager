@@ -287,7 +287,6 @@ class configurator(object):
             StaticParameter('MGMT_PROVIDER', 'Machine Management Provider', 'ilo'),
             Parameter('MGMT_USER', 'Machine Management User'),
             PasswordParameter('MGMT_PASSWORD', 'Machine Management Password'),
-            Parameter('BASTION_MGMT_MAC', 'Bastion Node Management MAC Address'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
                  ('mgmt_mac', 'Management MAC Address')])])

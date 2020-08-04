@@ -11,7 +11,7 @@
     - name: dhcp
 
 - name: Configure Management DHCP records
-  hosts: cluster:!virtual:bastion_hosts
+  hosts: cluster:!virtual
   gather_facts: no
   serial: 1
 

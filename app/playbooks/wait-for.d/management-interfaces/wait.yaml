@@ -1,5 +1,5 @@
 - name: Wait for management interfaces to respond
-  hosts: cluster:!virtual:bastion_hosts
+  hosts: cluster:!virtual
   become: no
   gather_facts: no
 

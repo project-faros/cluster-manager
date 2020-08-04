@@ -39,10 +39,6 @@
 
   roles:
     - name: dns
-      dns_domain: "{{ cluster_name }}.{{ cluster_domain }}"
-    - name: dns
-      dns_hostname: "{{ inventory_hostname }}-mgmt"
-      dns_value: "{{ mgmt_hostname }}"
 
 - name: Configure Load Balanced DNS entries
   hosts: loadbalancer
