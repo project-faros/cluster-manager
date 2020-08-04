@@ -292,7 +292,7 @@ class configurator(object):
                  ('mgmt_mac', 'Management MAC Address')])])
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Extra Records',
-                [('name', 'Node Name'), ('mac', 'MAC Address')]),
+                [('name', 'Node Name'), ('mac', 'MAC Address'), ('ip', 'Requested IP Address')]),
             ListDictParameter('IGNORE_MACS', 'Ignored MAC Addresses',
                 [('name', 'Entry Name'), ('mac', 'MAC Address')])])
 

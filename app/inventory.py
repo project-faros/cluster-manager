@@ -118,6 +118,11 @@ class IPAddressManager(dict):
             loop = new_ip in used_ips
         return new_ip
 
+    def get(self, key, value=None):
+        if value and value not in self.values():
+            self[key] = value
+        return self[key]
+
     def save(self):
         with open(self._save_file, 'wb') as handle:
             pickle.dump(dict(self), handle)
@@ -142,7 +147,6 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-
 def main():
     args = parse_args()
     ipam = IPAddressManager(
@@ -151,7 +155,8 @@ def main():
 
     extra_nodes = json.loads(os.environ.get('EXTRA_NODES', '[]'))
     for idx, item in enumerate(extra_nodes):
-        extra_nodes[idx].update({'ip': ipam[item['mac']]})
+        addr = ipam.get(item['mac'], item['ip'])
+        extra_nodes[idx].update({'ip': addr})
 
     inv = Inventory(0 if args.list else 1, args.host)
     inv.add_group('all', None,
