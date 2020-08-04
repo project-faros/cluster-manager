@@ -115,6 +115,9 @@
             chdir: /data/openshift-installer
           changed_when: no
           register: cluster_install
+          retries: 2
+          delay: 1
+          until: cluster_install is not failed
 
         - name: wait for cluster install to complete
           shell: ./openshift-install wait-for install-complete 2>&1
