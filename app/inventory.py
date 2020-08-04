@@ -4,6 +4,7 @@ from collections import defaultdict
 import ipaddress
 import json
 import os
+import sys
 import pickle
 
 SSH_PRIVATE_KEY = '/data/id_rsa'
@@ -25,7 +26,7 @@ class InventoryGroup(object):
 
 class Inventory(object):
 
-    _modes = ['list', 'host', 'none']
+    _modes = ['list', 'host', 'verify', 'none']
     _data = {"_meta": {"hostvars": defaultdict(dict)}}
 
     def __init__(self, mode=0, host=None):
@@ -140,81 +141,93 @@ class IPAddressManager(dict):
         return str(self._reverse_ptr_zone)
 
 
+class Config(object):
+    _last_key = None
+
+    def __getitem__(self, key):
+        return self.get(key)
+
+    def get(self, key, default=None):
+        self._last_key = key
+        return os.environ.get(key, default)
+
+    @property
+    def error(self):
+        return f'\n\033[31mThere was an error parsing the configuration\nPlease check the value for {self._last_key}.\033[0m\n\n'
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--list', action = 'store_true')
+    parser.add_argument('--verify', action = 'store_true')
     parser.add_argument('--host', action = 'store')
     args = parser.parse_args()
     return args
 
-def main():
-    args = parse_args()
-    ipam = IPAddressManager(
-        IP_RESERVATIONS,
-        os.environ['SUBNET'], os.environ['SUBNET_MASK'])
-
-    extra_nodes = json.loads(os.environ.get('EXTRA_NODES', '[]'))
+def main(config, ipam, inv):
+    # GATHER INFORMATION FOR EXTRA NODES
+    extra_nodes = json.loads(config.get('EXTRA_NODES', '[]'))
     for idx, item in enumerate(extra_nodes):
         addr = ipam.get(item['mac'], item['ip'])
         extra_nodes[idx].update({'ip': addr})
 
-    inv = Inventory(0 if args.list else 1, args.host)
+    # CREATE INVENTORY
     inv.add_group('all', None,
         ansible_ssh_private_key_file=SSH_PRIVATE_KEY,
-        cluster_name=os.environ['CLUSTER_NAME'],
-        cluster_domain=os.environ['CLUSTER_DOMAIN'],
-        admin_password=os.environ['ADMIN_PASSWORD'],
-        pull_secret=json.loads(os.environ['PULL_SECRET']),
-        mgmt_provider=os.environ['MGMT_PROVIDER'],
-        mgmt_user=os.environ['MGMT_USER'],
-        mgmt_password=os.environ['MGMT_PASSWORD'],
-        install_disk=os.environ['BOOT_DRIVE'],
+        cluster_name=config['CLUSTER_NAME'],
+        cluster_domain=config['CLUSTER_DOMAIN'],
+        admin_password=config['ADMIN_PASSWORD'],
+        pull_secret=json.loads(config['PULL_SECRET']),
+        mgmt_provider=config['MGMT_PROVIDER'],
+        mgmt_user=config['MGMT_USER'],
+        mgmt_password=config['MGMT_PASSWORD'],
+        install_disk=config['BOOT_DRIVE'],
         loadbalancer_vip=ipam['loadbalancer'],
         dynamic_ip_range=ipam.dynamic_pool,
         reverse_ptr_zone=ipam.reverse_ptr_zone,
-        subnet=os.environ['SUBNET'],
-        subnet_mask=os.environ['SUBNET_MASK'],
-        wan_ip=os.environ['BASTION_IP_ADDR'],
+        subnet=config['SUBNET'],
+        subnet_mask=config['SUBNET_MASK'],
+        wan_ip=config['BASTION_IP_ADDR'],
         extra_nodes=extra_nodes,
-        ignored_macs=os.environ['IGNORE_MACS'])
+        ignored_macs=config['IGNORE_MACS'])
 
     infra = inv.add_group('infra')
     router = infra.add_group('router',
-        wan_interface=os.environ['WAN_INT'],
-        lan_interfaces=json.loads(os.environ['ROUTER_LAN_INT']),
-        all_interfaces=os.environ['BASTION_INTERFACES'].split(),
-        allowed_services=json.loads(os.environ['ALLOWED_SERVICES']))
+        wan_interface=config['WAN_INT'],
+        lan_interfaces=json.loads(config['ROUTER_LAN_INT']),
+        all_interfaces=config['BASTION_INTERFACES'].split(),
+        allowed_services=json.loads(config['ALLOWED_SERVICES']))
     # ROUTER INTERFACES
     router.add_host('wan',
-        os.environ['BASTION_IP_ADDR'],
-        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
-        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+        config['BASTION_IP_ADDR'],
+        ansible_become_pass=config['ADMIN_PASSWORD'],
+        ansible_ssh_user=config['BASTION_SSH_USER'])
     router.add_host('lan',
         ipam['bastion'],
-        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
-        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+        ansible_become_pass=config['ADMIN_PASSWORD'],
+        ansible_ssh_user=config['BASTION_SSH_USER'])
     # DNS NODE
     router.add_host('dns',
         ipam['bastion'],
-        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
-        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+        ansible_become_pass=config['ADMIN_PASSWORD'],
+        ansible_ssh_user=config['BASTION_SSH_USER'])
     # DHCP NODE
     router.add_host('dhcp',
         ipam['bastion'],
-        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
-        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+        ansible_become_pass=config['ADMIN_PASSWORD'],
+        ansible_ssh_user=config['BASTION_SSH_USER'])
     # LOAD BALANCER NODE
     router.add_host('loadbalancer',
         ipam['loadbalancer'],
-        ansible_become_pass=os.environ['ADMIN_PASSWORD'],
-        ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+        ansible_become_pass=config['ADMIN_PASSWORD'],
+        ansible_ssh_user=config['BASTION_SSH_USER'])
 
     # BASTION NODE
     bastion = infra.add_group('bastion_hosts')
-    bastion.add_host(os.environ['BASTION_HOST_NAME'],
+    bastion.add_host(config['BASTION_HOST_NAME'],
             ipam['bastion'],
-            ansible_become_pass=os.environ['ADMIN_PASSWORD'],
-            ansible_ssh_user=os.environ['BASTION_SSH_USER'])
+            ansible_become_pass=config['ADMIN_PASSWORD'],
+            ansible_ssh_user=config['BASTION_SSH_USER'])
 
     # CLUSTER NODES
     cluster = inv.add_group('cluster')
@@ -225,7 +238,7 @@ def main():
             node_role='bootstrap')
     # CLUSTER CONTROL PLANE NODES
     cp = cluster.add_group('control_plane', node_role='master')
-    node_defs = json.loads(os.environ['CP_NODES'])
+    node_defs = json.loads(config['CP_NODES'])
     for count, node in enumerate(node_defs):
         ip = ipam[node['mac']]
         mgmt_ip = ipam[node['mgmt_mac']]
@@ -245,14 +258,42 @@ def main():
 
     # MGMT INTERFACES
     mgmt = inv.add_group('management',
-        ansible_ssh_user=os.environ['MGMT_USER'],
-        ansible_ssh_pass=os.environ['MGMT_PASSWORD'])
+        ansible_ssh_user=config['MGMT_USER'],
+        ansible_ssh_pass=config['MGMT_PASSWORD'])
     for count, node in enumerate(node_defs):
         mgmt.add_host(node['name'] + '-mgmt', ipam[node['mgmt_mac']])
 
-    # save IP reservations
-    ipam.save()
-
 
 if __name__ == "__main__":
-    main()
+    # PARSE ARGUMENTS
+    args = parse_args()
+    if args.list:
+        mode = 0
+    elif args.verify:
+        mode = 2
+    else:
+        mode = 1
+
+    # INITIALIZE CONFIG HANDLER
+    config = Config()
+
+    # INTIALIZE IPAM
+    ipam = IPAddressManager(
+        IP_RESERVATIONS,
+        config['SUBNET'], config['SUBNET_MASK'])
+
+    # INITIALIZE INVENTORY
+    inv = Inventory(mode, args.host)
+
+    # CREATE INVENTORY
+    try:
+        main(config, ipam, inv)
+    except Exception as e:
+        if mode == 2:
+            sys.stderr.write(config.error)
+            sys.exit(1)
+        raise(e)
+
+    # DONE
+    ipam.save()
+    sys.exit(0)
