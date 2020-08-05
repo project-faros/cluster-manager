@@ -17,4 +17,4 @@ jmespath==0.10.0
 netaddr==0.7.20
 
 # For config.py
-prompt-toolkit==1.0.14
+prompt-toolkit==3.0.5
