@@ -2,7 +2,7 @@ pyinquirer==1.0.3
 ansible<2.10
 
 # for dns/openwrt provider
-dnspython==1.16.0
+dnspython==2.0.0
 
 # for management/ilo provider
 python-hpilo==4.3
