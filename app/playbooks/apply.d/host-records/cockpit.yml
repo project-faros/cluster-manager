@@ -6,15 +6,6 @@
   become: yes
 
   tasks:
-    - name: create cockpit links to bastion node management
-      include_role:
-        name: cockpit-links
-      vars:
-        cockpit_links:
-          - name: "Bastion Management"
-            url: "https://{{ mgmt_hostname}}"
-            icon: pficon-container-node
-
     - name: create cockpit links to cluster node management
       include_role:
         name: cockpit-links

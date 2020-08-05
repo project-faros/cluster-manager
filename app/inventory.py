@@ -168,7 +168,7 @@ def main(config, ipam, inv):
     # GATHER INFORMATION FOR EXTRA NODES
     extra_nodes = json.loads(config.get('EXTRA_NODES', '[]'))
     for idx, item in enumerate(extra_nodes):
-        addr = ipam.get(item['mac'], item['ip'])
+        addr = ipam.get(item['mac'], item.get('ip'))
         extra_nodes[idx].update({'ip': addr})
 
     # CREATE INVENTORY
