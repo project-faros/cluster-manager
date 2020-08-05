@@ -8,7 +8,7 @@ dnspython==1.16.0
 python-hpilo==4.3
 
 # For Kubernetes cluster control
-openshift==0.11.0
+openshift==0.11.2
 
 # For json query
 jmespath==0.10.0
