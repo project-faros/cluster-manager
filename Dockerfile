@@ -14,7 +14,9 @@ RUN microdnf update; \
     chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
     cd /usr/bin; \
     wget -O oc.tgz https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz; \
-    tar xvzf oc.tgz; \
+    tar xvzf oc.tgz; rm oc.tgz; \
+    wget -O farosctl https://raw.githubusercontent.com/project-faros/farosctl/master/bin/farosctl; \
+    chmod 755 farosctl; \
     microdnf remove wget; \
     microdnf clean all; \
     rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/bin/oc.tgz /usr/lib64/python3.8/__pycache__;
