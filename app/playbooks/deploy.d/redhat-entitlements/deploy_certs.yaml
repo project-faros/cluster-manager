@@ -1,0 +1,26 @@
+- name: gather rhel subscription from bastion host
+  hosts: bastion_hosts[0]
+  gather_facts: yes
+  become: no
+
+  tasks:
+    - name: ensure bastion host in a RHEL system
+      assert:
+        that: ansible_distribution == "RedHat"
+        msg: "The bastion node must be a RHEL node."
+
+    - name: read red hat entitlement certificate
+      shell: cat "$(ls /etc/pki/entitlement/*.pem | grep -v '\-key.pem$')"
+      changed_when: false
+      register: red_hat_cert
+
+    - name: read red hat entitlement private key
+      shell: cat /etc/pki/entitlement/*-key.pem
+      changed_when: false
+      register: red_hat_key
+
+    - name: apply entitlement configuration to cluster
+      k8s:
+        state: present
+        definition: "{{ lookup('template', 'cluster-wide-machineconfigs.yaml.j2') }}"
+      delegate_to: localhost
