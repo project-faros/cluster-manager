@@ -1,0 +1,171 @@
+- name: install nvidia gpu drivers
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+    - name: ensure project exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: project.openshift.io/v1
+          kind: Project
+          metadata:
+            name: gpu-operator-resources
+          spec:
+
+    - name: ensure operatorgroup exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1
+          kind: OperatorGroup
+          metadata:
+            name: gpu-operator-resources
+            namespace: gpu-operator-resources
+          spec:
+            targetNamespaces:
+            - gpu-operator-resources
+
+    - name: ensure nfd subscription exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: nfd
+            namespace: gpu-operator-resources
+          spec:
+            channel: "{{ lookup('ini', 'nfd section=operators file=/app/versions.ini') }}"
+            name: nfd
+            source: redhat-operators
+            sourceNamespace: openshift-marketplace
+            installPlanApproval: "Automatic"
+
+    - name: wait for install to start
+      pause:
+        seconds: 15
+
+    - name: lookup install plan
+      set_fact:
+        install_plan: |
+          "{{ lookup('k8s',
+                     api_version='operators.coreos.com/v1alpha1',
+                     kind='Subscription',
+                     resource='nfd',
+                     namespace='gpu-operator-resources',
+                     wantlist=True)[0].status.installplan.name  }}"
+      register: ip_lkp
+      until: ip_lkp is success
+      retries: 60
+      delay: 15
+
+    - name: wait for install to complete
+      assert:
+        that: |
+          "{{ lookup('k8s',
+                     api_version='operators.coreos.com/v1alpha1',
+                     kind='InstallPlan',
+                     resource=install_plan,
+                     namespace='gpu-operator-resources',
+                     wantlist=True)[0].status.phase | default('error') == 'Complete' }}"
+      register: op_lkp
+      until: op_lkp is success
+      retries: 60
+      delay: 15
+
+    - name: ensure nvidia subscription exists
+      k8s:
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: gpu-operator-certified
+            namespace: gpu-operator-resources
+          spec:
+            channel: "{{ lookup('ini', 'nvidia section=operators file=/app/versions.ini') }}"
+            name: gpu-operator-certified
+            source: certified-operators
+            sourceNamespace: openshift-marketplace
+            installPlanApproval: "Automatic"
+
+    - name: wait for install to start
+      pause:
+        seconds: 20
+
+    - name: lookup install plan
+      set_fact:
+        install_plan: |
+          "{{ lookup('k8s',
+                     api_version='operators.coreos.com/v1alpha1',
+                     kind='Subscription',
+                     resource='gpu-operator-certified',
+                     namespace='gpu-operator-resources',
+                     wantlist=True)[0].status.installplan.name  }}"
+
+    - name: wait for install to complete
+      assert:
+        that: |
+          "{{ lookup('k8s',
+                     api_version='operators.coreos.com/v1alpha1',
+                     kind='InstallPlan',
+                     resource=install_plan,
+                     namespace='gpu-operator-resources',
+                     wantlist=True)[0].status.phase | default('error') == 'Complete' }}"
+      register: op_lkp
+      until: op_lkp is success
+      retries: 60
+      delay: 15
+
+    - name: create nfd server
+			k8s:
+				state: present
+				definition:
+					apiVersion: nfd.openshift.io/v1alpha1
+					kind: NodeFeatureDiscovery
+					metadata:
+						name: nfd-master-server
+						namespace: gpu-operator-resources
+					spec:
+						namespace: openshift-nfd
+      register: cp_install
+      until: cp_install is success
+      retries: 30
+      delay: 15
+
+
+    - name: create nvidia clusterpolicy
+      k8s:
+        state: present
+        definition:
+          apiVersion: nvidia.com/v1
+          kind: ClusterPolicy
+          metadata:
+            name: gpu-clusterpolicy
+            namespace: gpu-operator-resources
+          spec:
+            dcgmExporter:
+              image: dcgm-exporter
+              repository: nvidia
+              version: "{{ lookup('ini', 'nvidia_dcgm_exporter section=operators file=/app/versions.ini') }}"
+            devicePlugin:
+              image: k8s-device-plugin
+              repository: nvidia
+              version: "{{ lookup('ini', 'nvidia_k8s_device_plugin section=operators file=/app/versions.ini') }}"
+            driver:
+              image: driver
+              repository: nvidia
+              version: 440.64.00
+              version: "{{ lookup('ini', 'nvidia_driver section=operators file=/app/versions.ini') }}"
+            operator:
+              defaultRuntime: crio
+            toolkit:
+              image: container-toolkit
+              repository: nvidia
+              version: "{{ lookup('ini', 'nvidia_container_toolkit section=operators file=/app/versions.ini') }}"
+      register: cp_install
+      until: cp_install is success
+      retries: 30
+      delay: 15
