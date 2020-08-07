@@ -120,21 +120,20 @@
       delay: 15
 
     - name: create nfd server
-			k8s:
-				state: present
-				definition:
-					apiVersion: nfd.openshift.io/v1alpha1
-					kind: NodeFeatureDiscovery
-					metadata:
-						name: nfd-master-server
-						namespace: gpu-operator-resources
-					spec:
-						namespace: openshift-nfd
+      k8s:
+        state: present
+        definition:
+          apiVersion: nfd.openshift.io/v1alpha1
+          kind: NodeFeatureDiscovery
+          metadata:
+            name: nfd-master-server
+            namespace: gpu-operator-resources
+          spec:
+            namespace: openshift-nfd
       register: cp_install
       until: cp_install is success
       retries: 30
       delay: 15
-
 
     - name: create nvidia clusterpolicy
       k8s:
@@ -157,7 +156,6 @@
             driver:
               image: driver
               repository: nvidia
-              version: 440.64.00
               version: "{{ lookup('ini', 'nvidia_driver section=operators file=/app/versions.ini') }}"
             operator:
               defaultRuntime: crio
