@@ -1,6 +1,6 @@
 - name: Install tftp required packages
   yum:
-    name: tftp-server, syslinux, grub2-efi-x64
+    name: tftp-server, syslinux
     state: installed
 
 - name: Ensure tftp is allowed on local network
@@ -27,15 +27,20 @@
   args:
     creates: "/var/lib/tftpboot/pxelinux.0"
 
-- name: Copy bootx64.efi
-  shell: "cp -a /boot/efi/EFI/BOOT/BOOTX64.EFI /var/lib/tftpboot/uefi/bootx64.efi; chmod 644 /var/lib/tftpboot/uefi/bootx64.efi"
-  args:
-    creates: "/var/lib/tftpboot/uefi/bootx64.efi"
-
-- name: Copy grubx64.efi
-  shell: "cp /boot/efi/EFI/redhat/grubx64.efi /var/lib/tftpboot/uefi/grubx64.efi; chmod 644 /var/lib/tftpboot/uefi/grubx64.efi"
-  args:
-    creates: "/var/lib/tftpboot/uefi/grubx64.efi"
+- name: Copy EFI boot programs
+  copy:
+    src: "{{ item }}"
+    dest: "/var/lib/tftpboot/uefi/{{ item }}"
+    mode: 0644
+    owner: root
+    group: root
+    seuser: system_u
+    serole: object_r
+    setype: tftpdir_rw_t
+    selevel: s0
+  loop:
+    - bootx64.efi
+    - grubx64.efi
 
 - name: Generate the default pxe config files
   template:
