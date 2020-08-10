@@ -3,6 +3,7 @@ STEPS="apply router
 create machines
 apply host-records
 wait-for management-interfaces
+wait-for firmware-config
 create load-balancer
 create install-repos
 create cluster"
