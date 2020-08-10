@@ -2,6 +2,8 @@
 
 HEADER="Host,IP Address,Reachable (SSH)"
 REPORT=""
+INVENTORY=$(ansible-inventory --list 2> /dev/null)
+EXTRA=$(ansible-inventory --host bootstrap 2> /dev/null| jq '.extra_nodes')
 
 function len() { echo $#; }
 
@@ -18,12 +20,11 @@ function progress() {
 function _reachable() {
     target=$1
     port=$2
-    if (timeout --signal=9 1 telnet $target $port 2>&1 | grep 'Connected to' > /dev/null); then
-        #echo '\e[32m☑ YES\e[0m'
-        echo '\e[32m✔ YES\e[0m'
+    if (echo | timeout --signal=9 1 telnet $target $port 2>&1 | grep 'Connected to' > /dev/null); then
+        echo '\e[32m+ YES\e[0m'
         return 0
     else
-        echo '\e[1m☐ NO\e[0m'
+        echo '\e[1m- NO\e[0m'
         return 1
     fi
 }
@@ -34,7 +35,7 @@ function _divider() {
 
 function _row() {
     if [ $# == 1 ]; then
-        ip=$(ansible-inventory --list | jq -rc "._meta.hostvars.\"$1\".ansible_host")
+        ip=$(echo "$INVENTORY" | jq -rc "._meta.hostvars.\"$1\".ansible_host")
     else
         ip=$2
     fi
@@ -42,8 +43,8 @@ function _row() {
 }
 
 function main() {
-    all_hosts=$(ansible-inventory --list 2> /dev/null | jq -c '._meta.hostvars | keys' | jq -r @sh | xargs echo)
-    extra_hosts=$(ansible-inventory --host bootstrap | jq -rc '.extra_nodes[].name')
+    all_hosts=$(echo "$INVENTORY" | jq -c '._meta.hostvars | keys' | jq -r @sh | xargs echo)
+    extra_hosts=$(echo "$EXTRA" | jq -rc '.[].name')
     n_hosts=$(len $all_hosts $extra_hosts)
     index=0
 
@@ -56,7 +57,7 @@ function main() {
     count=0
     for host in $extra_hosts; do
         progress $index $n_hosts
-        ip=$(ansible-inventory --host bootstrap | jq -rc ".extra_nodes[$count].ip")
+        ip=$(echo "$EXTRA" | jq -rc ".[$count].ip")
         REPORT+=$(_row $host $ip)
         index=$(expr $index + 1)
         count=$(expr $count + 1)
