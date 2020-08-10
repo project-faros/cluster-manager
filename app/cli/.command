@@ -57,9 +57,11 @@ fi
 _run $@
 RETCODE=$?
 
-if [ $RETCODE -eq 0 ]; then
-    echo -e "\n\n\033[32m$(basename $0) $RECIPE Completed Successfully\033[0m\n\n"
-else
-    echo -e "\n\n\033[31m$(basename $0) $RECIPE Failed\033[0m\n\n"
+if [ ! -f $COOKBOOK/.nofooter ]; then
+    if [ $RETCODE -eq 0 ]; then
+        echo -e "\n\n\033[32m$(basename $0) $RECIPE Completed Successfully\033[0m\n\n"
+    else
+        echo -e "\n\n\033[31m$(basename $0) $RECIPE Failed\033[0m\n\n"
+    fi
 fi
 exit $RETCODE
