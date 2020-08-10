@@ -19,7 +19,8 @@ function _reachable() {
     target=$1
     port=$2
     if (timeout --signal=9 1 telnet $target $port 2>&1 | grep 'Connected to' > /dev/null); then
-        echo '\e[32m☑ YES\e[0m'
+        #echo '\e[32m☑ YES\e[0m'
+        echo '\e[32m✔ YES\e[0m'
         return 0
     else
         echo '\e[1m☐ NO\e[0m'
@@ -32,13 +33,18 @@ function _divider() {
 }
 
 function _row() {
-    ip=$(ansible-inventory --list | jq -rc "._meta.hostvars.\"$1\".ansible_host")
+    if [ $# == 1 ]; then
+        ip=$(ansible-inventory --list | jq -rc "._meta.hostvars.\"$1\".ansible_host")
+    else
+        ip=$2
+    fi
     echo "$1\t$ip\t$(_reachable $ip 22)\n"
 }
 
 function main() {
     all_hosts=$(ansible-inventory --list 2> /dev/null | jq -c '._meta.hostvars | keys' | jq -r @sh | xargs echo)
-    n_hosts=$(len $all_hosts)
+    extra_hosts=$(ansible-inventory --host bootstrap | jq -rc '.extra_nodes[].name')
+    n_hosts=$(len $all_hosts $extra_hosts)
     index=0
 
     REPORT+=$(_divider)
@@ -46,6 +52,14 @@ function main() {
         progress $index $n_hosts
         REPORT+=$(_row $host)
         index=$(expr $index + 1)
+    done
+    count=0
+    for host in $extra_hosts; do
+        progress $index $n_hosts
+        ip=$(ansible-inventory --host bootstrap | jq -rc ".extra_nodes[$count].ip")
+        REPORT+=$(_row $host $ip)
+        index=$(expr $index + 1)
+        count=$(expr $count + 1)
     done
     progress $index $n_hosts
 
