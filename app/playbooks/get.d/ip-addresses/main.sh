@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HEADER="Host,IP Address,Reachable"
+HEADER="Host,IP Address,Reachable (SSH)"
 REPORT=""
 
 function len() { echo $#; }
