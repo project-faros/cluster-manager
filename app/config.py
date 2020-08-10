@@ -291,9 +291,9 @@ class configurator(object):
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
                  ('mgmt_mac', 'Management MAC Address')])])
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
-            ListDictParameter('EXTRA_NODES', 'Extra Records',
+            ListDictParameter('EXTRA_NODES', 'Static IP Reservations',
                 [('name', 'Node Name'), ('mac', 'MAC Address'), ('ip', 'Requested IP Address')]),
-            ListDictParameter('IGNORE_MACS', 'Ignored MAC Addresses',
+            ListDictParameter('IGNORE_MACS', 'DHCP Ignored MAC Addresses',
                 [('name', 'Entry Name'), ('mac', 'MAC Address')])])
 
         self.all = [self.router, self.cluster, self.architecture, self.extra]
