@@ -9,7 +9,7 @@ COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
 RUN microdnf update; \
-    microdnf install python3 jq openssh-clients tar wget sshpass; \
+    microdnf install python3 jq openssh-clients tar wget sshpass findutils telnet; \
     pip3 install -r /requirements.txt; \
     chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
     cd /usr/bin; \
