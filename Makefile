@@ -6,9 +6,9 @@ NAME=$(IMAGE)_dev
 DEVDIR=$(shell pwd)
 UPSTREAM=$(shell cat upstream.txt)
 
-build: clean _build_app
+build: clean_container _build_app
 _build_app:
-	podman build --rm --pull -t $(UPSTREAM)/$(IMAGE):dev .
+	podman build -t $(UPSTREAM)/$(IMAGE):dev .
 
 clean: clean_container clean_app_image
 clean_container:

@@ -1,24 +1,30 @@
 FROM registry.fedoraproject.org/fedora-minimal:32
 LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 
+# Install dependencies
+COPY requirements.txt /requirements.txt
+RUN microdnf update; \
+    microdnf install python3 jq openssh-clients tar sshpass findutils telnet; \
+    pip3 install -r /requirements.txt; \
+    microdnf clean all; \
+    rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/lib64/python3.8/__pycache__;
+
+# Install application
 WORKDIR /app
 COPY app /app
 COPY data.skel /data.skel
 COPY home /root
-COPY requirements.txt /requirements.txt
 COPY version.txt /version.txt
 
-RUN microdnf update; \
-    microdnf install python3 jq openssh-clients tar wget sshpass findutils telnet; \
-    pip3 install -r /requirements.txt; \
+# Initialize application
+RUN rpm -i /app/tmp/ilorest-3.0.1-7.x86_64.rpm; \
     chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
-    cd /usr/bin; \
-    wget -O oc.tgz https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz; \
-    tar xvzf oc.tgz; rm oc.tgz; \
-    wget -O farosctl https://raw.githubusercontent.com/project-faros/farosctl/master/bin/farosctl; \
-    chmod 755 farosctl; \
-    microdnf remove wget; \
-    microdnf clean all; \
-    rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/bin/oc.tgz /usr/lib64/python3.8/__pycache__;
+    rm -rf /app/tmp; \
+    cd /usr/local/bin; \
+    curl https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz | tar xvzf -; \
+    curl https://raw.githubusercontent.com/project-faros/farosctl/master/bin/farosctl > farosctl; \
+    chmod 755 farosctl;
 
-CMD /app/bin/entry.sh
+ENTRYPOINT ["/app/bin/entry.sh"]
+CMD ["/app/bin/run.sh"]
+

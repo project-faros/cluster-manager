@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# data directory initialization
-if [ ! -e /data/config.sh ]; then
-  cp /data.skel/config.sh /data/config.sh
+if [ "$1" != "cat" ] && [ "$1" != "ls" ] && [ "$1" != "type" ]; then
+    source /app/bin/shim-check.sh
 fi
-mkdir -p /data/ansible
 
+if [ -e /data/config.sh ]; then
+    source /data/config.sh
+fi
+
+eval $@
