@@ -52,6 +52,44 @@
 
     - import_tasks: boot.yml
 
+    - name: set bios setup for next boot to check clock
+      shell: ilorest -c "{{ config.path }}" bootorder --onetimeboot=BiosSetup --commit
+      delegate_to: localhost
+
+    - name: ensure server is on
+      include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweron/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ username }}"
+        management_pass: "{{ password }}"
+
+    - name: wait for time to be configured
+      pause:
+        prompt: |
+          Your system is now booting into the BIOS configuration menu. Please
+          ensure that the system clock is set to the correct time. The system
+          clock setting is under:
+          System Configuration > BIOS/Platform Configuration (RBSU) > Date and Time.
+
+          The system's iLO address is: https://{{ mgmt_hostname }}
+
+    - name: ensure server is off
+      include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweroff/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ username }}"
+        management_pass: "{{ password }}"
+
     - name: logout of ilo
       shell: ilorest -c "{{ config.path }}" logout
       changed_when: False
