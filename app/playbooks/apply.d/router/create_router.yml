@@ -22,6 +22,7 @@
     - name: dns-server
       dns_server_domain: "{{ cluster_name }}.{{ cluster_domain }}"
       dns_server_reverse_domain: "{{ reverse_ptr_zone }}"
+      dns_server_ip: "{{ hostvars.lan.ansible_host }}"
     - name: ntp-server
       ntp_server_allowed: "{{ subnet }}/{{ subnet_mask }}"
     - name: router-hardening
