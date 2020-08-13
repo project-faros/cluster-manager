@@ -1,0 +1,3 @@
+- name: set the bootorder
+  shell: ilorest -c "{{ config.path }}" bootorder NVMe.Emb.7.1 NIC.LOM.2.4.IPv4 --commit
+  delegate_to: localhost

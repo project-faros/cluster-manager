@@ -1,0 +1,23 @@
+[
+  {
+    "#Bios.v1_0_0.Bios": {
+      "/redfish/v1/systems/1/bios/settings/": {
+        "@odata.context": "/redfish/v1/$metadata#Bios.Bios",
+        "@odata.etag": "W/\"D2F8A828E7CF0000003E1A4BF85AFFDE\"",
+        "@odata.id": "/redfish/v1/systems/1/bios/settings/",
+        "Id": "settings",
+        "AttributeRegistry": "BiosAttributeRegistryH08.v1_1_40",
+        "Attributes": {
+          "NicBoot1": "Disabled",
+          "NicBoot2": "Disabled",
+          "NicBoot3": "Disabled",
+          "NicBoot4": "Disabled",
+          "NicBoot5": "NetworkBoot",
+          "UsbBoot": "Disabled",
+          "BootMode": "Uefi",
+          "AutoPowerOn": "AlwaysPowerOff"
+        }
+      }
+    }
+  }
+]

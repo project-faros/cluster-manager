@@ -1,0 +1,59 @@
+- name: apply firmware
+  hosts: cluster,!virtual
+  become: no
+  gather_facts: no
+  serial: 1
+
+  vars_prompt:
+    - name: username
+      prompt: Current iLO Admin User [defaults to value in config]
+      private: no
+    - name: password
+      prompt: Current iLO Admin Password [defaults to value in config]
+      private: yes
+
+  tasks:
+    - name: use default ilo user when requested
+      set_fact:
+        username: "{{ mgmt_user }}"
+      when: username == ""
+
+    - name: use default ilo password when requested
+      set_fact:
+        password: "{{ mgmt_password }}"
+      when: password == ""
+
+    - name: create tmp config file
+      tempfile:
+        state: file
+      register: config
+      delegate_to: localhost
+
+    - name: login to ilo
+      shell: ilorest -c "{{ config.path }}" login "{{ mgmt_hostname }}" -u "{{ username }}" -p "{{ password }}"
+      changed_when: False
+      delegate_to: localhost
+
+    - name: ensure server is off
+      include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweroff/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ username }}"
+        management_pass: "{{ password }}"
+
+    - import_tasks: iloaccount.yml
+
+    - import_tasks: bios.yml
+
+    - import_tasks: boot.yml
+
+    - name: logout of ilo
+      shell: ilorest -c "{{ config.path }}" logout
+      changed_when: False
+      delegate_to: localhost
+

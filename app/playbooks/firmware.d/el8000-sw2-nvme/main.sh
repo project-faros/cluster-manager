@@ -1,0 +1,1 @@
+../el8000-sw2-ssd/main.sh
