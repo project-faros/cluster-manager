@@ -1,12 +1,12 @@
 - name: ensure service account exists
   block:
   - name: creating service account (may fail)
-    shell: ilorest -c "{{ config.path }}" iloaccounts add {{ mgmt_user }} {{ mgmt_user }} "{{ mgmt_password }}" --addprivs 1,3,6,7,8
+    shell: ilorest -c "{{ config.path }}" iloaccounts add {{ mgmt_user }} {{ mgmt_user }} '{{ mgmt_password }}' --addprivs 1,3,6,7,8
     delegate_to: localhost
 
   rescue:
   - name: modifying service account password
-    shell: ilorest -c "{{ config.path }}" iloaccounts changepass {{ mgmt_user }} "{{ mgmt_password }}"
+    shell: ilorest -c "{{ config.path }}" iloaccounts changepass {{ mgmt_user }} '{{ mgmt_password }}'
     delegate_to: localhost
 
   - name: modifying service account privs

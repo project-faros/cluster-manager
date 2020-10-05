@@ -1,6 +1,6 @@
 - name: get ilo server power status
   shell: >
-    hpilo_cli -l "{{ management_user }}" -p "{{ management_pass }}" -j
+    hpilo_cli -l "{{ management_user }}" -p '{{ management_pass }}' -j
     "{{ management_hostname }}" get_host_power_status
   delegate_to: localhost
   become: no
@@ -9,7 +9,7 @@
 
 - name: power on ilo server power state
   shell: >
-    hpilo_cli -l "{{ management_user }}" -p "{{ management_pass }}" -y
+    hpilo_cli -l "{{ management_user }}" -p '{{ management_pass }}' -y
     "{{ management_hostname }}" press_pwr_btn
   delegate_to: localhost
   become: no
@@ -17,7 +17,7 @@
 
 - name: wait until ilo server powers on
   shell: >
-    hpilo_cli -l "{{ management_user }}" -p "{{ management_pass }}" -j
+    hpilo_cli -l "{{ management_user }}" -p '{{ management_pass }}' -j
     "{{ management_hostname }}" get_host_power_status
   delegate_to: localhost
   become: no

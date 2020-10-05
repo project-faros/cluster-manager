@@ -30,7 +30,7 @@
       delegate_to: localhost
 
     - name: login to ilo
-      shell: ilorest -c "{{ config.path }}" login "{{ mgmt_hostname }}" -u "{{ username }}" -p "{{ password }}"
+      shell: ilorest -c "{{ config.path }}" login "{{ mgmt_hostname }}" -u '{{ username }}' -p '{{ password }}'
       changed_when: False
       delegate_to: localhost
 
