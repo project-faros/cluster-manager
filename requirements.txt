@@ -2,7 +2,7 @@ pyinquirer==1.0.3
 ansible<2.10
 
 # for management/ilo provider
-python-hpilo==4.3
+python-hpilo==4.4.1
 
 # For Kubernetes cluster control
 openshift==0.11.2
