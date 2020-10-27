@@ -110,6 +110,9 @@ class IPAddressManager(dict):
             self[key] = new_ip
             return new_ip
 
+    def __setitem__(self, key, value):
+        return super().__setitem__(key.lower(), value)
+
     def _next_ip(self):
         used_ips = list(self.values())
         loop = True
