@@ -9,13 +9,22 @@
         that: ansible_distribution == "RedHat"
         msg: "The bastion node must be a RHEL node."
 
+    - name: find entitlement that provides CoreOS
+      shell: |
+        set -o pipefail &&
+        subscription-manager list --consumed --matches="Red Hat CoreOS" |
+        grep Serial | tail -n 1 | awk -F: '{ print $2 }' | xargs echo -n
+      become: yes
+      register: entitlement_serial
+      failed_when: entitlement_serial.stdout_lines | length == 0
+
     - name: read red hat entitlement certificate
-      shell: cat "$(ls /etc/pki/entitlement/*.pem | grep -v '\-key.pem$')"
+      shell: cat /etc/pki/entitlement/{{ entitlement_serial.stdout }}.pem
       changed_when: false
       register: red_hat_cert
 
     - name: read red hat entitlement private key
-      shell: cat /etc/pki/entitlement/*-key.pem
+      shell: cat /etc/pki/entitlement/{{ entitlement_serial.stdout }}-key.pem
       changed_when: false
       register: red_hat_key
 
