@@ -167,3 +167,15 @@
       until: cp_install is success
       retries: 30
       delay: 15
+
+  - name: set driver environment variables
+    shell: |
+      oc set env
+      -n gpu-operator-resources
+      ds/nvidia-driver-daemonset
+      OPENSHIFT_VERION={{ lookup('ini', 'nvidia_openshift_version section=operators file=/app/versions.ini') }}
+      RHEL_VERSION={{ lookup('ini', 'nvidia_rhel_version section=operators file=/app/versions.ini') }}
+    register: setenv
+    until: setenv is success
+    retries: 30
+    delay: 15
