@@ -14,19 +14,6 @@
             name: gpu-operator-resources
           spec:
 
-    - name: ensure operatorgroup exists
-      k8s:
-        state: present
-        definition:
-          apiVersion: operators.coreos.com/v1
-          kind: OperatorGroup
-          metadata:
-            name: gpu-operator-resources
-            namespace: gpu-operator-resources
-          spec:
-            targetNamespaces:
-            - gpu-operator-resources
-
     - name: ensure nfd subscription exists
       k8s:
         state: present
@@ -34,18 +21,18 @@
           apiVersion: operators.coreos.com/v1alpha1
           kind: Subscription
           metadata:
-            name: nfd
-            namespace: gpu-operator-resources
+            name: "{{ lookup('ini', 'nfd_name' section=operators file=/app/versions.ini') }}"
+            namespace: openshift-operators
           spec:
-            channel: "{{ lookup('ini', 'nfd section=operators file=/app/versions.ini') }}"
-            name: nfd
-            source: redhat-operators
+            channel: "{{ lookup('ini', 'nfd_channel' section=operators file=/app/versions.ini') }}"
+            name: "{{ lookup('ini', 'nfd_name' section=operators file=/app/versions.ini') }}"
+            source: "{{ lookup('ini', 'nfd_source' section=operators file=/app/versions.ini') }}"
             sourceNamespace: openshift-marketplace
             installPlanApproval: "Automatic"
 
     - name: wait for install to start
       pause:
-        seconds: 15
+        seconds: 30
 
     - name: lookup install plan
       set_fact:
@@ -53,8 +40,8 @@
           "{{ lookup('k8s',
                      api_version='operators.coreos.com/v1alpha1',
                      kind='Subscription',
-                     resource='nfd',
-                     namespace='gpu-operator-resources',
+                     resource=lookup('ini', 'nfd_name' section=operators file=/app/versions.ini'),
+                     namespace='openshift-operators',
                      wantlist=True)[0].status.installplan.name  }}"
       register: ip_lkp
       until: ip_lkp is success
@@ -68,7 +55,7 @@
                      api_version='operators.coreos.com/v1alpha1',
                      kind='InstallPlan',
                      resource=install_plan,
-                     namespace='gpu-operator-resources',
+                     namespace='openshift-operators',
                      wantlist=True)[0].status.phase | default('error') == 'Complete' }}"
       register: op_lkp
       until: op_lkp is success
@@ -83,17 +70,17 @@
           kind: Subscription
           metadata:
             name: gpu-operator-certified
-            namespace: gpu-operator-resources
+            namespace: openshift-operators
           spec:
-            channel: "{{ lookup('ini', 'nvidia section=operators file=/app/versions.ini') }}"
-            name: gpu-operator-certified
-            source: certified-operators
+            channel: "{{ lookup('ini', 'nvidia_channel section=operators file=/app/versions.ini') }}"
+            name: "{{ lookup('ini', 'nvidia_name section=operators file=/app/versions.ini') }}"
+            source: "{{ lookup('ini', 'nvidia_source section=operators file=/app/versions.ini') }}"
             sourceNamespace: openshift-marketplace
             installPlanApproval: "Automatic"
 
     - name: wait for install to start
       pause:
-        seconds: 20
+        seconds: 30
 
     - name: lookup install plan
       set_fact:
@@ -101,8 +88,8 @@
           "{{ lookup('k8s',
                      api_version='operators.coreos.com/v1alpha1',
                      kind='Subscription',
-                     resource='gpu-operator-certified',
-                     namespace='gpu-operator-resources',
+                     resource=lookup('ini', 'nvidia_name section=operators file=/app/versions.ini'),
+                     namespace='openshift-operators',
                      wantlist=True)[0].status.installplan.name  }}"
 
     - name: wait for install to complete
@@ -112,7 +99,7 @@
                      api_version='operators.coreos.com/v1alpha1',
                      kind='InstallPlan',
                      resource=install_plan,
-                     namespace='gpu-operator-resources',
+                     namespace='openshift-operators',
                      wantlist=True)[0].status.phase | default('error') == 'Complete' }}"
       register: op_lkp
       until: op_lkp is success
@@ -145,37 +132,72 @@
             name: gpu-clusterpolicy
             namespace: gpu-operator-resources
           spec:
-            dcgmExporter:
-              image: dcgm-exporter
-              repository: nvidia
-              version: "{{ lookup('ini', 'nvidia_dcgm_exporter section=operators file=/app/versions.ini') }}"
-            devicePlugin:
-              image: k8s-device-plugin
-              repository: nvidia
-              version: "{{ lookup('ini', 'nvidia_k8s_device_plugin section=operators file=/app/versions.ini') }}"
-            driver:
-              image: driver
-              repository: nvidia
-              version: "{{ lookup('ini', 'nvidia_driver section=operators file=/app/versions.ini') }}"
-            operator:
-              defaultRuntime: crio
-            toolkit:
-              image: container-toolkit
-              repository: nvidia
-              version: "{{ lookup('ini', 'nvidia_container_toolkit section=operators file=/app/versions.ini') }}"
+						dcgmExporter:
+								nodeSelector: {}
+								imagePullSecrets: []
+								resources: {}
+								affinity: {}
+								podSecurityContext: {}
+								repository: nvcr.io/nvidia/k8s
+								securityContext: {}
+								version: 2.0.13-2.1.0-ubi8
+								image: dcgm-exporter
+								tolerations: []
+							devicePlugin:
+								nodeSelector: {}
+								imagePullSecrets: []
+								resources: {}
+								affinity: {}
+								podSecurityContext: {}
+								repository: nvcr.io/nvidia
+								securityContext: {}
+								version: v0.7.0-ubi8
+								image: k8s-device-plugin
+								tolerations: []
+							driver:
+								nodeSelector: {}
+								imagePullSecrets: []
+								resources: {}
+								affinity: {}
+								podSecurityContext: {}
+								repository: nvcr.io/nvidia
+								securityContext: {}
+								version: 450.80.02
+								image: driver
+								tolerations: []
+							gfd:
+								nodeSelector: {}
+								imagePullSecrets: []
+								resources: {}
+								affinity: {}
+								podSecurityContext: {}
+								repository: nvcr.io/nvidia
+								securityContext: {}
+								version: v0.2.1
+								image: gpu-feature-discovery
+								tolerations: []
+								migStrategy: none
+								sleepInterval: 60s
+							operator:
+								defaultRuntime: crio
+								deployGFD: true
+								validator:
+									image: cuda-sample
+									imagePullSecrets: []
+									repository: nvcr.io/nvidia/k8s
+									version: vectoradd-cuda10.2-ubi8
+							toolkit:
+								nodeSelector: {}
+								imagePullSecrets: []
+								resources: {}
+								affinity: {}
+								podSecurityContext: {}
+								repository: nvcr.io/nvidia/k8s
+								securityContext: {}
+								version: 1.3.0-ubi8
+								image: container-toolkit
+								tolerations: []
       register: cp_install
       until: cp_install is success
       retries: 30
       delay: 15
-
-  - name: set driver environment variables
-    shell: |
-      oc set env
-      -n gpu-operator-resources
-      ds/nvidia-driver-daemonset
-      OPENSHIFT_VERION={{ lookup('ini', 'nvidia_openshift_version section=operators file=/app/versions.ini') }}
-      RHEL_VERSION={{ lookup('ini', 'nvidia_rhel_version section=operators file=/app/versions.ini') }}
-    register: setenv
-    until: setenv is success
-    retries: 30
-    delay: 15
