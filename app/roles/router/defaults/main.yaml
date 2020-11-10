@@ -5,3 +5,5 @@ router_subnet_mask: 24
 router_wan_interface: eth0
 router_loadbalancer: '192.168.1.2'
 router_lan_subnet: "192.168.1.0/24"
+router_dns_forwarders:
+  - server: 1.1.1.1

@@ -16,9 +16,9 @@ class Parameter(object):
     disabled = False
     _value_reprfun = str
 
-    def __init__(self, name, prompt, disabled=False):
+    def __init__(self, name, prompt, disabled=False, default=None):
         self._name = name
-        self._value = os.environ.get(self._name, '')
+        self._value = os.environ.get(self._name, default or '')
         self._prompt = prompt
         self.disabled = disabled
 
@@ -137,9 +137,9 @@ class StaticParameter(Parameter):
 
 class ListDictParameter(Parameter):
 
-    def __init__(self, name, prompt, keys):
+    def __init__(self, name, prompt, keys, default=None):
         self._name = name
-        self._value = json.loads(os.environ.get(self._name, '[]'))
+        self._value = json.loads(os.environ.get(self._name, default or '[]'))
         self._prompt = prompt
         self._keys = keys
         self._primary_key = keys[0][0]
@@ -279,7 +279,10 @@ class configurator(object):
             CheckParameter('ROUTER_LAN_INT', 'LAN Interfaces', rtr_interfaces),
             Parameter('SUBNET', 'Subnet'),
             ChoiceParameter('SUBNET_MASK', 'Subnet Mask', ['20', '21', '22', '23', '24', '25', '26', '27']),
-            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps', 'HTTPS to Cockpit Panel', 'External to Internal Routing - DANGER'])])
+            CheckParameter('ALLOWED_SERVICES', 'Permitted Ingress Traffic', ['SSH to Bastion', 'HTTPS to Cluster API', 'HTTP to Cluster Apps', 'HTTPS to Cluster Apps', 'HTTPS to Cockpit Panel', 'External to Internal Routing - DANGER']),
+            ListDictParameter('DNS_FORWARDERS', 'Upstream DNS Forwarders',
+                [('server', 'DNS Server')],
+                default='[{"server": "1.1.1.1"}]')])
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             PasswordParameter('ADMIN_PASSWORD', 'Adminstrator Password'),
             PasswordParameter('PULL_SECRET', 'Pull Secret')])

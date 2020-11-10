@@ -192,7 +192,8 @@ def main(config, ipam, inv):
         subnet_mask=config['SUBNET_MASK'],
         wan_ip=config['BASTION_IP_ADDR'],
         extra_nodes=extra_nodes,
-        ignored_macs=config['IGNORE_MACS'])
+        ignored_macs=config['IGNORE_MACS'],
+        dns_forwarders=config['DNS_FORWARDERS'])
 
     infra = inv.add_group('infra')
     router = infra.add_group('router',
