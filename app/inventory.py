@@ -23,6 +23,9 @@ class InventoryGroup(object):
     def add_host(self, name, hostname=None, **hostvars):
         return(self._parent.add_host(name, self._name, hostname, **hostvars))
 
+    def host(self, name):
+        return self._parent.host(name)
+
 
 class Inventory(object):
 
@@ -41,6 +44,15 @@ class Inventory(object):
     def __del__(self):
         if self._mode == 0:
             print(self.to_json())
+
+    def host(self, name):
+        return self._data['_meta']['hostvars'].get(name)
+
+    def group(self, name):
+        if name in self_data:
+            return InventoryGroup(self, name)
+        else:
+            return None
 
     def add_group(self, name, parent=None, **groupvars):
         self._data[name] = {'hosts': [], 'vars': groupvars, 'children': []}
@@ -252,6 +264,8 @@ def main(config, ipam, inv):
            mgmt_hostname=mgmt_ip,
            ansible_ssh_user='core',
            cp_node_id=count)
+        if node.get('install_drive'):
+            cp.host(node['name'])['install_disk'] = node['install_drive']
 
     # VIRTUAL NODES
     virt = inv.add_group('virtual',
