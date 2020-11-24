@@ -4,7 +4,7 @@ LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 # Install dependencies
 COPY requirements.txt /requirements.txt
 RUN microdnf update; \
-    microdnf install python3 jq openssh-clients tar sshpass findutils telnet; \
+    microdnf install python3 jq openssh-clients tar sshpass findutils telnet less; \
     pip3 install -r /requirements.txt; \
     microdnf clean all; \
     rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/lib64/python3.8/__pycache__;
