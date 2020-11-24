@@ -141,8 +141,20 @@ class ListDictParameter(Parameter):
         self._name = name
         self._value = json.loads(os.environ.get(self._name, default or '[]'))
         self._prompt = prompt
-        self._keys = keys
         self._primary_key = keys[0][0]
+
+        # normalize keys
+        self._keys = []
+        for key in keys:
+            if len(key) < 3:
+                self._keys += [(key[0], key[-1], "")]
+                continue
+            if len(key) == 3:
+                self._keys += [key]
+
+            for val in self._value:
+                if not val.get(key[0]):
+                    val[key[0]] = self._keys[-1][2]
 
     def _value_reprfun(self, value):
         return '{} items'.format(len(self.value))
@@ -158,7 +170,7 @@ class ListDictParameter(Parameter):
                 else:
                     ptr = '    '
                 tokens += [(Token.Pointer, ptr),
-                           (Token.Arboted, f'{key[1]}: {entry.get(key[0], "")}\n')]
+                           (Token.Arboted, f'{key[1]}: {entry.get(key[0], key[2])}\n')]
         print_tokens(tokens, style=STYLE)
         sys.stdout.write('\n\n')
 
@@ -233,7 +245,7 @@ class ListDictParameter(Parameter):
         questions = [ {'type': 'input',
                        'message': item[1],
                        'name': item[0],
-                       'default': defaults.get(item[0], '')}
+                       'default': defaults.get(item[0], item[2])}
                      for item in self._keys]
         return prompt(questions)
 
@@ -292,7 +304,9 @@ class configurator(object):
             PasswordParameter('MGMT_PASSWORD', 'Machine Management Password'),
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
-                 ('mgmt_mac', 'Management MAC Address')])])
+                 ('mgmt_mac', 'Management MAC Address'),
+                 ('install_drive', 'OS Install Drive',
+                     os.environ.get('BOOT_DRIVE'))])])
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Static IP Reservations',
                 [('name', 'Node Name'), ('mac', 'MAC Address'), ('ip', 'Requested IP Address')]),
