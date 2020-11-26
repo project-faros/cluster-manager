@@ -1,7 +1,12 @@
 - name: enable ip forwarding
   command: sysctl -w net.ipv4.ip_forward=1
 
-- name: restart networking
-  shell: nmcli networking off; nmcli networking on
+- name: restart faroswan
+  shell: nmcli con up faroslan
+  async: 120
+  poll: 5
+
+- name: restart faroslan
+  shell: for int in $(nmcli --fields NAME con sh | grep faroslan); do nmcli con up $int; done
   async: 120
   poll: 5

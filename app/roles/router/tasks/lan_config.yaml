@@ -16,8 +16,9 @@
     --
     connection.zone internal
     ipv4.method manual
+    ipv4.gateway ""
   when: br_facts == []
-  notify: restart networking
+  notify: restart faroslan
 
 - name: check interfaces for bridge membership
   shell: nmcli con sh faroslan-{{ item }} | grep -v 802-3
@@ -39,7 +40,7 @@
   when:
     - item.item is in router_lan_interfaces
     - item.stdout == ""
-  notify: restart networking
+  notify: restart faroslan
 
 - name: remove interfaces from the lan bridge
   shell: nmcli con del faroslan-{{ item }}
@@ -49,7 +50,7 @@
   when:
     - item.item is not in router_lan_interfaces
     - item.stdout != ""
-  notify: restart networking
+  notify: restart faroslan
 
 - name: verify faroslan configuration
   shell: nmcli con mod faroslan "{{ item.key }}" "{{ item.target }}"
@@ -60,7 +61,9 @@
       target: internal
     - key: ipv4.addresses
       target: "{{ router_lan_address }}/{{ router_subnet_mask }}"
+    - key: ipv4.gateway
+      target: ""
   when:
     - br_facts != []
     - br_facts[0][item.key] != item.target
-  notify: restart networking
+  notify: restart faroslan

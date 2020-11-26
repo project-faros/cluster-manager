@@ -30,4 +30,4 @@
       target: faroswan
   when:
     - wan_facts[item.key] != item.target
-  notify: restart networking
+  notify: restart faroswan
