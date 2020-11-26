@@ -164,7 +164,7 @@ class Config(object):
 
     def get(self, key, default=None):
         self._last_key = key
-        return os.environ.get(key, default)
+        return os.environ.get(key, default).replace('\\n', '\n')
 
     @property
     def error(self):

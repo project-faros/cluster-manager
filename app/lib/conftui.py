@@ -50,7 +50,14 @@ class Parameter(object):
         return '{}: {}'.format(self.prompt, self._value_reprfun(self.value))
 
     def to_bash(self):
-        return "export {}='{}'".format(self.name, self.value)
+        return "export {}={}".format(self.name, self.jsonify())
+
+    def jsonify(self):
+        try:
+            json.loads(self.value)
+            return "'" + self.value + "'"
+        except json.decoder.JSONDecodeError:
+            return json.dumps(self.value)
 
 
 class PasswordParameter(Parameter):
