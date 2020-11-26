@@ -8,7 +8,8 @@ function ps1() {
         _CONFIG_LAST_MODIFY=$(stat -c %Z /data/config.sh)
         if [[ $_CONFIG_LAST_MODIFY -gt $_CONFIG_LAST_LOAD ]]; then
                 echo " -- Configuration Reloaded -- "
-                source /data/config.sh
+                source /data/config.sh 2> /dev/null
+                source /data/proxy.sh 2> /dev/null
                 export _CONFIG_LAST_LOAD=$(date +%s)
         fi
 	export PS1="[\u@${CLUSTER_NAME} \W]\$ "
@@ -16,5 +17,6 @@ function ps1() {
 export _CONFIG_LAST_LOAD="0"
 export PROMPT_COMMAND=ps1
 export KUBECONFIG=/data/openshift-installer/auth/kubeconfig
+export PYTHONPATH=/app/lib
 
 alias ll='ls -la'

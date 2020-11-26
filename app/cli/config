@@ -1,7 +1,1 @@
-#!/bin/bash
-
-cd /app
-source /data/config.sh
-python3 /app/config.py
-source /data/config.sh
-python3 /app/inventory.py --verify > /dev/null
+.command
