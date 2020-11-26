@@ -20,11 +20,13 @@
       k8s:
         state: present
         definition:
-          apiVersion: project.openshift.io/v1
-          kind: Project
+          apiVersion: v1
+          kind: Namespace
           metadata:
-            name: local-storage
-          spec:
+            labels:
+              openshift.io/cluster-monitoring: "true"
+            name: openshift-local-storage
+          spec: {}
 
     - name: ensure operatorgroup exists
       k8s:
@@ -34,10 +36,10 @@
           kind: OperatorGroup
           metadata:
             name: local-storage
-            namespace: local-storage
+            namespace: openshift-local-storage
           spec:
             targetNamespaces:
-            - local-storage
+            - openshift-local-storage
 
     - name: ensure subscription exists
       k8s:
@@ -47,7 +49,7 @@
           kind: Subscription
           metadata:
             name: local-storage-operator
-            namespace: local-storage
+            namespace: openshift-local-storage
           spec:
             channel: "{{ lookup('ini', 'local_storage section=operators file=/app/versions.ini') }}"
             name: local-storage-operator
@@ -110,7 +112,7 @@
           kind: LocalVolume
           metadata:
             name: local-block
-            namespace: local-storage
+            namespace: openshift-local-storage
           spec:
             nodeSelector:
               nodeSelectorTerms:

@@ -221,10 +221,10 @@
             resources:
               limits:
                 cpu: 500m
-                memory: 3Gi
+                memory: 10Gi
               requests:
                 cpu: 50m
-                memory: 256Mi
+                memory: 3Gi
             successfulBuildsHistoryLimit: 5
             failedBuildsHistoryLimit: 5
             strategy:
