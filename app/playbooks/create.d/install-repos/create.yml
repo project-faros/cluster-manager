@@ -34,6 +34,10 @@
       rhcos_images_master_ign: /data/openshift-installer/master.ign
       rhcos_images_worker_ign: /data/openshift-installer/worker.ign
       rhcos_images_version: "{{ lookup('ini', 'rhcos section=cluster file=/app/versions.ini') }}"
+      rhcos_images_kernel: "{{ lookup('ini', 'kernel section=cluster file=/app/versions.ini') }}"
+      rhcos_images_initramfs: "{{ lookup('ini', 'initramfs section=cluster file=/app/versions.ini') }}"
+      rhcos_images_rootfs: "{{ lookup('ini', 'rootfs section=cluster file=/app/versions.ini')  }}"
+      rhcos_images_image: "{{ lookup('ini', 'image section=cluster file=/app/versions.ini')  }}"
 
 - name: create pxelinux kickstart files
   hosts: cluster

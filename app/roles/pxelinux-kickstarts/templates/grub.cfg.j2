@@ -1,11 +1,11 @@
 {% set kernel = 'rhcos/kernel' %}
 {% set initrd = 'rhcos/initramfs.img' %}
-{% set image = pxelinux_kickstarts_content_server + '/image.raw.gz' %}
+{% set rootfs = pxelinux_kickstarts_content_server + '/rootfs.img' %}
 {% set ign = pxelinux_kickstarts_content_server + '/' + pxelinux_kickstarts_host_role + '.ign' %}
 {% set disk = pxelinux_kickstarts_install_disk %}
 
 set timeout=5
 menuentry 'RHCOS Install' {
-  linux {{ kernel }} ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.inst.image_url={{ image }} coreos.inst.ignition_url={{ ign }}
+  linux {{ kernel }} ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
   initrd {{ initrd }}
 }

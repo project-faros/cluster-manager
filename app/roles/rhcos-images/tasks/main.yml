@@ -1,51 +1,3 @@
-- name: lookup newest initramfs
-  shell: >
-    curl {{ rhcos_images_repo }}/sha256sum.txt 2> /dev/null |
-    grep rhcos | grep initramfs | awk '{ print $2 }'
-  args:
-    warn: false
-  when: rhcos_images_initramfs == ""
-  changed_when: False
-  register: initramfs_lkp
-
-- name: set initramfs url
-  set_fact:
-    rhcos_images_initramfs: "{{ rhcos_images_repo }}/{{ initramfs_lkp.stdout }}"
-  when: rhcos_images_initramfs == ""
-  changed_when: False
-
-- name: lookup newest kernel
-  shell: >
-    curl {{ rhcos_images_repo }}/sha256sum.txt 2> /dev/null |
-    grep rhcos | grep kernel | awk '{ print $2 }'
-  args:
-    warn: false
-  when: rhcos_images_kernel == ""
-  changed_when: False
-  register: kernel_lkp
-
-- name: set kernel url
-  set_fact:
-    rhcos_images_kernel: "{{ rhcos_images_repo }}/{{ kernel_lkp.stdout }}"
-  when: rhcos_images_kernel == ""
-  changed_when: False
-
-- name: lookup newest metal image
-  shell: >
-    curl {{ rhcos_images_repo }}/sha256sum.txt 2> /dev/null |
-    grep rhcos | grep metal | awk '{ print $2 }'
-  args:
-    warn: false
-  when: rhcos_images_image == ""
-  changed_when: False
-  register: image_lkp
-
-- name: set image url
-  set_fact:
-    rhcos_images_image: "{{ rhcos_images_repo }}/{{ image_lkp.stdout }}"
-  changed_when: False
-  when: rhcos_images_image == ""
-
 - name: create rhcos tftp directory
   file:
     path: /var/lib/tftpboot/rhcos
@@ -58,11 +10,13 @@
     dest: "{{ item.dest }}"
     mode: 0555
   loop:
-    - url: "{{ rhcos_images_initramfs }}"
+    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_initramfs }}"
       dest: /var/lib/tftpboot/rhcos/initramfs.img
-    - url: "{{ rhcos_images_kernel }}"
+    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_kernel }}"
       dest: /var/lib/tftpboot/rhcos/kernel
-    - url: "{{ rhcos_images_image }}"
+    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_rootfs }}"
+      dest: /var/www/html/rootfs.img
+    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_image }}"
       dest: /var/www/html/image.raw.gz
   loop_control:
     label: "{{ item.dest }}"
