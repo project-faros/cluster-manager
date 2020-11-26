@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HEADER="Host,IP Address,Reachable (SSH)"
+HEADER="Host,IP Address, MAC Address, Reachable (SSH)"
 REPORT=""
 INVENTORY=$(ansible-inventory --list 2> /dev/null)
 EXTRA=$(ansible-inventory --host bootstrap 2> /dev/null| jq '.extra_nodes')
@@ -34,12 +34,17 @@ function _divider() {
 }
 
 function _row() {
-    if [ $# == 1 ]; then
+    if [ $# -lt 2 ]; then
         ip=$(echo "$INVENTORY" | jq -rc "._meta.hostvars.\"$1\".ansible_host")
     else
         ip=$2
     fi
-    echo "$1\t$ip\t$(_reachable $ip 22)\n"
+    if [ $# -lt 3 ]; then
+        mac=$(echo "$INVENTORY" | jq -rc "._meta.hostvars.\"$1\".mac_address")
+    else
+        mac=$3
+    fi
+    echo "$1\t$ip\t$mac\t$(_reachable $ip 22)\n"
 }
 
 function main() {
@@ -58,7 +63,8 @@ function main() {
     for host in $extra_hosts; do
         progress $index $n_hosts
         ip=$(echo "$EXTRA" | jq -rc ".[$count].ip")
-        REPORT+=$(_row $host $ip)
+        mac=$(echo "$EXTRA" | jq -rc " .[$count].mac")
+        REPORT+=$(_row $host $ip $mac)
         index=$(expr $index + 1)
         count=$(expr $count + 1)
     done

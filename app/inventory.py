@@ -284,7 +284,8 @@ def main(config, ipam, inv):
         ansible_ssh_user=config['MGMT_USER'],
         ansible_ssh_pass=config['MGMT_PASSWORD'])
     for count, node in enumerate(node_defs):
-        mgmt.add_host(node['name'] + '-mgmt', ipam[node['mgmt_mac']])
+        mgmt.add_host(node['name'] + '-mgmt', ipam[node['mgmt_mac']],
+                mac_address=node['mgmt_mac'])
 
 
 if __name__ == "__main__":
