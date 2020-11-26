@@ -8,3 +8,8 @@ openshift_installer_cluster_cidr: 10.128.0.0/14
 openshift_installer_service_cidr: 172.30.0.0/16
 openshift_installer_pull_secret: {}
 openshift_installer_ssh_key: ''
+openshift_installer_proxy: False
+openshift_installer_proxy_http: ''
+openshift_installer_proxy_https: ''
+openshift_installer_proxy_noproxy: ''
+openshift_installer_proxy_ca: ''

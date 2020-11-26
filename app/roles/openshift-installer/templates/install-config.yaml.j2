@@ -1,6 +1,12 @@
 apiVersion: v1
 baseDomain: "{{ openshift_installer_base_domain }}"
-compute:
+{% if openshift_installer_proxy %}proxy:
+  httpProxy: "{{ openshift_installer_proxy_http }}"
+  httpsProxy: "{{ openshift_installer_proxy_https }}"
+  noProxy: "{{ openshift_installer_proxy_noproxy }}"
+additionalTrustBundle: |
+{{ openshift_installer_proxy_ca | indent(4, indentfirst=True) }}
+{% endif %}compute:
 - hyperthreading: Enabled
   name: worker
   replicas: 0
