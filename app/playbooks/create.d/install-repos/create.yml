@@ -16,6 +16,11 @@
       openshift_installer_ssh_key: '{{ lookup("file", ansible_ssh_private_key_file + ".pub") }}'
       openshift_installer_pull_secret: '{{ pull_secret | to_json }}'
       openshift_installer_version: "{{ lookup('ini', 'installer section=cluster file=/app/versions.ini') }}"
+      openshift_installer_proxy: "{{ proxy }}"
+      openshift_installer_proxy_http: "{{ proxy_http }}"
+      openshift_installer_proxy_https: "{{ proxy_https }}"
+      openshift_installer_proxy_noproxy: "{{ proxy_noproxy }}"
+      openshift_installer_proxy_ca: "{{ proxy_ca }}"
 
 - name: create openshift installation source repositories
   hosts: bastion_hosts

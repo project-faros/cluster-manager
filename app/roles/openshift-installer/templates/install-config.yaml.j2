@@ -3,7 +3,8 @@ baseDomain: "{{ openshift_installer_base_domain }}"
 {% if openshift_installer_proxy %}proxy:
   httpProxy: "{{ openshift_installer_proxy_http }}"
   httpsProxy: "{{ openshift_installer_proxy_https }}"
-  noProxy: "{{ openshift_installer_proxy_noproxy }}"
+  noProxy: "{{ ','.join(openshift_installer_proxy_noproxy) }}"
+{% endif %}{% if openshift_installer_proxy_ca | length > 0 %}
 additionalTrustBundle: |
 {{ openshift_installer_proxy_ca | indent(4, indentfirst=True) }}
 {% endif %}compute:
