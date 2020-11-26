@@ -205,7 +205,12 @@ def main(config, ipam, inv):
         wan_ip=config['BASTION_IP_ADDR'],
         extra_nodes=extra_nodes,
         ignored_macs=config['IGNORE_MACS'],
-        dns_forwarders=config['DNS_FORWARDERS'])
+        dns_forwarders=[item['server'] for item in json.loads(config.get('DNS_FORWARDERS', '[]'))],
+        proxy=config['PROXY']=="True",
+        proxy_http=config.get('PROXY_HTTP', ''),
+        proxy_https=config.get('PROXY_HTTPS', ''),
+        proxy_noproxy=[item['dest'] for item in json.loads(config.get('PROXY_NOPROXY', '[]'))],
+        proxy_ca=config.get('PROXY_CA', ''))
 
     infra = inv.add_group('infra')
     router = infra.add_group('router',

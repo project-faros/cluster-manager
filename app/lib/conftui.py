@@ -89,8 +89,9 @@ class ChoiceParameter(Parameter):
                 'type': 'list',
                 'message': self._prompt,
                 'name': 'choice',
-                'default': self._value,
-                'choices': self._choices
+                'default': self._value_reprfun(self._value),
+                'choices':
+                    [self._value_reprfun(item) for item in self._choices]
             }
         ]
         answer = prompt(question)
@@ -100,7 +101,7 @@ class ChoiceParameter(Parameter):
 class BooleanParameter(ChoiceParameter):
 
     def __init__(self, name, prompt, default="True"):
-        super().__init__(name, prompt, ["True", "False"], default=default)
+        super().__init__(name, prompt, [True, False], default=default)
 
 class CheckParameter(Parameter):
 

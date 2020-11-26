@@ -23,7 +23,7 @@
     - key: connection.zone
       target: external
     - key: ipv4.dns
-      target: "{{ ','.join(['127.0.0.1'] + (router_dns_forwarders | json_query('[*].server'))) }}"
+      target: "{{ ','.join(['127.0.0.1'] + router_dns_forwarders) }}"
     - key: ipv4.ignore-auto-dns
       target: yes
     - key: connection.id
