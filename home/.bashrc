@@ -18,4 +18,11 @@ export _CONFIG_LAST_LOAD="0"
 export PROMPT_COMMAND=ps1
 export KUBECONFIG=/data/openshift-installer/auth/kubeconfig
 
+PYTHONPATH=/app/lib/python,/deps/python
+PYTHONUSERBASE=/deps/python
+ANSIBLE_COLLECTIONS_PATH=/deps/ansible
+PATH=/deps/python/bin:$PATH
+
+
+
 alias ll='ls -la'
