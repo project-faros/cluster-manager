@@ -1,11 +1,20 @@
-FROM registry.fedoraproject.org/fedora-minimal:32
+FROM registry.fedoraproject.org/fedora-minimal:33
 LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 
+# setup third party install locations
+ENV PYTHONPATH=/app/lib/python,/deps/python \
+    PYTHONUSERBASE=/deps/python \
+    ANSIBLE_COLLECTIONS_PATH=/deps/ansible \
+    PATH=/deps/python/bin:$PATH
+RUN mkdir -p /deps/python /deps/ansible; \
+    chmod -Rv 755 /deps /deps/*
+
 # Install dependencies
-COPY requirements.txt /requirements.txt
+COPY requirements.txt /deps/python_requirements.txt
+COPY requirements.yml /deps/ansible_requirements.yml
 RUN microdnf update; \
     microdnf install python3 jq openssh-clients tar sshpass findutils telnet less; \
-    pip3 install -r /requirements.txt; \
+    pip3 install --user -r /deps/python_requirements.txt; \
     microdnf clean all; \
     rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/lib64/python3.8/__pycache__;
 
