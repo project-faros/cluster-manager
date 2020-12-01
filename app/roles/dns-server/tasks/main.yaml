@@ -105,7 +105,7 @@
     enabled: yes
 
 - name: ensure firewall allows internal access to dns
-  firewalld:
+  ansible.posix.firewalld:
     zone: internal
     port: 53/{{ item }}
     state: enabled

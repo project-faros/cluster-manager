@@ -57,7 +57,7 @@
     enabled: yes
 
 - name: ensure firewall allows internal access to dhcp
-  firewalld:
+  ansible.posix.firewalld:
     zone: internal
     port: 67/{{ item }}
     state: enabled

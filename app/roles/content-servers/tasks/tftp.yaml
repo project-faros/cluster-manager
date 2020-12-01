@@ -4,7 +4,7 @@
     state: installed
 
 - name: Ensure tftp is allowed on local network
-  firewalld:
+  ansible.posix.firewalld:
     zone: internal
     service: tftp
     state: enabled

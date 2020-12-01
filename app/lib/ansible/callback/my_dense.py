@@ -9,6 +9,7 @@ from collections import OrderedDict
 import shutil
 import sys
 
+from ansible import constants as C
 from ansible.module_utils.common._collections_compat import MutableMapping, MutableSequence
 from ansible.module_utils.six import binary_type, text_type
 from ansible.plugins.callback.default import CallbackModule as CallbackModule_default
@@ -98,6 +99,7 @@ class CallbackModule(CallbackModule_default):
     CALLBACK_TYPE = 'stdout'
     CALLBACK_NAME = 'dense'
 
+
     def __init__(self):
         # Initialize displays and callback modules
         self._display = display
@@ -106,6 +108,14 @@ class CallbackModule(CallbackModule_default):
         self.super_ref = super(CallbackModule, self)
         self.super_ref.__init__()
         self.line = ''
+
+        # Hardcoded config
+        self.set_option('display_skipped_hosts', True)
+        self.set_option('display_ok_hosts', True)
+        self.set_option('show_custom_stats',  False)
+        self.set_option('display_failed_stderr', True)
+        self.set_option('check_mode_markers', False)
+        self.set_option('show_per_host_start', False)
 
         # Attributes to remove from results for more density
         self.removed_attributes = (
@@ -130,6 +140,9 @@ class CallbackModule(CallbackModule_default):
         # Start immediately on the first line
         sys.stdout.write(vt100.reset + vt100.save + vt100.clearline)
         sys.stdout.flush()
+
+    def set_options(self, task_keys=None, var_options=None, direct=None):
+        self._plugin_options = C.config.get_plugin_options('callback', self._load_name, keys=task_keys, variables=var_options, direct=direct)
 
     def __del__(self):
         sys.stdout.write(vt100.restore + vt100.reset + '\n' + vt100.save + vt100.clearline)

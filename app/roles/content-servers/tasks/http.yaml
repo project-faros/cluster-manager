@@ -10,7 +10,7 @@
     path: /etc/httpd/conf/httpd.conf
 
 - name: Ensure tftp is allowed on local network
-  firewalld:
+  ansible.posix.firewalld:
     zone: internal
     port: 8081/tcp
     state: enabled

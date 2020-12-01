@@ -34,14 +34,14 @@
 
 # MASQUERADING
 - name: ensure masquerading is enabled
-  firewalld:
+  ansible.posix.firewalld:
     zone: "external"
     masquerade: '{{ router_ext_masq }}'
     permanent: yes
     immediate: yes
     state: enabled
 - name: ensure internal masquerading is configured
-  firewalld:
+  ansible.posix.firewalld:
     zone: "internal"
     masquerade: '{{ router_int_masq }}'
     permanent: yes
@@ -66,14 +66,14 @@
 
 # INGRESS SERVICES - LOCAL
 - name: configure ingress ssh to bastion
-  firewalld:
+  ansible.posix.firewalld:
     zone: external
     service: ssh
     permanent: yes
     immediate: yes
     state: '{{ router_ingress_ssh }}'
 - name: configure ingress https to cockpit
-  firewalld:
+  ansible.posix.firewalld:
     zone: external
     service: cockpit
     permanent: yes
@@ -82,21 +82,21 @@
 
 # INGRESS SERVICES - NAT
 - name: configure https to cluster api NAT
-  firewalld:
+  ansible.posix.firewalld:
     zone: "external"
     port: 6443/tcp
     permanent: yes
     immediate: yes
     state: '{{ router_ingress_api }}'
 - name: configure https to cluster apps NAT
-  firewalld:
+  ansible.posix.firewalld:
     zone: "external"
     port: 443/tcp
     permanent: yes
     immediate: yes
     state: '{{ router_ingress_https }}'
 - name: configure http to cluster apps NAT
-  firewalld:
+  ansible.posix.firewalld:
     zone: "external"
     port: 80/tcp
     permanent: yes

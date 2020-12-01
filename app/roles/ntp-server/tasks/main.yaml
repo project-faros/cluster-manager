@@ -13,7 +13,7 @@
   notify: restart chronyd
 
 - name: ensure chrony is allowed through the firewall
-  firewalld:
+  ansible.posix.firewalld:
     service: ntp
     state: enabled
     permanent: yes
