@@ -10,6 +10,7 @@ RUN mkdir -p /deps/python /deps/ansible; \
     chmod -Rv 755 /deps /deps/*
 
 # Install dependencies
+COPY version.txt /version.txt
 COPY requirements.txt /deps/python_requirements.txt
 COPY requirements.yml /deps/ansible_requirements.yml
 RUN microdnf update; \
@@ -23,7 +24,6 @@ WORKDIR /app
 COPY app /app
 COPY data.skel /data.skel
 COPY home /root
-COPY version.txt /version.txt
 
 # Initialize application
 RUN rpm -i /app/tmp/ilorest-3.0.1-7.x86_64.rpm; \
