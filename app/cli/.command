@@ -9,7 +9,7 @@ export COOKBOOK=/app/playbooks/${action}.d
 function _run() {
     ## PREPARE ENVIRONMENT
     cd /app
-    source /data/config.sh
+    source ~/.bashrc
     export KUBECONFIG=/data/openshift-installer/auth/kubeconfig
     ## EXECUTE
     /bin/bash $COOKBOOK/$RECIPE/main.sh $@
