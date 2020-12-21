@@ -132,71 +132,71 @@
             name: gpu-clusterpolicy
             namespace: gpu-operator-resources
           spec:
-						dcgmExporter:
-								nodeSelector: {}
-								imagePullSecrets: []
-								resources: {}
-								affinity: {}
-								podSecurityContext: {}
-								repository: nvcr.io/nvidia/k8s
-								securityContext: {}
-								version: 2.0.13-2.1.0-ubi8
-								image: dcgm-exporter
-								tolerations: []
-							devicePlugin:
-								nodeSelector: {}
-								imagePullSecrets: []
-								resources: {}
-								affinity: {}
-								podSecurityContext: {}
-								repository: nvcr.io/nvidia
-								securityContext: {}
-								version: v0.7.0-ubi8
-								image: k8s-device-plugin
-								tolerations: []
-							driver:
-								nodeSelector: {}
-								imagePullSecrets: []
-								resources: {}
-								affinity: {}
-								podSecurityContext: {}
-								repository: nvcr.io/nvidia
-								securityContext: {}
-								version: 450.80.02
-								image: driver
-								tolerations: []
-							gfd:
-								nodeSelector: {}
-								imagePullSecrets: []
-								resources: {}
-								affinity: {}
-								podSecurityContext: {}
-								repository: nvcr.io/nvidia
-								securityContext: {}
-								version: v0.2.1
-								image: gpu-feature-discovery
-								tolerations: []
-								migStrategy: none
-								sleepInterval: 60s
-							operator:
-								defaultRuntime: crio
-								deployGFD: true
-								validator:
-									image: cuda-sample
-									imagePullSecrets: []
-									repository: nvcr.io/nvidia/k8s
-									version: vectoradd-cuda10.2-ubi8
-							toolkit:
-								nodeSelector: {}
-								imagePullSecrets: []
-								resources: {}
-								affinity: {}
-								podSecurityContext: {}
-								repository: nvcr.io/nvidia/k8s
-								securityContext: {}
-								version: 1.3.0-ubi8
-								image: container-toolkit
-								tolerations: []
+            dcgmExporter:
+              nodeSelector: {}
+              imagePullSecrets: []
+              resources: {}
+              affinity: {}
+              podSecurityContext: {}
+              repository: nvcr.io/nvidia/k8s
+              securityContext: {}
+              version: 2.0.13-2.1.0-ubi8
+              image: dcgm-exporter
+              tolerations: []
+            devicePlugin:
+              nodeSelector: {}
+              imagePullSecrets: []
+              resources: {}
+              affinity: {}
+              podSecurityContext: {}
+              repository: nvcr.io/nvidia
+              securityContext: {}
+              version: v0.7.0-ubi8
+              image: k8s-device-plugin
+              tolerations: []
+            driver:
+              nodeSelector: {}
+              imagePullSecrets: []
+              resources: {}
+              affinity: {}
+              podSecurityContext: {}
+              repository: nvcr.io/nvidia
+              securityContext: {}
+              version: 450.80.02
+              image: driver
+              tolerations: []
+            gfd:
+              nodeSelector: {}
+              imagePullSecrets: []
+              resources: {}
+              affinity: {}
+              podSecurityContext: {}
+              repository: nvcr.io/nvidia
+              securityContext: {}
+              version: v0.2.1
+              image: gpu-feature-discovery
+              tolerations: []
+              migStrategy: none
+              sleepInterval: 60s
+            operator:
+              defaultRuntime: crio
+              deployGFD: true
+              validator:
+                image: cuda-sample
+                imagePullSecrets: []
+                repository: nvcr.io/nvidia/k8s
+                version: vectoradd-cuda10.2-ubi8
+            toolkit:
+              nodeSelector: {}
+              imagePullSecrets: []
+              resources: {}
+              affinity: {}
+              podSecurityContext: {}
+              repository: nvcr.io/nvidia/k8s
+              securityContext: {}
+              version: 1.3.0-ubi8
+              image: container-toolkit
+              tolerations: []
       register: cp_install
       until: cp_install is success
       retries: 30
