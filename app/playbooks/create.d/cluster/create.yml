@@ -125,6 +125,8 @@
             chdir: /data/openshift-installer
           changed_when: no
           register: cluster_install
+          retries: 2
+          delay: 1
 
         - name: save cluster install output
           set_stats:
