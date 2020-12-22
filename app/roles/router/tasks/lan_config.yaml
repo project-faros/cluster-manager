@@ -63,7 +63,8 @@
       target: "{{ router_lan_address }}/{{ router_subnet_mask }}"
     - key: ipv4.gateway
       target: ""
+      check: "--"
   when:
     - br_facts != []
-    - br_facts[0][item.key] != item.target
+    - br_facts[0][item.key] != item.check | default(item.target)
   notify: restart faroslan
