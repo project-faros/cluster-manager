@@ -1,0 +1,5 @@
+{% for image in images_to_download %}
+- url: {{ rhcos_images_repo }}/{{ image.image }}
+  dest: {{ image.dest }}
+  checksum: {{ (release_checksums.content.split("\n")|select("match", ".*" + image.image)|first).split()|first }}
+{% endfor %}

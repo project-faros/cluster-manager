@@ -4,20 +4,34 @@
     state: directory
     mode: 0755
 
+- name: download rhcos image checksums
+  uri:
+    url: "{{ rhcos_images_repo }}/sha256sum.txt"
+    return_content: yes
+  register: release_checksums
+  changed_when: false
+
+- name: build image list
+  set_fact:
+    download_images: "{{ lookup('template', 'images.yml.j2')|from_yaml }}"
+  vars:
+    images_to_download:
+      - image: "{{ rhcos_images_initramfs }}"
+        dest: /var/lib/tftpboot/rhcos/initramfs.img
+      - image: "{{ rhcos_images_kernel }}"
+        dest: /var/lib/tftpboot/rhcos/kernel
+      - image: "{{ rhcos_images_rootfs }}"
+        dest: /var/www/html/rootfs.img
+      - image: "{{ rhcos_images_image }}"
+        dest: /var/www/html/image.raw.gz
+
 - name: download rhcos images
   get_url:
     url: "{{ item.url }}"
     dest: "{{ item.dest }}"
+    checksum: "sha256:{{ item.checksum }}"
     mode: 0555
-  loop:
-    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_initramfs }}"
-      dest: /var/lib/tftpboot/rhcos/initramfs.img
-    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_kernel }}"
-      dest: /var/lib/tftpboot/rhcos/kernel
-    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_rootfs }}"
-      dest: /var/www/html/rootfs.img
-    - url: "{{ rhcos_images_repo  }}/{{ rhcos_images_image }}"
-      dest: /var/www/html/image.raw.gz
+  loop: "{{ download_images }}"
   loop_control:
     label: "{{ item.dest }}"
 
