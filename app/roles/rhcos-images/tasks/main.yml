@@ -9,6 +9,7 @@
     url: "{{ rhcos_images_repo }}/sha256sum.txt"
     return_content: yes
   register: release_checksums
+  changed_when: false
 
 - name: build image list
   set_fact:
