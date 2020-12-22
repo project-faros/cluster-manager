@@ -2,6 +2,7 @@
 
 IMAGE=cluster-manager
 VERS=$(shell cat version.txt)
+VERS_PARTIAL=$(shell awk -F. '{ print $$1"."$$2; }' version.txt)
 NAME=$(IMAGE)_dev
 DEVDIR=$(shell pwd)
 UPSTREAM=$(shell cat upstream.txt)
@@ -26,8 +27,10 @@ release:
 
 publish:
 	podman image tag $(UPSTREAM)/$(IMAGE):dev $(UPSTREAM)/$(IMAGE):$(VERS)
+	podman image tag $(UPSTREAM)/$(IMAGE):dev $(UPSTREAM)/$(IMAGE):$(VERS_PARTIAL)
 	podman image tag $(UPSTREAM)/$(IMAGE):dev $(UPSTREAM)/$(IMAGE):latest
 	podman push $(UPSTREAM)/$(IMAGE):$(VERS)
+	podman push $(UPSTREAM)/$(IMAGE):$(VERS_PARTIAL)
 	podman push $(UPSTREAM)/$(IMAGE):latest
 
 publish_dev:
