@@ -8,7 +8,7 @@
   tasks:
     - include_role:
         name: ocp-reset-csrs
-      when: graceful
+      when: graceful|bool
 
 - name: shutdown control plane
   hosts: control_plane
