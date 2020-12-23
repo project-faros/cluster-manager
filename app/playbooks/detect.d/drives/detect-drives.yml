@@ -1,0 +1,31 @@
+- name: query cluster facts
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+    - name: lookup cluster nodes
+      set_fact:
+        cluster_nodes: "{{ lookup('k8s', api_version='v1', kind='Node') | json_query('[*].metadata.name')}}"
+
+    - name: query cluster node drives
+      shell: oc debug -n default node/{{ item }} -- chroot /host lsblk -J
+      loop: "{{ cluster_nodes }}"
+      register: cluster_drives
+      ignore_errors: yes
+      changed_when: no
+
+    - name: save discovered drives
+      set_stats:
+        data:
+          drive_data: "{{ drive_data|from_yaml }}"
+      vars:
+        drive_data: |
+          {% for result in cluster_drives.results %}
+          {{ result.item }}:
+          {% for blockdevice in (result.stdout|from_json).blockdevices %}
+          {% if blockdevice.type == "disk" %}
+          - {{ blockdevice|to_json }}
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
