@@ -3,9 +3,12 @@
   hosts: localhost
   become: no
   gather_facts: no
-
-  roles:
-    - name: ocp-reset-csrs
+  vars:
+    graceful: yes
+  tasks:
+    - include_role:
+        name: ocp-reset-csrs
+      when: graceful
 
 - name: shutdown control plane
   hosts: control_plane
