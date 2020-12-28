@@ -5,7 +5,6 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-source /data/config.sh
 cd /app
 
 HOST_DATA=$(ansible-inventory --host $1)

@@ -2,7 +2,6 @@
 
 ## PREPARE ENVIRONMENT
 cd /app
-source /data/config.sh
 
 ## EXECUTE
 ansible-playbook /app/playbooks/shutdown.yml || exit 1
