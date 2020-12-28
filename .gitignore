@@ -1,5 +1,6 @@
 .pyo
 __pycache__
+*.egg-info
 *.swp
 data
 venv
