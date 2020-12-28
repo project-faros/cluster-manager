@@ -1,0 +1,65 @@
+network:
+  port_forward:
+    - SSH to Bastion
+    - HTTPS to Cluster API
+    - HTTP to Cluster Apps
+    - HTTPS to Cluster Apps
+    - HTTPS to Cockpit Panel
+  lan:
+    subnet: 192.168.8.0/24
+    interfaces:
+      - eno1
+      - eno5
+    dns_forward_resolvers:
+      - 10.1.1.1
+    dhcp:
+      ignore_macs:
+        - name: node-0-eno1
+          mac: da:d5:de:ad:be:ef
+        - name: node-0-eno2
+          mac: da:d5:de:ad:be:ef
+        - name: node-0-eno3
+          mac: da:d5:de:ad:be:ef
+      extra_reservations:
+        - name: wifi
+          mac: da:d5:de:ad:be:ef
+          ip: 192.168.8.127
+        - name: chassis
+          mac: da:d5:de:ad:be:ef
+          ip: 192.168.8.50
+        - name: bastion-ilo
+          mac: da:d5:de:ad:be:ef
+          ip: 192.168.8.51
+        - name: client
+          mac: da:d5:de:ad:be:ef
+          ip: 192.168.8.52
+bastion:
+  become_pass: <ultrasecret>
+cluster:
+  pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"sometoken","email":"some@example.com"}}}' # etc
+  management:
+    provider: ilo
+    user: Administrator
+    password: <ultrasecret>
+  nodes:
+    - name: node-0
+      mac: da:d5:de:ad:be:ef
+      mgmt_mac: fe:eb:da:ed:5d:ad
+    - name: node-1
+      mac: da:d5:de:ad:be:ef
+      mgmt_mac: fe:eb:da:ed:5d:ad
+    - name: node-2
+      mac: da:d5:de:ad:be:ef
+      mgmt_mac: fe:eb:da:ed:5d:ad
+proxy:
+  http: proxy.example.com
+  https: secure-proxy.example.com
+  noproxy:
+    - registry.access.redhat.com
+  ca: |
+    # Proxy Server Certificate
+    -----BEGIN CERTIFICATE-----
+    MIIGlTCCBH2gAwIBAgIBADANBgkqhkiG9w0BAQsFADCBjjELMAkGA1UEBhMCVVMx
+    ...
+    epmW5U8YK4yf
+    -----END CERTIFICATE----

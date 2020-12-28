@@ -1,0 +1,24 @@
+network:
+  port_forward:
+    - SSH to Bastion
+  lan:
+    subnet: 192.168.8.0/24
+    interfaces: []
+bastion:
+  become_pass: admin
+cluster:
+  pull_secret: ''
+  management:
+    provider: ilo
+    user: Administrator
+    password: ilo-pass
+  nodes:
+    - name: node-0
+      mac: ff:ff:ff:ff:ff:ff
+      mgmt_mac: ff:ff:ff:ff:ff:ff
+    - name: node-1
+      mac: ff:ff:ff:ff:ff:ff
+      mgmt_mac: ff:ff:ff:ff:ff:ff
+    - name: node-2
+      mac: ff:ff:ff:ff:ff:ff
+      mgmt_mac: ff:ff:ff:ff:ff:ff
