@@ -7,5 +7,8 @@ fi
 if [ -e /data/config.sh ]; then
     source /data/config.sh
 fi
+if [ -e /data/proxy.sh ]; then
+    source /data/proxy.sh
+fi
 
 eval $@
