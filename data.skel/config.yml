@@ -4,6 +4,9 @@ network:
   lan:
     subnet: 192.168.8.0/24
     interfaces: []
+    dhcp:
+      ignore_macs: []
+      extra_reservations: []
 bastion:
   become_pass: admin
 cluster:

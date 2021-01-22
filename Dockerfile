@@ -15,10 +15,11 @@ COPY requirements.txt /deps/python_requirements.txt
 COPY requirements.yml /deps/ansible_requirements.yml
 COPY home /root
 COPY pre /pre
+
 RUN set -ex; \
     microdnf update; \
     microdnf install python3 jq openssh-clients tar sshpass findutils telnet less ncurses; \
-    pip3 install --user -r /deps/python_requirements.txt /pre/faros_config; \
+    pip3 install --user -r /deps/python_requirements.txt; \
     ansible-galaxy collection install -r /deps/ansible_requirements.yml; \
     microdnf clean all; \
     rpm -i /pre/ilorest-3.0.1-7.x86_64.rpm; \

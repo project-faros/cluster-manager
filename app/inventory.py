@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from collections import defaultdict
-from faros_config import FarosConfig
+from faros_config import FarosConfig, PydanticEncoder
 import ipaddress
 import json
 import os
@@ -10,17 +10,6 @@ import pickle
 
 SSH_PRIVATE_KEY = '/data/id_rsa'
 IP_RESERVATIONS = '/data/ip_addresses'
-
-
-class PydanticEncoder(json.JSONEncoder):
-    def default(self, obj):
-        obj_has_dict = getattr(obj, "dict", False)
-        if obj_has_dict and callable(obj_has_dict):
-            return obj.dict(exclude_none=True)
-        elif isinstance(obj, ipaddress._IPAddressBase):
-            return str(obj)
-        else:
-            return json.JSONEncoder.default(self, obj)
 
 
 class InventoryGroup(object):
