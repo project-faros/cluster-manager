@@ -140,7 +140,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia/k8s
               securityContext: {}
-              version: 2.0.13-2.1.0-ubi8
+              version: 'sha256:85016e39f73749ef9769a083ceb849cae80c31c5a7f22485b3ba4aa590ec7b88'
               image: dcgm-exporter
               tolerations: []
             devicePlugin:
@@ -151,7 +151,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: v0.7.0-ubi8
+              version: 'sha256:45b459c59d13a1ebf37260a33c4498046d4ade7cc243f2ed71115cd81054cd85'
               image: k8s-device-plugin
               tolerations: []
             driver:
@@ -162,7 +162,10 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: 450.80.02
+              repoConfig:
+                configMapName: ''
+                destinationDir: ''
+              version: 'sha256:324e9dc265dec320207206aa94226b0c8735fd93ce19b36a415478c95826d934'
               image: driver
               tolerations: []
             gfd:
@@ -173,11 +176,11 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: v0.2.1
+              version: 'sha256:82e6f61b715d710c60ac14be78953336ea5dbc712244beb51036139d1cc8d526'
               image: gpu-feature-discovery
+              sleepInterval: 60s
               tolerations: []
               migStrategy: none
-              sleepInterval: 60s
             operator:
               defaultRuntime: crio
               deployGFD: true
@@ -185,7 +188,7 @@
                 image: cuda-sample
                 imagePullSecrets: []
                 repository: nvcr.io/nvidia/k8s
-                version: vectoradd-cuda10.2-ubi8
+                version: 'sha256:2a30fe7e23067bc2c3f8f62a6867702a016af2b80b9f6ce861f3fea4dfd85bc2'
             toolkit:
               nodeSelector: {}
               imagePullSecrets: []
@@ -194,7 +197,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia/k8s
               securityContext: {}
-              version: 1.3.0-ubi8
+              version: 'sha256:b3f48033d7d9e1d5703b6ecffe35d219a45a17bdcf85374d78924dee9c8917be'
               image: container-toolkit
               tolerations: []
       register: cp_install
