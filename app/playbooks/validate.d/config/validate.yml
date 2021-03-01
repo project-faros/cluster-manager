@@ -1,0 +1,6 @@
+---
+- name: Validate configuration and inventory
+  hosts: control_plane,management,infra
+  tasks:
+    - ping:
+    - setup:
