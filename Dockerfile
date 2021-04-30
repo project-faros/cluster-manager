@@ -13,8 +13,8 @@ RUN mkdir -p /deps/python /deps/ansible; \
 COPY version.txt /version.txt
 COPY requirements.txt /deps/python_requirements.txt
 COPY requirements.yml /deps/ansible_requirements.yml
-RUN microdnf update; \
-    microdnf install python3 jq openssh-clients tar sshpass findutils telnet less ncurses; \
+RUN microdnf -y update; \
+    microdnf -y install python3 jq openssh-clients tar sshpass findutils telnet less ncurses; \
     pip3 install --user -r /deps/python_requirements.txt; \
     ansible-galaxy collection install -r /deps/ansible_requirements.yml; \
     microdnf clean all; \
