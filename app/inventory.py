@@ -216,6 +216,10 @@ def main(config, ipam, inv):
         proxy_noproxy=[item['dest'] for item in json.loads(config.get('PROXY_NOPROXY', '[]'))],
         proxy_ca=config.get('PROXY_CA', ''))
 
+    inv.add_host('localhost',
+            ansible_connection='local',
+            ansible_remote_tmp='/data/.ansible_tmp')
+
     infra = inv.add_group('infra')
     router = infra.add_group('router',
         wan_interface=config['WAN_INT'],
