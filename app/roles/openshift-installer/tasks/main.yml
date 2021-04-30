@@ -10,6 +10,7 @@
     dest: "{{ openshift_installer_dir }}/openshift-installer.tar.gz"
     mode: 0644
     unsafe_writes: yes
+    validate_certs: "{{ openshift_installer_proxy_ca == '' }}"
   register: pkg_download
 
 - name: extract openshift installer

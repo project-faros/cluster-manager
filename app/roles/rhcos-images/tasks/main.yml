@@ -8,6 +8,11 @@
   uri:
     url: "{{ rhcos_images_repo }}/sha256sum.txt"
     return_content: yes
+    validate_certs: "{{ rhcos_images_https_validate }}"
+  environment:
+    HTTP_PROXY: "{{ rhcos_images_http_proxy }}"
+    HTTPS_PROXY: "{{ rhcos_images_https_proxy }}"
+    NO_PROXY: "{{ rhcos_images_noproxy }}"
   register: release_checksums
   changed_when: false
 
@@ -31,6 +36,11 @@
     dest: "{{ item.dest }}"
     checksum: "sha256:{{ item.checksum }}"
     mode: 0555
+    validate_certs: "{{ rhcos_images_https_validate }}"
+  environment:
+    HTTP_PROXY: "{{ rhcos_images_http_proxy }}"
+    HTTPS_PROXY: "{{ rhcos_images_https_proxy }}"
+    NO_PROXY: "{{ rhcos_images_noproxy }}"
   loop: "{{ download_images }}"
   loop_control:
     label: "{{ item.dest }}"

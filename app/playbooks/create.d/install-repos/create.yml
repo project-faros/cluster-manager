@@ -38,6 +38,10 @@
       rhcos_images_initramfs: "{{ lookup('ini', 'initramfs section=cluster file=/app/versions.ini') }}"
       rhcos_images_rootfs: "{{ lookup('ini', 'rootfs section=cluster file=/app/versions.ini')  }}"
       rhcos_images_image: "{{ lookup('ini', 'image section=cluster file=/app/versions.ini')  }}"
+      rhcos_images_http_proxy: "{{ proxy_http }}"
+      rhcos_images_https_proxy: "{{ proxy_https }}"
+      rhcos_images_noproxy: "{{ proxy_noproxy }}"
+      rhcos_images_https_validate: "{{ proxy_ca == '' }}"
 
 - name: create pxelinux kickstart files
   hosts: cluster
