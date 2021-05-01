@@ -43,7 +43,7 @@
   notify: restart faroslan
 
 - name: remove interfaces from the lan bridge
-  shell: nmcli con del faroslan-{{ item }}
+  shell: nmcli con del faroslan-{{ item.item }}
   loop: "{{ member_check.results }}"
   loop_control:
     label: "{{ item.item }}"
