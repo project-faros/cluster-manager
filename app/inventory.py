@@ -214,7 +214,8 @@ def main(config, ipam, inv):
         proxy_http=config.get('PROXY_HTTP', ''),
         proxy_https=config.get('PROXY_HTTPS', ''),
         proxy_noproxy=[item['dest'] for item in json.loads(config.get('PROXY_NOPROXY', '[]'))],
-        proxy_ca=config.get('PROXY_CA', ''))
+        proxy_ca=config.get('PROXY_CA', ''),
+        ansible_python_interpreter='/usr/libexec/platform-python')
 
     inv.add_host('localhost',
             ansible_connection='local',
