@@ -110,13 +110,26 @@
       k8s:
         state: present
         definition:
-          apiVersion: nfd.openshift.io/v1alpha1
+          apiVersion: nfd.openshift.io/v1
           kind: NodeFeatureDiscovery
           metadata:
             name: nfd-master-server
             namespace: gpu-operator-resources
           spec:
-            namespace: openshift-nfd
+            operand:
+              image: 'registry.redhat.io/openshift4/ose-node-feature-discovery:v4.7.0'
+              imagePullPolicy: Always
+              namespace: node-feature-discovery-operator
+            workerConfig:
+              configData: |
+                sources:
+                  pci:
+                    deviceLabelFields:
+                      - "vendor"
+                    deviceClassWhitelist:
+                      - "0200"
+                      - "03"
+                      - "12"
       register: cp_install
       until: cp_install is success
       retries: 30
@@ -129,8 +142,7 @@
           apiVersion: nvidia.com/v1
           kind: ClusterPolicy
           metadata:
-            name: gpu-clusterpolicy
-            namespace: gpu-operator-resources
+            name: gpu-cluster-policy
           spec:
             dcgmExporter:
               nodeSelector: {}
@@ -140,7 +152,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia/k8s
               securityContext: {}
-              version: 'sha256:85016e39f73749ef9769a083ceb849cae80c31c5a7f22485b3ba4aa590ec7b88'
+              version: 'sha256:ced606933cd2210768ee8488b624c64ac0bdce6f05d9c4b4210e251370a14ff8'
               image: dcgm-exporter
               tolerations: []
             devicePlugin:
@@ -151,10 +163,18 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: 'sha256:45b459c59d13a1ebf37260a33c4498046d4ade7cc243f2ed71115cd81054cd85'
+              version: 'sha256:ea353fe57628f4d3c3e1cda126455d02f2277e3ee92fa9da441d409d76b2ac92'
               image: k8s-device-plugin
               tolerations: []
+              args:
+                - '--mig-strategy=single'
+                - '--pass-device-specs=true'
+                - '--fail-on-init-error=true'
+                - '--device-list-strategy=envvar'
+                - '--nvidia-driver-root=/run/nvidia/driver'
             driver:
+              licensingConfig:
+                configMapName: ''
               nodeSelector: {}
               imagePullSecrets: []
               resources: {}
@@ -165,7 +185,7 @@
               repoConfig:
                 configMapName: ''
                 destinationDir: ''
-              version: 'sha256:324e9dc265dec320207206aa94226b0c8735fd93ce19b36a415478c95826d934'
+              version: 'sha256:017d2e2a1bc410e9d2ac116683fc49a6f28e935cadee86e712cc147ea0239469'
               image: driver
               tolerations: []
             gfd:
@@ -176,19 +196,19 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: 'sha256:82e6f61b715d710c60ac14be78953336ea5dbc712244beb51036139d1cc8d526'
+              version: 'sha256:bfc39d23568458dfd50c0c5323b6d42bdcd038c420fb2a2becd513a3ed3be27f'
               image: gpu-feature-discovery
-              sleepInterval: 60s
               tolerations: []
-              migStrategy: none
+              migStrategy: single
+              sleepInterval: 60s
             operator:
               defaultRuntime: crio
-              deployGFD: true
               validator:
                 image: cuda-sample
                 imagePullSecrets: []
                 repository: nvcr.io/nvidia/k8s
                 version: 'sha256:2a30fe7e23067bc2c3f8f62a6867702a016af2b80b9f6ce861f3fea4dfd85bc2'
+              deployGFD: true
             toolkit:
               nodeSelector: {}
               imagePullSecrets: []
@@ -197,7 +217,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia/k8s
               securityContext: {}
-              version: 'sha256:b3f48033d7d9e1d5703b6ecffe35d219a45a17bdcf85374d78924dee9c8917be'
+              version: 'sha256:c91875db54ad5d2a2ed396c8fd15cc666411ff35c58c634680946371d32507ae'
               image: container-toolkit
               tolerations: []
       register: cp_install
