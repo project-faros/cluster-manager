@@ -214,14 +214,15 @@ def main(config, ipam, inv):
         proxy_http=config.get('PROXY_HTTP', ''),
         proxy_https=config.get('PROXY_HTTPS', ''),
         proxy_noproxy=[item['dest'] for item in json.loads(config.get('PROXY_NOPROXY', '[]'))],
-        proxy_ca=config.get('PROXY_CA', ''),
-        ansible_python_interpreter='/usr/libexec/platform-python')
+        proxy_ca=config.get('PROXY_CA', ''))
 
     inv.add_host('localhost',
             ansible_connection='local',
-            ansible_remote_tmp='/data/.ansible_tmp')
+            ansible_remote_tmp='/data/.ansible_tmp',
+            ansible_python_interpreter='/usr/bin/python')
 
-    infra = inv.add_group('infra')
+    infra = inv.add_group('infra',
+        ansible_python_interpreter='/usr/libexec/platform-python')
     router = infra.add_group('router',
         wan_interface=config['WAN_INT'],
         lan_interfaces=json.loads(config['ROUTER_LAN_INT']),
@@ -260,7 +261,8 @@ def main(config, ipam, inv):
             ansible_ssh_user=config['BASTION_SSH_USER'])
 
     # CLUSTER NODES
-    cluster = inv.add_group('cluster')
+    cluster = inv.add_group('cluster',
+        ansible_python_interpreter='/usr/libexec/platform-python')
     # BOOTSTRAP NODE
     ip = ipam['bootstrap']
     cluster.add_host('bootstrap', ip,
