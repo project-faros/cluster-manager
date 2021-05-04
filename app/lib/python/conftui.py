@@ -81,6 +81,11 @@ class PasswordParameter(Parameter):
         answer = prompt(question)
         self.value = answer['newval']
 
+    def to_bash(self):
+        return "export {}='{}'".format(self.name,
+                                       self.value.replace("'", "'\"'\"'"))
+
+
 class ChoiceParameter(Parameter):
 
     def __init__(self, name, prompt, choices, value_reprfun=str, default=''):
