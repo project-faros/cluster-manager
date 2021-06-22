@@ -280,7 +280,7 @@ def main(config, ipam, inv):
            mgmt_hostname=mgmt_ip,
            ansible_ssh_user='core',
            cp_node_id=count)
-        if node.get('install_drive'):
+        if node.get('install_drive').strip():
             cp.host(node['name'])['install_disk'] = node['install_drive']
 
     # VIRTUAL NODES

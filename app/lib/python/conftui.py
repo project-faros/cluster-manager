@@ -28,7 +28,7 @@ class Parameter(object):
 
     @value.setter
     def value(self, value):
-        self._value = value
+        self._value = default if default and not value.strip() else value
 
     @property
     def prompt(self):
@@ -261,7 +261,14 @@ class ListDictParameter(Parameter):
                        'name': item[0],
                        'default': defaults.get(item[0], item[2])}
                      for item in self._keys]
-        return prompt(questions)
+        answers = prompt(questions)
+
+        for item in self._keys:
+            default = defaults.get(item[0], item[2])
+            answer = answers[item[0]].strip()
+            answers[item[0]] = default if default and not answer else answer
+
+        return answers
 
     def to_bash(self):
         return "export {}='{}'".format(self.name, json.dumps(self.value))
