@@ -297,3 +297,17 @@
         path: /usr/local/share/cockpit/faros
         state: absent
 
+- name: Restart network services
+  hosts: bastion
+  become: yes
+
+  tasks:
+    - name: restart named
+      systemd:
+        name: named
+        state: restarted
+
+    - name: restart dhcpd
+      systemd:
+        name: dhcpd
+        state: restarted
