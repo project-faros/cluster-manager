@@ -1,0 +1,32 @@
+
+- name: get list of ignored hosts
+  shell: >
+    grep '^# BEGIN MANAGED RECORD - ignore_' /etc/dhcp/dhcpd.static.conf |
+    awk '{ print $6 }' |
+    sed 's/^ignore_//g'
+  register: dhcp_verify_file_ignored
+  changed_when: False
+
+- name: get list of configured hosts
+  shell: >
+    grep '^# BEGIN MANAGED RECORD - ' /etc/dhcp/dhcpd.static.conf |
+    grep -v '^# BEGIN MANAGED RECORD - ignore_' |
+    awk '{ print $6 }'
+  register: dhcp_verify_file_records
+  changed_when: False
+
+- name: remove orphaned ignored hosts
+  blockinfile:
+    path: /etc/dhcp/dhcpd.static.conf
+    marker: "# {mark} MANAGED RECORD - ignore_{{ item }}"
+    state: absent
+  loop: "{{ dhcp_verify_file_ignored.stdout_lines }}"
+  when: "item not in dhcp_verify_ignored"
+
+- name: remove orphaned host records
+  blockinfile:
+    path: /etc/dhcp/dhcpd.static.conf
+    marker: "# {mark} MANAGED RECORD - {{ item }}"
+    state: absent
+  loop: "{{ dhcp_verify_file_records.stdout_lines }}"
+  when: "item not in dhcp_verify_records"

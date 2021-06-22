@@ -2,4 +2,4 @@ dhcp_mac_address: "{{ mac_address | default('00:00:00:00:00:00') }}"
 dhcp_ip: "{{ ansible_host }}"
 dhcp_name: "{{ inventory_hostname }}"
 dhcp_ignore: no
-dhcp_present: no
+dhcp_present: yes
