@@ -102,6 +102,11 @@
         path: /var/lib/tftpboot/uefi
         state: absent
 
+    - name: erase coreos boot images
+      file:
+        path: /var/lib/tftpboot/rhcos
+        state: absent
+
 - name: Remove cluster dhcp records
   hosts: cluster, management
   gather_facts: no
