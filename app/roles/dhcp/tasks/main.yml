@@ -13,10 +13,11 @@
     owner: root
     group: root
     mode: 0640
+    state: {% if dhcp_present|boolean %}present{% else %}absent{% endif %}
   notify: restart dhcpd
   delegate_to: dhcp
   become: yes
-  when: not dhcp_ignore
+  when: not dhcp_ignore and not dhcp_absent
 
 - name: configure dhcp ignoring
   blockinfile:
@@ -31,7 +32,9 @@
     owner: root
     group: root
     mode: 0640
+    state: {% if dhcp_present|boolean %}present{% else %}absent{% endif %}
   notify: restart dhcpd
   delegate_to: dhcp
   become: yes
-  when: dhcp_ignore
+  when: dhcp_ignore and not dhcp_absent
+

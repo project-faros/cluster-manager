@@ -4,3 +4,4 @@ dns_domain: "example.com"
 dns_reverse_domain: "1.168.192.in-addr.arpa"
 dns_value: "{{ ansible_host }}"
 dns_reverse: yes
+dns_present: yes

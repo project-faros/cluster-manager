@@ -14,6 +14,7 @@
     dest: "{{ dns_fwd_zone_db }}"
     regexp: ";*\\w*{{ dns_hostname | replace('*', '\\*') }} IN"
     create: yes
+    state: {% if dns_present|boolean %}present{% else %}absent{% endif %}
   delegate_to: dns
   become: yes
   when: dns_type != "SRV"
@@ -24,6 +25,7 @@
     line: "{{ dns_hostname }} IN {{ dns_type }} {{ dns_value }}"
     dest: "{{ dns_fwd_zone_db }}"
     create: yes
+    state: {% if dns_present|boolean %}present{% else %}absent{% endif %}
   delegate_to: dns
   become: yes
   when: dns_type == "SRV"
@@ -34,6 +36,7 @@
     line: "{{ dns_value | ipaddr('revdns') }} IN PTR {{ dns_fqdn }}"
     dest: "{{ dns_rev_zone_db }}"
     regexp: ";*\\w*{{ dns_value | ipaddr('revdns') }}\\w+"
+    state: {% if dns_present|boolean %}present{% else %}absent{% endif %}
   when:
     - dns_reverse
     - dns_type == "A"
