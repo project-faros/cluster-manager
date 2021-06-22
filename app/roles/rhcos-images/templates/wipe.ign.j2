@@ -1,0 +1,14 @@
+tion": {
+    "version": "3.2.0"
+  },
+  "systemd": {
+    "units": [
+      {
+        "name": "destroy.service",
+        "enabled": true,
+        "contents":"[Unit]\nDescription=Wipe the system\nAfter=multi-user.target\n[Install]\nWantedBy=graphical.target\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStart=/bin/bash -c 'echo Wiping Drives; lsblk; echo; for drive in `lsblk -dlno NAME | grep -v loop`; do echo $drive; wipefs -fa /dev/$drive; sgdisk --zap-all /dev/$drive; echo ; done; shutdown -h now'\n"
+      }
+    ]
+  }
+}
+

@@ -1,0 +1,11 @@
+{% set kernel = 'rhcos/kernel' %}
+{% set initrd = 'rhcos/initramfs.img' %}
+{% set rootfs = pxelinux_kickstarts_content_server + '/rootfs.img' %}
+{% set ign = pxelinux_kickstarts_content_server + '/wipe.ign' %}
+{% set disk = pxelinux_kickstarts_install_disk %}
+
+set timeout=5
+menuentry 'Wipe all disks' {
+  linux {{ kernel }} ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.live.rootfs_url={{ rootfs }} ignition.firstboot ignition.platform.id=metal ignition.config.url={{ ign }} systemd.unified_cgroup_hierarchy=0
+  initrd {{ initrd }}
+}

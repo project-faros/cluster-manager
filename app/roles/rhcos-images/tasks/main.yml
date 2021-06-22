@@ -59,3 +59,9 @@
       dest: worker.ign
   loop_control:
     label: "{{ item.dest }}"
+
+- name: publish faros helper ignition files
+  template:
+    src: wipe.ign.j2
+    dest: /var/www/html/wipe.ign
+    mode: 0555

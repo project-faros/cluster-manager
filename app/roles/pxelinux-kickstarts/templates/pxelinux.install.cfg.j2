@@ -5,9 +5,9 @@
 {% set disk = pxelinux_kickstarts_install_disk %}
 
 DEFAULT pxeboot
-TIMEOUT 20
+TIMEOUT 5
 PROMPT 0
-LABEL pxeboot
+LABEL rhcos_install
     KERNEL {{ kernel }}
     APPEND ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
 

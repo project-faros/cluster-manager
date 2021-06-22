@@ -2,3 +2,4 @@ pxelinux_kickstarts_content_server: ''
 pxelinux_kickstarts_host_role: ''
 pxelinux_kickstarts_pxe_server: localhost
 pxelinux_kickstarts_install_disk: sda
+pxelinux_kickstarts_profile: install
