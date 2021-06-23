@@ -26,5 +26,6 @@ networking:
   - "{{ openshift_installer_service_cidr }}"
 platform:
     none: {}
+fips: "{{ openshift_installer_fips_mode }}"
 pullSecret: '{{ openshift_installer_pull_secret }}'
 sshKey: "{{ openshift_installer_ssh_key }}"
