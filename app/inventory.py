@@ -210,6 +210,7 @@ def main(config, ipam, inv):
         extra_nodes=extra_nodes,
         ignored_macs=config['IGNORE_MACS'],
         dns_forwarders=[item['server'] for item in json.loads(config.get('DNS_FORWARDERS', '[]'))],
+        fips_mode=config['FIPS_MODE'],
         proxy=config['PROXY']=="True",
         proxy_http=config.get('PROXY_HTTP', ''),
         proxy_https=config.get('PROXY_HTTPS', ''),
