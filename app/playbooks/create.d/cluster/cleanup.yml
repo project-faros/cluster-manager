@@ -1,0 +1,33 @@
+#!/usr/bin/env ansible-playbook
+- name: Power down the bootstrap node
+  hosts: bootstrap
+  become: no
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweroff/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ mgmt_user }}"
+        management_pass: "{{ mgmt_password }}"
+
+- name: Add OpenShift Links to Cockpit
+  hosts: bastion_hosts
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: create cockpit links
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: "OpenShift Console"
+            url: "https://console-openshift-console.apps.{{ cluster_name }}.{{ cluster_domain }}"
+            icon: fa-redhat
