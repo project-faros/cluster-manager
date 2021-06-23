@@ -25,7 +25,8 @@ class ClusterConfigurator(Configurator):
             ])
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             PasswordParameter('ADMIN_PASSWORD', 'Adminstrator Password'),
-            PasswordParameter('PULL_SECRET', 'Pull Secret')
+            PasswordParameter('PULL_SECRET', 'Pull Secret'),
+            Parameter('FIPS_MODE', 'Fips Mode')
             ])
         self.architecture = ParameterCollection('architecture', 'Host Record Configuration', [
             StaticParameter('MGMT_PROVIDER', 'Machine Management Provider', 'ilo'),
