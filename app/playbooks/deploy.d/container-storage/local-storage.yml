@@ -57,22 +57,6 @@
             sourceNamespace: openshift-marketplace
             installPlanApproval: "Automatic"
 
-    - name: save clusterserviceversion object
-      set_fact:
-        k8s_obj:
-          apiVersion: operators.coreos.com/v1alpha1
-          kind: ClusterServiceVersion
-          name: local-storage-operator*
-          namepace: local-storage
-
-    - name: wait for operator to become ready
-      assert:
-        that: "lookup('k8s', resource_definition=k8s_obj)[0].status.phase | default('error') == 'Succeeded'"
-      register: op_lkp
-      until: op_lkp is success
-      retries: 60
-      delay: 15
-
     - name: lookup storage device id paths
       set_fact:
         stg_devices: "{{ stg_devices|default([]) + [ drive_ids[item.0.host][item.1] ] }}"
@@ -123,3 +107,7 @@
               - storageClassName: localblock
                 volumeMode: Block
                 devicePaths: "{{ stg_devices }}"
+      retries: 60
+      delay: 15
+      register: apply
+      until: apply is success
