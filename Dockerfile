@@ -1,4 +1,5 @@
-FROM registry.fedoraproject.org/fedora-minimal:33
+# FROM registry.fedoraproject.org/fedora-minimal:33
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
 LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 
 # setup third party install locations
@@ -14,8 +15,9 @@ COPY version.txt /version.txt
 COPY requirements.txt /deps/python_requirements.txt
 COPY requirements.yml /deps/ansible_requirements.yml
 RUN microdnf -y update; \
-    microdnf -y install python3 jq openssh-clients tar sshpass findutils telnet less ncurses; \
-    pip3 install --user -r /deps/python_requirements.txt; \
+    microdnf -y install python38 jq openssh-clients tar findutils less ncurses; \
+    python3 -m pip install --upgrade pip wheel; \
+    python3 -m pip install --user -r /deps/python_requirements.txt; \
     ansible-galaxy collection install -r /deps/ansible_requirements.yml; \
     microdnf clean all; \
     rm -rf /var/cache/yum /tmp/* /root/.cache /usr/lib/python3.8/site-packages /usr/lib64/python3.8/__pycache__;
