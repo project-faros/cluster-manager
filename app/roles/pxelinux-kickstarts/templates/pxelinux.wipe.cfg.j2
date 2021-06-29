@@ -4,7 +4,7 @@
 {% set ign = pxelinux_kickstarts_content_server + '/wipe.ign' %}
 {% set disk = pxelinux_kickstarts_install_disk %}
 
-DEFAULT pxeboot
+DEFAULT wipe_disks
 TIMEOUT 5
 PROMPT 0
 LABEL wipe_disks

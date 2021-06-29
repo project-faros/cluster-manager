@@ -4,7 +4,7 @@
 {% set ign = pxelinux_kickstarts_content_server + '/' + pxelinux_kickstarts_host_role + '.ign' %}
 {% set disk = pxelinux_kickstarts_install_disk %}
 
-DEFAULT pxeboot
+DEFAULT rhcos_install
 TIMEOUT 5
 PROMPT 0
 LABEL rhcos_install
