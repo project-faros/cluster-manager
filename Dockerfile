@@ -1,4 +1,3 @@
-# FROM registry.fedoraproject.org/fedora-minimal:33
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
 LABEL maintainer="Ryan Kraus (rkraus@redhat.com)"
 
