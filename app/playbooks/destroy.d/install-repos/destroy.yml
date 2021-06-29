@@ -1,0 +1,35 @@
+#!/usr/bin/env ansible-playbook
+
+- name: Clean coreos install repos
+  hosts: bastion
+  become: yes
+  gather_facts: no
+
+  tasks:
+    - name: erase stored images and igniton configs
+      shell: rm -f /var/www/html/*
+
+    - name: erase pxelinux boot kickstarts
+      file:
+        path: /var/lib/tftpboot/pxelinux.cfg
+        state: absent
+
+    - name: erase uefi grub kickstarts
+      file:
+        path: /var/lib/tftpboot/uefi
+        state: absent
+
+    - name: erase coreos boot images
+      file:
+        path: /var/lib/tftpboot/rhcos
+        state: absent
+
+- name: Purge openshift installation resource caches
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: remove installer data cache
+      file:
+        path: /data/openshift-installer
+        state: absent
