@@ -1,0 +1,36 @@
+#!/usr/bin/env ansible-playbook
+- name: Uninstall cluster load balancer
+  hosts: bastion
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: shutdown the load balancer service
+      systemd:
+        name: haproxy
+        state: stopped
+        enabled: no
+        force: yes
+
+    - name: shutdown the VIP service
+      systemd:
+        name: keepalived
+        state: stopped
+        enabled: no
+        force: yes
+
+    - name: delete load balancer configuration
+      file:
+        path: /etc/haproxy/haproxy.cfg
+        state: absent
+
+    - name: delete the vip configuration
+      file:
+        path: /etc/keepalived/keepalived.conf
+        state: absent
+
+    - name: remove vip cached password
+      file:
+        path: /data/keepalived.pass
+        state: absent
+      delegate_to: localhost
