@@ -14,7 +14,9 @@ COPY version.txt /version.txt
 COPY requirements.txt /deps/python_requirements.txt
 COPY requirements.yml /deps/ansible_requirements.yml
 RUN microdnf -y update; \
-    microdnf -y install python38 jq openssh-clients tar findutils less ncurses; \
+    rpm --erase --nodeps coreutils-single; \
+    microdnf install coreutils; \
+    microdnf -y install python38 jq openssh-clients tar findutils less ncurses procps; \
     python3 -m pip install --upgrade pip wheel; \
     python3 -m pip install --user -r /deps/python_requirements.txt; \
     ansible-galaxy collection install -r /deps/ansible_requirements.yml; \

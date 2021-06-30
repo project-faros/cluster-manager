@@ -101,3 +101,91 @@
         delay: 60
         sleep: 15
         timeout: 3600
+
+- name: Wait for the OpenShift Installation to Complete
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  tasks:
+    - block:
+        - name: write upgrade status to tmp file
+          copy:
+            dest: /data/upgrade-status
+            content: Waiting for cluster bootstrap to complete.
+          delegate_to: localhost
+
+        - name: wait for bootstrap to complete
+          shell: ./openshift-install wait-for bootstrap-complete 2>&1
+          args:
+            chdir: /data/openshift-installer
+          changed_when: no
+          register: cluster_install
+          retries: 2
+          delay: 1
+          until: cluster_install is not failed
+
+        - name: write upgrade status to tmp file
+          copy:
+            dest: /data/upgrade-status
+            content: Waiting for cluster install to complete.
+          delegate_to: localhost
+
+        - name: wait for cluster install to complete
+          shell: ./openshift-install wait-for install-complete 2>&1
+          args:
+            chdir: /data/openshift-installer
+          changed_when: no
+          register: cluster_install
+          retries: 2
+          delay: 1
+
+        - name: write upgrade status to tmp file
+          copy:
+            dest: /data/upgrade-status
+            content: Cluster installation is complete.
+          delegate_to: localhost
+
+        - name: save cluster install output
+          set_stats:
+            data:
+              post_message: "{{ cluster_install.stdout_lines }}"
+
+      rescue:
+        - name: there was an error during install
+          fail:
+            msg: "{{ '\n'.join(cluster_install.stdout_lines | default ([])) }}"
+
+- name: Power down the bootstrap node
+  hosts: bootstrap
+  become: no
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweroff/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ mgmt_user }}"
+        management_pass: "{{ mgmt_password }}"
+
+- name: Add OpenShift Links to Cockpit
+  hosts: bastion_hosts
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: create cockpit links
+      include_role:
+        name: cockpit-links
+      vars:
+        cockpit_links:
+          - name: "OpenShift Console"
+            url: "https://console-openshift-console.apps.{{ cluster_name }}.{{ cluster_domain }}"
+            icon: fa-redhat
+
