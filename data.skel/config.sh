@@ -5,6 +5,7 @@ export SUBNET_MASK=24
 export ALLOWED_SERVICES='["SSH to Bastion"]'
 # CLUSTER CONFIGURATION
 export ADMIN_PASSWORD='admin'
+export FIPS_MODE='False'
 export PULL_SECRET=''
 # CLUSTER HARDWARE
 export MGMT_PROVIDER='ilo'
