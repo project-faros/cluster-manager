@@ -3,7 +3,7 @@ import sys
 import os
 from conftui import (Configurator, ParameterCollection, Parameter,
                      ListDictParameter, PasswordParameter, ChoiceParameter,
-                     CheckParameter, StaticParameter)
+                     CheckParameter, StaticParameter, BooleanParameter)
 
 CONFIG_PATH = '/data/config.sh'
 CONFIG_FOOTER = ''
