@@ -6,7 +6,7 @@ baseDomain: "{{ openshift_installer_base_domain }}"
   noProxy: "{{ ','.join(openshift_installer_proxy_noproxy) }}"
 {% endif %}{% if openshift_installer_proxy_ca | length > 0 %}
 additionalTrustBundle: |
-{{ openshift_installer_proxy_ca | indent(4, indentfirst=True) }}
+{{ openshift_installer_proxy_ca | indent(4, first=True) }}
 {% endif %}compute:
 - hyperthreading: Enabled
   name: worker
