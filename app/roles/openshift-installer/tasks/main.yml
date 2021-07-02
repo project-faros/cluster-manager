@@ -27,12 +27,26 @@
     - "{{ openshift_installer_dir }}/install-config.yaml"
     - "{{ openshift_installer_dir }}/install-config.yaml.bkp"
 
-- name: create ignition files
+- name: cleanup previous install artifacts
   shell: >
     rm -f {{ openshift_installer_dir }}/.openshift_install_state.json &&
     rm -f {{ openshift_installer_dir }}/.openshift_install.log &&
     rm -f {{ openshift_installer_dir }}/metadata.json &&
     rm -f {{ openshift_installer_dir }}/*.ign &&
-    rm -rf {{ openshift_installer_dir }}/auth &&
+    rm -rf {{ openshift_installer_dir }}/auth
+
+- name: create installation manifests
+  shell: >
+    {{ openshift_installer_dir }}/openshift-install create manifests
+    --dir={{ openshift_installer_dir }}
+
+- name: create cache disk machine configs
+  template:
+    src: 98-cache-disk.yaml.j2
+    dest: "{{ openshift_installer_dir }}/openshift/98-cache-disk.yaml"
+  when: "openshift_installer_cache_disk != ''"
+
+- name: create ignition files
+  shell: >
     {{ openshift_installer_dir }}/openshift-install create ignition-configs
     --dir={{ openshift_installer_dir }}

@@ -1,0 +1,57 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 98-cache-disk
+spec:
+  config:
+    ignition:
+      version: 3.1.0
+    storage:
+      disks:
+      - device: /dev/{{ openshift_installer_cache_disk }}
+        wipeTable: True
+        partitions:
+        - sizeMiB: 50000
+          startMiB: 0
+          label: var-lib-kubelet
+          number: 1
+          wipePartitionEntry: True
+        - sizeMiB: 0
+          startMiB: 0
+          label: var-lib-containers
+          number: 2
+          wipePartitionEntry: True
+      filesystems:
+        - path: /var/lib/kubelet
+          device: /dev/disk/by-partlabel/var-lib-kubelet
+          format: xfs
+          wipeFilesystem: True
+        - path: /var/lib/containers
+          device: /dev/disk/by-partlabel/var-lib-containers
+          format: xfs
+          wipeFilesystem: True
+    systemd:
+      units:
+        - name: var-lib-kubelet.mount
+          enabled: true
+          contents: |
+            [Unit]
+            Before=local-fs.target
+            [Mount]
+            Where=/var/lib/kubelet
+            What=/dev/disk/by-partlabel/var-lib-kubelet
+            [Install]
+            WantedBy=local-fs.target
+        - name: var-lib-containers.mount
+          enabled: true
+          contents: |
+            [Unit]
+            Before=local-fs.target
+            [Mount]
+            Where=/var/lib/containers
+            What=/dev/disk/by-partlabel/var-lib-containers
+            [Install]
+            WantedBy=local-fs.target
+

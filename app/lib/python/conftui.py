@@ -16,6 +16,7 @@ class Parameter(object):
         self._name = name
         self._value = os.environ.get(self._name, default or '')
         self._prompt = prompt
+        self._default = default
         self.disabled = disabled
 
     @property
@@ -28,7 +29,8 @@ class Parameter(object):
 
     @value.setter
     def value(self, value):
-        self._value = default if default and not value.strip() else value
+        self._value = self._default \
+                        if self._default and not value.strip() else value
 
     @property
     def prompt(self):

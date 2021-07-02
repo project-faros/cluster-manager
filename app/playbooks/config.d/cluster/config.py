@@ -36,8 +36,8 @@ class ClusterConfigurator(Configurator):
                 [('name', 'Node Name'), ('mac', 'MAC Address'),
                  ('mgmt_mac', 'Management MAC Address'),
                  ('install_drive', 'OS Install Drive',
-                     os.environ.get('BOOT_DRIVE'))])
-            ])
+                     os.environ.get('BOOT_DRIVE'))]),
+            Parameter('CACHE_DISK', 'Container Cache Disk')])
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Static IP Reservations',
                 [('name', 'Node Name'), ('mac', 'MAC Address'), ('ip', 'Requested IP Address')]),
