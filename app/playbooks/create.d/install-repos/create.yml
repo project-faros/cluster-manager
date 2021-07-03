@@ -55,3 +55,6 @@
       pxelinux_kickstarts_content_server: "http://{{ hostvars[groups.bastion_hosts.0].ansible_host }}:8081"
       pxelinux_kickstarts_host_role: "{{ node_role }}"
       pxelinux_kickstarts_install_disk: "{{ install_disk }}"
+      pxelinux_kickstarts_network_gateway: "{{ hostvars.lan.ansible_host }}"
+      pxelinux_kickstarts_network_cidr: "{{ subnet_mask }}"
+      pxelinux_kickstarts_network_nic: "{{ cluster_nic }}"

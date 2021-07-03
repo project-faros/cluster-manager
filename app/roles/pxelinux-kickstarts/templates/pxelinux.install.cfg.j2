@@ -3,11 +3,19 @@
 {% set rootfs = pxelinux_kickstarts_content_server + '/rootfs.img' %}
 {% set ign = pxelinux_kickstarts_content_server + '/' + pxelinux_kickstarts_host_role + '.ign' %}
 {% set disk = pxelinux_kickstarts_install_disk %}
+{% set gateway = pxelinux_kickstarts_network_gateway %}
+{% set mask = ("8.8.8.8" + pxelinux_kickstarts_network_cidr | string) | ipaddr("netmask") %}
+{% set fqdn = inventory_hostname + "." + cluster_name + "." + cluster_domain %}
+{% set nic = pxelinux_kickstarts_network_nic %}
 
 DEFAULT rhcos_install
 TIMEOUT 5
 PROMPT 0
 LABEL rhcos_install
     KERNEL {{ kernel }}
+{% if nic %}
+    APPEND ip={{ ansible_host }}::{{ gateway }}:{{ mask }}:{{ fqdn }}:{{ nic }}:none rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
+{% else %}
     APPEND ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
+{% endif %}
 
