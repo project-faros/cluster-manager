@@ -4,16 +4,24 @@
 {% set ign = pxelinux_kickstarts_content_server + '/' + pxelinux_kickstarts_host_role + '.ign' %}
 {% set disk = pxelinux_kickstarts_install_disk %}
 {% set gateway = pxelinux_kickstarts_network_gateway %}
-{% set mask = ("8.8.8.8" + pxelinux_kickstarts_network_cidr | string) | ipaddr("netmask") %}
+{% set mask = ("8.8.8.8/" + pxelinux_kickstarts_network_cidr | string) | ipaddr("netmask") %}
 {% set fqdn = inventory_hostname + "." + cluster_name + "." + cluster_domain %}
-{% set nic = pxelinux_kickstarts_network_nic %}
+
+{% set ip = '' %}
+{% if ':' in pxelinux_kickstarts_network_nic %}
+    {% set bond_input = pxelinux_kickstarts_network_nic.split(':') %}
+    {% set ip = ip + 'bond=bond0:' + bond_input[0] + ':mode=' + bond_input[1] + ' ' %}
+    {% set pxelinux_kickstarts_network_nic = 'bond0' %}
+{% endif %}
+{% if pxelinux_kickstarts_network_nic %}
+    {% set ip = ip + 'ip=' + ansible_host + '::' + gateway + ':' + mask + ':' + fqdn + ':' + pxelinux_kickstarts_network_nic + ':none ' %}
+    {% set ip = ip + ' nameserver=' + gateway %}
+{% else %}
+    {% set ip = 'ip=dhcp' %}
+{% endif %}
 
 set timeout=5
 menuentry 'RHCOS Install' {
-{% if nic %}
-  linux {{ kernel }} ip={{ ansible_host }}::{{ gateway }}:{{ mask }}:{{ fqdn }}:{{ nic }}:none nameserver={{ gateway }} rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
-{% else %}
-  linux {{ kernel }} ip=dhcp rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
-{% endif %}
+  linux {{ kernel }} {{ ip }} rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
   initrd {{ initrd }}
 }
