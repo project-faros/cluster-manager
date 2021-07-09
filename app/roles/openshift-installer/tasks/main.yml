@@ -28,12 +28,17 @@
     - "{{ openshift_installer_dir }}/install-config.yaml.bkp"
 
 - name: cleanup previous install artifacts
-  shell: >
-    rm -f {{ openshift_installer_dir }}/.openshift_install_state.json &&
-    rm -f {{ openshift_installer_dir }}/.openshift_install.log &&
-    rm -f {{ openshift_installer_dir }}/metadata.json &&
-    rm -f {{ openshift_installer_dir }}/*.ign &&
-    rm -rf {{ openshift_installer_dir }}/auth
+  file:
+    state: absent
+    path: "{{ item }}"
+  with_items:
+    - "{{ openshift_installer_dir }}/.openshift_install_state.json"
+    - "{{ openshift_installer_dir }}/.openshift_install.log"
+    - "{{ openshift_installer_dir }}/metadata.json"
+    - "{{ openshift_installer_dir }}/bootstrap.ign"
+    - "{{ openshift_installer_dir }}/master.ign"
+    - "{{ openshift_installer_dir }}/worker.ign"
+    - "{{ openshift_installer_dir }}/auth"
 
 - name: create installation manifests
   shell: >
