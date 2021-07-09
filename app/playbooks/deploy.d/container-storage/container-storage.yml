@@ -74,6 +74,10 @@
               portable: false
               replica: 3
               resources: {}
+              encryption:
+                enable: true
+                kms: {}
+              flexibleScaling: True
       retries: 60
       delay: 15
       register: apply

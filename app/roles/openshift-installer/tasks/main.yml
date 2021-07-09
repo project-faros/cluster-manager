@@ -51,6 +51,14 @@
     dest: "{{ openshift_installer_dir }}/openshift/98-cache-disk.yaml"
   when: "openshift_installer_cache_disk != ''"
 
+- name: create disk encryption machine configs
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ openshift_installer_dir }}/openshift/{{ item }}"
+  with_items:
+    - 99-openshift-master-tpmv2-encryption.yaml
+    - 99-openshift-worker-tpmv2-encryption.yaml
+
 - name: create ignition files
   shell: >
     {{ openshift_installer_dir }}/openshift-install create ignition-configs

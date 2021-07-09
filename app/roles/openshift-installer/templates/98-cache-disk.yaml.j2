@@ -23,13 +23,26 @@ spec:
           label: var-lib-containers
           number: 2
           wipePartitionEntry: True
+      luks:
+        - name: var-lib-kubelet
+          device: /dev/disk/by-partlabel/var-lib-kubelet
+          clevis:
+            tpm2: true
+          options: [--cipher, aes-cbc-essiv:sha256]
+          wipeVolume: true
+        - name: var-lib-containers
+          device: /dev/disk/by-partlabel/var-lib-containers
+          clevis:
+            tpm2: true
+          options: [--cipher, aes-cbc-essiv:sha256]
+          wipeVolume: true
       filesystems:
         - path: /var/lib/kubelet
-          device: /dev/disk/by-partlabel/var-lib-kubelet
+          device: /dev/mapper/var-lib-kubelet
           format: xfs
           wipeFilesystem: True
         - path: /var/lib/containers
-          device: /dev/disk/by-partlabel/var-lib-containers
+          device: /dev/mapper/var-lib-containers
           format: xfs
           wipeFilesystem: True
     systemd:
@@ -41,7 +54,7 @@ spec:
             Before=local-fs.target
             [Mount]
             Where=/var/lib/kubelet
-            What=/dev/disk/by-partlabel/var-lib-kubelet
+            What=/dev/mapper/var-lib-kubelet
             [Install]
             WantedBy=local-fs.target
         - name: var-lib-containers.mount
@@ -51,7 +64,7 @@ spec:
             Before=local-fs.target
             [Mount]
             Where=/var/lib/containers
-            What=/dev/disk/by-partlabel/var-lib-containers
+            What=/dev/mapper/var-lib-containers
             [Install]
             WantedBy=local-fs.target
 
