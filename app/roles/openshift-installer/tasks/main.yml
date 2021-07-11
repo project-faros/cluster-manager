@@ -56,8 +56,8 @@
     src: "{{ item }}.j2"
     dest: "{{ openshift_installer_dir }}/openshift/{{ item }}"
   with_items:
-    - 99-openshift-master-tpmv2-encryption.yaml
-    - 99-openshift-worker-tpmv2-encryption.yaml
+    - 99-openshift-master-tang-encryption.yaml
+    - 99-openshift-worker-tang-encryption.yaml
 
 - name: create ignition files
   shell: >

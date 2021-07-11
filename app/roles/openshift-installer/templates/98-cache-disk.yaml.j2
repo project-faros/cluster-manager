@@ -7,7 +7,7 @@ metadata:
 spec:
   config:
     ignition:
-      version: 3.1.0
+      version: 3.2.0
     storage:
       disks:
       - device: /dev/{{ openshift_installer_cache_disk }}
@@ -27,13 +27,17 @@ spec:
         - name: var-lib-kubelet
           device: /dev/disk/by-partlabel/var-lib-kubelet
           clevis:
-            tpm2: true
+            tang:
+            - url: http://{{ openshift_installer_tang_server }}:{{ openshift_installer_tang_port }}
+              thumbprint: {{ openshift_installer_tang_public_key }}
           options: [--cipher, aes-cbc-essiv:sha256]
           wipeVolume: true
         - name: var-lib-containers
           device: /dev/disk/by-partlabel/var-lib-containers
           clevis:
-            tpm2: true
+            tang:
+            - url: http://{{ openshift_installer_tang_server }}:{{ openshift_installer_tang_port }}
+              thumbprint: {{ openshift_installer_tang_public_key }}
           options: [--cipher, aes-cbc-essiv:sha256]
           wipeVolume: true
       filesystems:

@@ -1,9 +1,9 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
-  name: master-tpm
+  name: worker-tpm
   labels:
-    machineconfiguration.openshift.io/role: master
+    machineconfiguration.openshift.io/role: worker
 spec:
   config:
     ignition:
@@ -13,7 +13,9 @@ spec:
         - name: root
           device: /dev/disk/by-partlabel/root
           clevis:
-            tpm2: true
+            tang:
+            - url: http://{{ openshift_installer_tang_server }}:{{ openshift_installer_tang_port }}
+              thumbprint: {{ openshift_installer_tang_public_key }}
           options: [--cipher, aes-cbc-essiv:sha256]
           wipeVolume: true
       filesystems:
