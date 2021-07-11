@@ -1,0 +1,44 @@
+- name: ensure tang is installed
+  package:
+    name: tang
+    state: present
+
+- name: set the port for tang to listen on
+  lineinfile:
+    path: /usr/lib/systemd/system/tangd.socket
+    state: present
+    line: "ListenStream={{ tang_port }}"
+    regexp: '^ListenStream='
+  register: port_set
+
+- name: set selinux to allow tang to us the port
+  shell: "semanage port -a -t tangd_port_t -p tcp {{ tang_port }}"
+  when: port_set is changed
+
+- name: start the tang server
+  service:
+    name: tangd.socket
+    state: started
+    enabled: yes
+
+- name: check if tang keys exist
+  shell: "ls /var/db/tang | wc -l"
+  register: key_check
+  changed_when: no
+
+- name: force tang to generate new keys
+  shell: "echo 'test' | clevis-encrypt-tang '{\"url\":\"http://localhost:{{ tang_port }}\"}' -y"
+  when: "key_check.stdout|int == 0"
+
+- name: gather tang public key
+  command:
+    argv:
+      - tang-show-keys
+      - "{{ tang_port }}"
+  register: key_lkp
+  changed_when: no
+
+- name: save tang public key
+  set_fact:
+    tang_key: "{{ key_lkp.stdout }}"
+  changed_when: no

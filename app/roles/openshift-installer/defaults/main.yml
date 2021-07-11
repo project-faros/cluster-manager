@@ -15,3 +15,6 @@ openshift_installer_proxy_http: ''
 openshift_installer_proxy_https: ''
 openshift_installer_proxy_noproxy: ''
 openshift_installer_proxy_ca: ''
+openshift_installer_tang_public_key: ""
+openshift_installer_tang_port: "80"
+openshift_installer_tang_server: ""

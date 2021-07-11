@@ -2,6 +2,15 @@
 
 - import_playbook: /app/playbooks/util_vm_facts.yml
 
+- name: create cluster encryption services
+  hosts: bastion_hosts
+  gather_facts: no
+  become: yes
+
+  roles:
+    - name: tang
+      tang_port: 8082
+
 - name: create red hat coreos ignition files
   hosts: localhost
   gather_facts: no
@@ -23,6 +32,9 @@
       openshift_installer_proxy_https: "{{ proxy_https }}"
       openshift_installer_proxy_noproxy: "{{ proxy_noproxy }}"
       openshift_installer_proxy_ca: "{{ proxy_ca }}"
+      openshift_installer_tang_public_key: "{{ hostvars.bastion.tang_key }}"
+      openshift_installer_tang_port: "8082"
+      openshift_installer_tang_server: "{{ hostvars.bastion.ansible_host }}"
 
 - name: create openshift installation source repositories
   hosts: bastion_hosts

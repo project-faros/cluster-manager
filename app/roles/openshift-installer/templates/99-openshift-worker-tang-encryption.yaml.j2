@@ -1,0 +1,25 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: worker-tpm
+  labels:
+    machineconfiguration.openshift.io/role: worker
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      luks:
+        - name: root
+          device: /dev/disk/by-partlabel/root
+          clevis:
+            tang:
+            - url: http://{{ openshift_installer_tang_server }}:{{ openshift_installer_tang_port }}
+              thumbprint: {{ openshift_installer_tang_public_key }}
+          options: [--cipher, aes-cbc-essiv:sha256]
+          wipeVolume: true
+      filesystems:
+        - device: /dev/mapper/root
+          format: xfs
+          wipeFilesystem: true
+          label: root
