@@ -35,7 +35,7 @@
   lineinfile:
     line: "{{ dns_value | ipaddr('revdns') }} IN PTR {{ dns_fqdn }}"
     dest: "{{ dns_rev_zone_db }}"
-    regexp: ";*\\w*{{ dns_value | ipaddr('revdns') }}\\w+"
+    regexp: "^\\s*{{ dns_value | ipaddr('revdns') }}\\s+"
     state: "{% if dns_present|bool %}present{% else %}absent{% endif %}"
   when:
     - dns_reverse
