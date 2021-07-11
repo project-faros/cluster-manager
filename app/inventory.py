@@ -269,7 +269,8 @@ def main(config, ipam, inv):
     ip = ipam['bootstrap']
     cluster.add_host('bootstrap', ip,
             ansible_ssh_user='core',
-            node_role='bootstrap')
+            node_role='bootstrap',
+            cluster_nic='')
     # CLUSTER CONTROL PLANE NODES
     cp = cluster.add_group('control_plane', node_role='master')
     node_defs = json.loads(config['CP_NODES'])
@@ -281,7 +282,8 @@ def main(config, ipam, inv):
            mgmt_mac_address=node['mgmt_mac'],
            mgmt_hostname=mgmt_ip,
            ansible_ssh_user='core',
-           cp_node_id=count)
+           cp_node_id=count,
+           cluster_nic=node.get('nic', ''))
         if node.get('install_drive').strip():
             cp.host(node['name'])['install_disk'] = node['install_drive']
 
