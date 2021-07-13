@@ -33,7 +33,7 @@
     name: haproxy_connect_any
     state: yes
     persistent: yes
-  when: ansible_selinux != False
+  when: ansible_selinux
 
 - name: configure services
   service:
