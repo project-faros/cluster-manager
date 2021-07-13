@@ -32,21 +32,21 @@
 - name: configure haproxy selinux booleans
   seboolean:
     name: haproxy_connect_any
-    state: yes
-    persistent: yes
+    state: true
+    persistent: true
   when: ansible_selinux
 
 - name: configure services
   service:
     name: haproxy
     state: started
-    enabled: yes
+    enabled: true
 
 - name: open firewall ports
   ansible.posix.firewalld:
     port: "{{ item }}"
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
     state: enabled
     zone: internal
   loop:

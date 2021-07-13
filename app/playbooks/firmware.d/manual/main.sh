@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo -e "\e[93m"
 cat <<EOM
 
