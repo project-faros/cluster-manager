@@ -16,6 +16,8 @@
         management_user: "{{ mgmt_user }}"
         management_pass: "{{ mgmt_password }}"
       register: poweron
+      tags:
+        - skip_ansible_lint
 
     - name: wait 3 minutes for nodes to come back up
       pause:

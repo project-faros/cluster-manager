@@ -9,7 +9,8 @@
   register: kvm_vol_cap
   changed_when: no
 
-- debug:
+- name: debug print the disk capacity
+  debug:
     var: kvm_vol_cap.stdout.split('.')[0]
 
 - name: network boot kvm servers

@@ -9,6 +9,8 @@
     - include_role:
         name: ocp-reset-csrs
       when: graceful|bool
+      tags:
+        - skip_ansible_lint
 
 - name: shutdown control plane
   hosts: control_plane
@@ -26,3 +28,5 @@
         management_hostname: "{{ mgmt_hostname }}"
         management_user: "{{ mgmt_user }}"
         management_pass: "{{ mgmt_password }}"
+      tags:
+        - skip_ansible_lint
