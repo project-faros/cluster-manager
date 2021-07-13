@@ -28,6 +28,7 @@
   copy:
     src: faros_http.te
     dest: /root/faros_http.te
+    mode: 0644
   register: http_selinux
 
 - name: compile custom selinux te file for http

@@ -26,6 +26,7 @@
   template:
     src: templates/haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
   notify: restart haproxy
 
 - name: configure haproxy selinux booleans

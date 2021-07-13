@@ -23,6 +23,7 @@
   template:
     src: install-config.yaml.j2
     dest: "{{ item }}"
+    mode: 0644
   loop:
     - "{{ openshift_installer_dir }}/install-config.yaml"
     - "{{ openshift_installer_dir }}/install-config.yaml.bkp"
@@ -49,12 +50,14 @@
   template:
     src: 98-cache-disk.yaml.j2
     dest: "{{ openshift_installer_dir }}/openshift/98-cache-disk.yaml"
+    mode: 0644
   when: openshift_installer_cache_disk|length > 0
 
 - name: create disk encryption machine configs
   template:
     src: "{{ item }}.j2"
     dest: "{{ openshift_installer_dir }}/openshift/{{ item }}"
+    mode: 0644
   with_items:
     - 99-openshift-master-tang-encryption.yaml
     - 99-openshift-worker-tang-encryption.yaml
