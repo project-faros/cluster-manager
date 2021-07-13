@@ -364,4 +364,3 @@
             selector:
               matchLabels:
                 mlmodel: "yes"
-

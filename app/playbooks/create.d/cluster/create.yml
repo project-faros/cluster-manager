@@ -188,4 +188,3 @@
           - name: "OpenShift Console"
             url: "https://console-openshift-console.apps.{{ cluster_name }}.{{ cluster_domain }}"
             icon: fa-redhat
-

@@ -94,4 +94,3 @@
       shell: ilorest -c "{{ config.path }}" logout
       changed_when: False
       delegate_to: localhost
-

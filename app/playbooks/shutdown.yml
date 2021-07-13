@@ -26,4 +26,3 @@
         management_hostname: "{{ mgmt_hostname }}"
         management_user: "{{ mgmt_user }}"
         management_pass: "{{ mgmt_password }}"
-

@@ -6,4 +6,3 @@ and automated deployment tools. We are looking to bring OpenShift everywhere,
 even to the edge.
 
 ![Cluster Install](https://raw.githubusercontent.com/project-faros/assets/master/demos/install/8-cluster.gif)
-

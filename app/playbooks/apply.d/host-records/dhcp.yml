@@ -72,4 +72,3 @@
     - name: dhcp-verify
       dhcp_verify_ignored: "{{ ignored_macs | from_json | json_query('[*].name') }}"
       dhcp_verify_records: "{{ lookup('inventory_hostnames', 'cluster,management').split(',') + extra_nodes | json_query('[*].name') }}"
-

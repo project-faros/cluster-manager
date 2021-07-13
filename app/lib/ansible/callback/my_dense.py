@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # sourced from dense callback plugin in Ansible 2.9
 
 from __future__ import (absolute_import, division, print_function)

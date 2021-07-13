@@ -128,4 +128,3 @@
       retries: 60
       delay: 10
       until: "(powercheck.stdout | from_json)['PowerState'] == 'Off'"
-

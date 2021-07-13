@@ -99,4 +99,3 @@
       loop: "{{ extra_nodes }}"
       loop_control:
         loop_var: node
-
