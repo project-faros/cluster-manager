@@ -1,5 +1,6 @@
 - name: lookup kvm mac adress
   shell: >
+    set -o pipefail
     virsh domiflist --domain {{ inventory_hostname }} |
     tail -n2 |
     awk '{ print $5 }'

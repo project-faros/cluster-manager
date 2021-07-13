@@ -40,7 +40,9 @@
   ignore_errors: yes
 
 - name: initialize dns zone serial
-  shell: date +%s | tee /var/named/serial.{{ dns_server_domain }}
+  shell: |
+    set -o pipefail
+    date +%s | tee /var/named/serial.{{ dns_server_domain }}
   when: serial is failed
   changed_when: yes
 

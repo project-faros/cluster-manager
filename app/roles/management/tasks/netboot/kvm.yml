@@ -1,5 +1,6 @@
 - name: get current kvm server disk capacity
   shell: >
+    set -o pipefail
     virsh vol-info --pool default --vol {{ inventory_hostname }}.qcow2 |
     grep Capacity |
     awk '{ print $2; }'

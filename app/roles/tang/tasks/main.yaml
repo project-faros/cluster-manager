@@ -8,7 +8,7 @@
     path: /usr/lib/systemd/system/tangd.socket
     state: present
     line: "ListenStream={{ tang_port }}"
-    regexp: '^ListenStream='
+    regexp: "^ListenStream="
   register: port_set
 
 - name: set selinux to allow tang to us the port
@@ -22,12 +22,16 @@
     enabled: yes
 
 - name: check if tang keys exist
-  shell: "ls /var/db/tang | wc -l"
+  shell: |
+    set -o pipefail
+    ls /var/db/tang | wc -l
   register: key_check
   changed_when: no
 
 - name: force tang to generate new keys
-  shell: "echo 'test' | clevis-encrypt-tang '{\"url\":\"http://localhost:{{ tang_port }}\"}' -y"
+  shell: |
+    set -o pipefail
+    echo 'test' | clevis-encrypt-tang '{"url":"http://localhost:{{ tang_port }}"}' -y
   when: "key_check.stdout|int == 0"
 
 - name: gather tang public key

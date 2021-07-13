@@ -1,5 +1,7 @@
 - name: check for lan bridge
-  shell: nmcli con sh faroslan | grep -v 802-3
+  shell: |
+    set -o pipefail
+    nmcli con sh faroslan | grep -v 802-3
   changed_when: no
   failed_when: no
   register: br_check
@@ -21,7 +23,9 @@
   notify: restart faroslan
 
 - name: check interfaces for bridge membership
-  shell: nmcli con sh faroslan-{{ item }} | grep -v 802-3
+  shell: |
+    set -o pipefail
+    nmcli con sh faroslan-{{ item }} | grep -v 802-3
   loop: "{{ router_all_interfaces }}"
   changed_when: no
   failed_when: no

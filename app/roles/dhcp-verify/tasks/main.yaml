@@ -1,6 +1,6 @@
-
 - name: get list of ignored hosts
   shell: >
+    set -o pipefail
     grep '^# BEGIN MANAGED RECORD - ignore_' /etc/dhcp/dhcpd.static.conf |
     awk '{ print $6 }' |
     sed 's/^ignore_//g'
@@ -9,6 +9,7 @@
 
 - name: get list of configured hosts
   shell: >
+    set -o pipefail
     grep '^# BEGIN MANAGED RECORD - ' /etc/dhcp/dhcpd.static.conf |
     grep -v '^# BEGIN MANAGED RECORD - ignore_' |
     awk '{ print $6 }'

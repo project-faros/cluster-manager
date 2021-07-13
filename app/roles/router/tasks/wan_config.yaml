@@ -8,7 +8,9 @@
     wan_int_facts: "{{ wan_int_raw.stdout | from_yaml }}"
 
 - name: get wan settings
-  shell: nmcli con sh "{{ wan_int_facts['GENERAL.CONNECTION'] }}" | grep -v 802-3
+  shell: |
+    set -o pipefail
+    nmcli con sh "{{ wan_int_facts['GENERAL.CONNECTION'] }}" | grep -v 802-3
   changed_when: no
   failed_when: no
   register: wan_check
