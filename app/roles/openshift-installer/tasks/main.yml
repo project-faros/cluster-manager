@@ -14,7 +14,7 @@
   register: pkg_download
 
 - name: extract openshift installer
-  shell: "tar xvzf '{{ openshift_installer_dir }}/openshift-installer.tar.gz' -C '{{ openshift_installer_dir }}'"
+  command: "tar xvzf '{{ openshift_installer_dir }}/openshift-installer.tar.gz' -C '{{ openshift_installer_dir }}'"
   args:
     warn: no
   when: pkg_download is changed

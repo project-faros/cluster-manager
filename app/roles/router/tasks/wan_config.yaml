@@ -1,5 +1,5 @@
 - name: get wan interface status
-  shell: nmcli dev sh {{ router_wan_interface }}
+  command: nmcli dev sh {{ router_wan_interface }}
   changed_when: false
   register: wan_int_raw
 
@@ -20,7 +20,7 @@
     wan_facts: "{{ wan_check.stdout | from_yaml }}"
 
 - name: verify wan configuration
-  shell: nmcli con mod "{{ wan_int_facts['GENERAL.CONNECTION'] }}" "{{ item.key }}" "{{ item.target }}"
+  command: nmcli con mod "{{ wan_int_facts['GENERAL.CONNECTION'] }}" "{{ item.key }}" "{{ item.target }}"
   loop:
     - key: connection.zone
       target: external
