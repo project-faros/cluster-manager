@@ -1,16 +1,16 @@
 - name: apply firmware
   hosts: cluster,!virtual
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
   serial: 1
 
   vars_prompt:
     - name: username
       prompt: Current iLO Admin User [defaults to value in config]
-      private: no
+      private: false
     - name: password
       prompt: Current iLO Admin Password [defaults to value in config]
-      private: yes
+      private: true
 
   tasks:
     - name: use default ilo user when requested

@@ -2,9 +2,9 @@
 
 - name: Perform pre-install checks
   hosts: localhost
-  become: no
-  gather_facts: no
-  any_errors_fatal: yes
+  become: false
+  gather_facts: false
+  any_errors_fatal: true
 
   vars:
     openshift_installer_dir: /data/openshift-installer
@@ -36,8 +36,8 @@
 
 - name: Ensure all cluster nodes are powered down
   hosts: cluster
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
   serial: 1
 
   tasks:
@@ -54,8 +54,8 @@
 
 - name: Create the Control Plane
   hosts: control_plane
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - include_role:
@@ -72,17 +72,17 @@
     - name: wait for nodes to start provisioning
       shell: ping -c 1 {{ ansible_host }}
       delegate_to: "{{ groups.bastion_hosts[0] }}"
-      become: no
-      register: node_ping
+      become: false
+      register: falsede_ping
       until: "node_ping is not failed"
       retries: 30
       delay: 10
-      changed_when: no
+      changed_when: false
 
 - name: Create the Bootstrap node
   hosts: bootstrap
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - include_role:
@@ -104,8 +104,8 @@
 
 - name: Wait for the OpenShift Installation to Complete
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - block:
@@ -119,7 +119,7 @@
           shell: ./openshift-install wait-for bootstrap-complete 2>&1
           args:
             chdir: /data/openshift-installer
-          changed_when: no
+          changed_when: false
           register: cluster_install
           retries: 2
           delay: 1
@@ -135,7 +135,7 @@
           shell: ./openshift-install wait-for install-complete 2>&1
           args:
             chdir: /data/openshift-installer
-          changed_when: no
+          changed_when: false
           register: cluster_install
           retries: 2
           delay: 1
@@ -158,8 +158,8 @@
 
 - name: Power down the bootstrap node
   hosts: bootstrap
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
   serial: 1
 
   tasks:
@@ -176,8 +176,8 @@
 
 - name: Add OpenShift Links to Cockpit
   hosts: bastion_hosts
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   tasks:
     - name: create cockpit links

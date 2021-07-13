@@ -2,8 +2,8 @@
   shell: |
     set -o pipefail
     nmcli con sh faroslan | grep -v 802-3
-  changed_when: no
-  failed_when: no
+  changed_when: false
+  failed_when: false
   register: br_check
 
 - name: parse bridge settings
@@ -27,8 +27,8 @@
     set -o pipefail
     nmcli con sh faroslan-{{ item }} | grep -v 802-3
   loop: "{{ router_all_interfaces }}"
-  changed_when: no
-  failed_when: no
+  changed_when: false
+  failed_when: false
   register: member_check
 
 - name: add interfaces to the lan bridge

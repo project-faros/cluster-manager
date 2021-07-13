@@ -19,13 +19,13 @@
   service:
     name: libvirtd
     state: started
-    enabled: yes
+    enabled: true
 
 - name: ensure root and user can access kvm
   user:
     name: "{{ item }}"
     groups: kvm
-    append: yes
+    append: true
   loop:
     - root
     - "{{ ansible_ssh_user }}"

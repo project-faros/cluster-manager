@@ -1,10 +1,10 @@
 #!/usr/bin/env ansible-playbook
 - name: prepare cluster for shutdown
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
   vars:
-    graceful: yes
+    graceful: true
   tasks:
     - include_role:
         name: ocp-reset-csrs
@@ -14,8 +14,8 @@
 
 - name: shutdown control plane
   hosts: control_plane
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - include_role:

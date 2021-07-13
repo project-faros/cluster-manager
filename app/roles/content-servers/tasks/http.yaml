@@ -14,15 +14,15 @@
     zone: internal
     port: 8081/tcp
     state: enabled
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
 
 - name: configure selinux booleans for http
   seboolean:
     name: httpd_can_network_connect
-    persistent: yes
-    state: yes
-  ignore_errors: yes
+    persistent: true
+    state: true
+  ignore_errors: true
 
 - name: deploy custom selinux te file for http
   copy:
@@ -41,5 +41,5 @@
 - name: start http services
   service:
     name: httpd
-    enabled: yes
+    enabled: true
     state: started

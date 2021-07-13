@@ -2,8 +2,8 @@
 
 - name: Add Management Links to Cockpit
   hosts: bastion_hosts
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   tasks:
     - name: create cockpit links to cluster node management

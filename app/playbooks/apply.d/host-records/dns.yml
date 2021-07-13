@@ -4,7 +4,7 @@
 
 - name: Configure Cluster Node DNS Records
   hosts: cluster
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -16,7 +16,7 @@
 
 - name: Configure Cluster Node Management DNS Records
   hosts: cluster:!virtual
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -30,7 +30,7 @@
 
 - name: Configure Bastion DNS entries
   hosts: bastion_hosts
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -42,7 +42,7 @@
 
 - name: Configure Load Balanced DNS entries
   hosts: loadbalancer
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -52,19 +52,19 @@
   roles:
     - name: dns
       dns_hostname: "api"
-      dns_reverse: no
+      dns_reverse: false
     - name: dns
       dns_hostname: "api-int"
-      dns_reverse: no
+      dns_reverse: false
     - name: dns
       dns_hostname: "*.apps"
-      dns_reverse: no
+      dns_reverse: false
     - name: dns
       dns_hostname: "loadbalancer"
 
 - name: Configure etcd DNS entries
   hosts: control_plane
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -74,15 +74,15 @@
   roles:
     - name: dns
       dns_hostname: "etcd-{{ cp_node_id }}"
-      dns_reverse: no
+      dns_reverse: false
     - name: dns
       dns_hostname: "_etcd-server-ssl.tcp"
-      dns_type: 'SRV'
+      dns_type: "SRV"
       dns_value: "0 10 2380 etcd-{{ cp_node_id }}.{{ cluster_name }}.{{ cluster_domain }}."
 
 - name: Configure extra DNS records
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -98,4 +98,4 @@
         dns_value: "{{ node.ip }}"
       loop: "{{ extra_nodes }}"
       loop_control:
-        loop_var: node
+        loop_var: falsede

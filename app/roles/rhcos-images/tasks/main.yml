@@ -7,7 +7,7 @@
 - name: download rhcos image checksums
   uri:
     url: "{{ rhcos_images_repo }}/sha256sum.txt"
-    return_content: yes
+    return_content: true
     validate_certs: "{{ rhcos_images_https_validate }}"
   environment:
     HTTP_PROXY: "{{ rhcos_images_http_proxy }}"

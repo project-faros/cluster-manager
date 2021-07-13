@@ -8,8 +8,8 @@
     zone: internal
     service: tftp
     state: enabled
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
 
 - name: Create TFTP directory structure
   file:
@@ -63,5 +63,5 @@
 - name: Starting PXE services
   service:
     name: tftp.socket
-    enabled: yes
+    enabled: true
     state: started

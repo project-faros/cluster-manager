@@ -1,15 +1,15 @@
 #!/usr/bin/env ansible-playbook
 - name: Are you sure?
   hosts: all
-  any_errors_fatal: yes
+  any_errors_fatal: true
   max_fail_percentage: 0
   serial: 100%
-  gather_facts: no
+  gather_facts: false
 
   vars_prompt:
     - name: confirm
       prompt: This will destroy the running cluster and you will lose all data. Are you sure? [yes to continue]
-      private: no
+      private: false
 
   tasks:
     - name: Validate user input
@@ -21,9 +21,9 @@
 
 - name: Destroy cluster nodes
   hosts: cluster:!bootstrap
-  become: no
-  gather_facts: no
-  any_errors_fatal: yes
+  become: false
+  gather_facts: false
+  any_errors_fatal: true
   max_fail_percentage: 0
   serial: 1
 
@@ -61,26 +61,26 @@
 
 - name: Wait for cluster nodes to start wiping
   hosts: cluster:!bootstrap
-  become: no
-  gather_facts: no
-  any_errors_fatal: yes
+  become: false
+  gather_facts: false
+  any_errors_fatal: true
   max_fail_percentage: 0
 
   tasks:
     - name: wait for nodes to start wiping
       shell: ping -c 1 {{ ansible_host }}
       delegate_to: "{{ groups.bastion_hosts[0] }}"
-      become: no
-      register: node_ping
+      become: false
+      register: falsede_ping
       until: "node_ping is not failed"
       retries: 30
       delay: 10
-      changed_when: no
+      changed_when: false
 
 - name: Terminate the Bootstrap node
   hosts: bootstrap
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - include_role:
@@ -96,8 +96,8 @@
 
 - name: Clean cockpit interface
   hosts: bastion
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   tasks:
     - name: remove faros page from cockpit
@@ -105,11 +105,10 @@
         path: /usr/local/share/cockpit/faros
         state: absent
 
-
 - name: Wait for hosts to finish disk wipe
   hosts: cluster:!bootstrap
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - name: create tmp cache dir

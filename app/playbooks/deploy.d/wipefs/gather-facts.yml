@@ -1,7 +1,7 @@
 - name: query cluster facts
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   pre_tasks:
     - name: lookup cluster nodes
@@ -12,8 +12,8 @@
       shell: oc debug -n default node/{{ item }} -- chroot /host lsblk -dlno NAME 2>/dev/null
       loop: "{{ cluster_nodes }}"
       register: cluster_drives
-      ignore_errors: yes
-      changed_when: no
+      ignore_errors: true
+      changed_when: false
 
     - name: save discovered hosts
       set_stats:

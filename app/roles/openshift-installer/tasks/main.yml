@@ -9,14 +9,14 @@
     url: "{{ openshift_installer_source }}"
     dest: "{{ openshift_installer_dir }}/openshift-installer.tar.gz"
     mode: 0644
-    unsafe_writes: yes
+    unsafe_writes: true
     validate_certs: "{{ openshift_installer_proxy_ca == '' }}"
   register: pkg_download
 
 - name: extract openshift installer
   command: "tar xvzf '{{ openshift_installer_dir }}/openshift-installer.tar.gz' -C '{{ openshift_installer_dir }}'"
   args:
-    warn: no
+    warn: false
   when: pkg_download is changed # noqa no-handler
 
 - name: create cluster install config

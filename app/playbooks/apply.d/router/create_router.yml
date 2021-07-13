@@ -2,8 +2,8 @@
 
 - name: Configure layer 3 routing and network services
   hosts: wan
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   roles:
     - name: router

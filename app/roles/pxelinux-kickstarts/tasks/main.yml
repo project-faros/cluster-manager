@@ -9,4 +9,4 @@
     - src: grub.{{ pxelinux_kickstarts_profile }}.cfg.j2
       dest: "/var/lib/tftpboot/uefi/grub.cfg-01-{{ mac_address | lower | regex_replace (':', '-') }}"
   delegate_to: "{{ pxelinux_kickstarts_pxe_server }}"
-  become: yes
+  become: true

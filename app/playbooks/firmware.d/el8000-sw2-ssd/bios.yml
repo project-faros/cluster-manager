@@ -3,54 +3,54 @@
   delegate_to: localhost
   register: load
   failed_when:
-    - 'load.rc != 0'
-    - '"Error: No differences found from current configuration." not in load.stderr_lines'
+    - "load.rc != 0"
+    - '"Error: false differences found from current configuration." not in load.stderr_lines'
   changed_when:
-    - 'load.rc == 0'
-    - '"Error: No differences found from current configuration." not in load.stderr_lines'
+    - "load.rc == 0"
+    - '"Error: false differences found from current configuration." not in load.stderr_lines'
 
 - block:
-  - name: check for pending changes (may fail)
-    shell: ilorest -c "{{ config.path }}" pending | grep -c 'No pending changes found.'
-    delegate_to: localhost
-    register: pending_changes
-    changed_when: no
-    failed_when: pending_changes.stdout | int < 6
+    - name: check for pending changes (may fail)
+      shell: ilorest -c "{{ config.path }}" pending | grep -c 'No pending changes found.'
+      delegate_to: localhost
+      register: pending_changes
+      changed_when: false
+      failed_when: pending_changes.stdout | int < 6
 
   rescue:
-  - name: set bios setup for next boot
-    shell: ilorest -c "{{ config.path }}" bootorder --onetimeboot=BiosSetup --commit
-    delegate_to: localhost
+    - name: set bios setup for next boot
+      shell: ilorest -c "{{ config.path }}" bootorder --onetimeboot=BiosSetup --commit
+      delegate_to: localhost
 
-  - name: ensure server is on
-    include_role:
-      name: management
-      defaults_from: main.yml
-      tasks_from: "poweron/{{ mgmt_provider }}.yml"
-      vars_from: "{{ mgmt_provider }}.yml"
-      handlers_from: "{{ mgmt_provider }}.yml"
-    vars:
-      management_hostname: "{{ mgmt_hostname }}"
-      management_user: "{{ username }}"
-      management_pass: "{{ password }}"
+    - name: ensure server is on
+      include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweron/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ username }}"
+        management_pass: "{{ password }}"
 
-  - name: check for pending changes
-    shell: ilorest -c "{{ config.path }}" pending | grep -c 'No pending changes found.'
-    delegate_to: localhost
-    register: pending_changes
-    changed_when: no
-    until: pending_changes.stdout | int >= 6
-    delay: 10
-    retries: 60
+    - name: check for pending changes
+      shell: ilorest -c "{{ config.path }}" pending | grep -c 'No pending changes found.'
+      delegate_to: localhost
+      register: pending_changes
+      changed_when: false
+      until: pending_changes.stdout | int >= 6
+      delay: 10
+      retries: 60
 
-  - name: ensure server is off
-    include_role:
-      name: management
-      defaults_from: main.yml
-      tasks_from: "poweroff/{{ mgmt_provider }}.yml"
-      vars_from: "{{ mgmt_provider }}.yml"
-      handlers_from: "{{ mgmt_provider }}.yml"
-    vars:
-      management_hostname: "{{ mgmt_hostname }}"
-      management_user: "{{ username }}"
-      management_pass: "{{ password }}"
+    - name: ensure server is off
+      include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "poweroff/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ username }}"
+        management_pass: "{{ password }}"

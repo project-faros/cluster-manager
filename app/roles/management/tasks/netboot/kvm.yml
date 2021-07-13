@@ -5,9 +5,9 @@
     grep Capacity |
     awk '{ print $2; }'
   delegate_to: "{{ management_hostname }}"
-  become: yes
+  become: true
   register: kvm_vol_cap
-  changed_when: no
+  changed_when: false
 
 - name: debug print the disk capacity
   debug:
@@ -20,4 +20,4 @@
     --capacity {{ kvm_vol_cap.stdout.split('.')[0] }}G --format qcow2 &&
     virsh start {{ inventory_hostname }}
   delegate_to: "{{ management_hostname }}" # noqa no-changed-when
-  become: yes
+  become: true

@@ -19,14 +19,14 @@
   service:
     name: tangd.socket
     state: started
-    enabled: yes
+    enabled: true
 
 - name: check if tang keys exist
   shell: |
     set -o pipefail
     ls /var/db/tang | wc -l
   register: key_check
-  changed_when: no
+  changed_when: false
 
 - name: force tang to generate new keys
   shell: |
@@ -40,9 +40,9 @@
       - tang-show-keys
       - "{{ tang_port }}"
   register: key_lkp
-  changed_when: no
+  changed_when: false
 
 - name: save tang public key
   set_fact:
     tang_key: "{{ key_lkp.stdout }}"
-  changed_when: no
+  changed_when: false

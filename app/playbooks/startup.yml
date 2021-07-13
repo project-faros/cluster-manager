@@ -1,8 +1,8 @@
 #!/usr/bin/env ansible-playbook
 - name: cold start the cluster control plane
   hosts: control_plane
-  gather_facts: no
-  become: no
+  gather_facts: false
+  become: false
 
   tasks:
     - include_role:
@@ -29,8 +29,8 @@
 
 - name: restart the cluster
   hosts: localhost
-  gather_facts: no
-  become: no
+  gather_facts: false
+  become: false
 
   tasks:
     - name: wait for cluster to be responsive
@@ -42,9 +42,9 @@
       retries: 60
       delay: 5
       delegate_to: localhost
-      become: no
-      run_once: yes
-      changed_when: no
+      become: false
+      run_once: true
+      changed_when: false
 
     - name: wait 1 minute for the cluster operators to start healing
       pause:
@@ -60,8 +60,8 @@
       retries: 60
       delay: 15
       delegate_to: localhost
-      become: no
-      run_once: yes
+      become: false
+      run_once: true
 
     - name: get pending CSRs
       k8s_info:
@@ -70,7 +70,7 @@
         kind: CertificateSigningRequest
       register: get_csr
       delegate_to: localhost
-      run_once: yes
+      run_once: true
 
     - name: approve pending CSRs
       shell: >
@@ -81,4 +81,4 @@
         label: "{{ item.metadata.name }}"
       when: item.status.conditions[0].type | default("") != "Approved"
       delegate_to: localhost
-      run_once: yes
+      run_once: true

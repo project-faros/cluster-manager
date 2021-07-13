@@ -13,12 +13,12 @@
 - name: ensure firewall allows vrrp traffic
   ansible.posix.firewalld:
     rich_rule: rule protocol value="vrrp" accept
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
     state: enabled
 
 - name: ensure keepalived is running/enabled
   service:
     name: keepalived
     state: started
-    enabled: yes
+    enabled: true

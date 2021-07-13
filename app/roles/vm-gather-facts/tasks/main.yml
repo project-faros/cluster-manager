@@ -5,9 +5,9 @@
     tail -n2 |
     awk '{ print $5 }'
   delegate_to: "{{ hypervisor }}"
-  become: yes
+  become: true
   register: dommac_lkp
-  changed_when: no
+  changed_when: false
 
 - name: save mac address
   set_fact:

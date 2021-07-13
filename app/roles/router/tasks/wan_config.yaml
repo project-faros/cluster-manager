@@ -11,8 +11,8 @@
   shell: |
     set -o pipefail
     nmcli con sh "{{ wan_int_facts['GENERAL.CONNECTION'] }}" | grep -v 802-3
-  changed_when: no
-  failed_when: no
+  changed_when: false
+  failed_when: false
   register: wan_check
 
 - name: parse wan settings
@@ -27,7 +27,7 @@
     - key: ipv4.dns
       target: "{{ ','.join(['127.0.0.1'] + router_dns_forwarders) }}"
     - key: ipv4.ignore-auto-dns
-      target: yes
+      target: true
     - key: connection.id
       target: faroswan
   when:
