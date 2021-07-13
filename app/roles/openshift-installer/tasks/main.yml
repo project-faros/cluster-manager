@@ -49,7 +49,7 @@
   template:
     src: 98-cache-disk.yaml.j2
     dest: "{{ openshift_installer_dir }}/openshift/98-cache-disk.yaml"
-  when: "openshift_installer_cache_disk != ''"
+  when: openshift_installer_cache_disk|length > 0
 
 - name: create disk encryption machine configs
   template:

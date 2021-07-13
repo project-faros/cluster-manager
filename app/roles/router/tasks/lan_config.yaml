@@ -43,7 +43,7 @@
     label: "{{ item.item }}"
   when:
     - item.item is in router_lan_interfaces
-    - item.stdout == ""
+    - item.stdout|length == 0
   notify: restart faroslan
 
 - name: remove interfaces from the lan bridge
@@ -53,7 +53,7 @@
     label: "{{ item.item }}"
   when:
     - item.item is not in router_lan_interfaces
-    - item.stdout != ""
+    - item.stdout|length > 0
   notify: restart faroslan
 
 - name: verify faroslan configuration
