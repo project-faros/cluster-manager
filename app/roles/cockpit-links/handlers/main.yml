@@ -1,0 +1,9 @@
+- name: install cockpit plugin
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/share/cockpit/faros/{{ item }}"
+    mode: 0644
+  loop:
+    - index.html
+    - manifest.json
+  when: install is changed

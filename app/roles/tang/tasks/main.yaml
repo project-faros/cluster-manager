@@ -13,7 +13,7 @@
 
 - name: set selinux to allow tang to us the port
   command: "semanage port -a -t tangd_port_t -p tcp {{ tang_port }}"
-  when: port_set is changed
+  when: port_set is changed # noqa no-handler
 
 - name: start the tang server
   service:

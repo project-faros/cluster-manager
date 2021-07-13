@@ -22,7 +22,7 @@
     - name: wait 3 minutes for nodes to come back up
       pause:
         minutes: 3
-      when: poweron is changed
+      when: poweron is changed # noqa no-handler
 
     - name: wait for control plane nodes to come back
       wait_for_connection:

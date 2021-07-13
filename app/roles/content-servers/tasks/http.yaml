@@ -35,7 +35,7 @@
     checkmodule -M -m -o "/root/faros_http.mod" "/root/faros_http.te" &&
     semodule_package -o "/root/faros_http.pp" -m "/root/faros_http.mod" &&
     semodule -i "/root/faros_http.pp"
-  when: http_selinux is changed
+  when: http_selinux is changed # noqa no-handler
 
 - name: start http services
   service:

@@ -17,7 +17,7 @@
   command: "tar xvzf '{{ openshift_installer_dir }}/openshift-installer.tar.gz' -C '{{ openshift_installer_dir }}'"
   args:
     warn: no
-  when: pkg_download is changed
+  when: pkg_download is changed # noqa no-handler
 
 - name: create cluster install config
   template:
