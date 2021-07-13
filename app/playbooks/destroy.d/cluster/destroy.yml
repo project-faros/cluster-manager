@@ -122,7 +122,7 @@
         ilorest --cache-dir="{{ cache.path }}" login "{{ mgmt_hostname }}" -u '{{ mgmt_user }}' -p '{{ mgmt_password }}' &>/dev/null
         ilorest --cache-dir="{{ cache.path }}" --nologo get --selector=ComputerSystem PowerState --json
       register: powercheck
-      changed_when: False
+      changed_when: false
       delegate_to: localhost
       retries: 60
       delay: 10

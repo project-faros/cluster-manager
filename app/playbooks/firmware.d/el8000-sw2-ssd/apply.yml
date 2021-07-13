@@ -31,7 +31,7 @@
 
     - name: login to ilo
       shell: ilorest -c "{{ config.path }}" login "{{ mgmt_hostname }}" -u '{{ username }}' -p '{{ password }}'
-      changed_when: False
+      changed_when: false
       delegate_to: localhost
 
     - name: ensure server is off
@@ -92,5 +92,5 @@
 
     - name: logout of ilo
       shell: ilorest -c "{{ config.path }}" logout
-      changed_when: False
+      changed_when: false
       delegate_to: localhost

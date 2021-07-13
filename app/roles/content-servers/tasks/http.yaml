@@ -22,7 +22,7 @@
     name: httpd_can_network_connect
     persistent: true
     state: true
-  ignore_errors: true
+  failed_when: false
 
 - name: deploy custom selinux te file for http
   copy:

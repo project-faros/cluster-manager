@@ -77,7 +77,7 @@
                 encryption:
                   enable: true
                   kms: {}
-                flexibleScaling: True
+                flexibleScaling: true
       retries: 60
       delay: 15
       register: apply

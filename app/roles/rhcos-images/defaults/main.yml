@@ -9,5 +9,5 @@ rhcos_images_master_ign: ""
 rhcos_images_worker_ign: ""
 rhcos_images_https_proxy: ""
 rhcos_images_http_proxy: ""
-rhcos_images_https_validate: True
+rhcos_images_https_validate: true
 rhcos_images_noproxy: ""

@@ -12,6 +12,7 @@
   lineinfile:
     path: /usr/local/share/cockpit/faros/index.html
     line: <li><a href="{{ item.url }}" target="_blank">{{ item.name }}</a></li> <!-- {{ item.icon }} -->
+    # yamllint disable-line
     insertafter: <!-- ##START## -->
     regexp: "{{ item.name }}"
   loop: "{{ cockpit_links }}"
@@ -21,6 +22,7 @@
   lineinfile:
     path: /usr/local/share/cockpit/faros/index.html
     line: <li><a href="{{ item.url }}" target="_blank">{{ item.name }}</a></li> <!-- {{ item.icon }} -->
+    # yamllint disable-line
     insertbefore: <!-- ##END## -->
     regexp: "{{ item.name }}"
   loop: "{{ cockpit_links }}"
