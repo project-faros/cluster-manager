@@ -40,7 +40,7 @@
     - "{{ openshift_installer_dir }}/worker.ign"
     - "{{ openshift_installer_dir }}/auth"
 
-- name: create installation manifests
+- name: create installation manifests # noqa no-changed-when
   shell: >
     {{ openshift_installer_dir }}/openshift-install create manifests
     --dir={{ openshift_installer_dir }}
@@ -59,7 +59,7 @@
     - 99-openshift-master-tang-encryption.yaml
     - 99-openshift-worker-tang-encryption.yaml
 
-- name: create ignition files
+- name: create ignition files # noqa no-changed-when
   shell: >
     {{ openshift_installer_dir }}/openshift-install create ignition-configs
     --dir={{ openshift_installer_dir }}
