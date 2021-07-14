@@ -12,7 +12,7 @@ jobs:
 
       - name: Lint Ansible Playbook
         # replace "master" with any valid ref
-        uses: ansible/ansible-lint-action@v4.1.0
+        uses: ansible/ansible-lint-action@master
         env:
           ANSIBLE_ROLES_PATH: ./app/roles
         with:
