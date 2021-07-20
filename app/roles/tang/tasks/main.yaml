@@ -9,11 +9,13 @@
     state: present
     line: "ListenStream={{ tang_port }}"
     regexp: '^ListenStream='
-  register: port_set
 
 - name: set selinux to allow tang to us the port
-  shell: "semanage port -a -t tangd_port_t -p tcp {{ tang_port }}"
-  when: port_set is changed
+  community.general.seport:
+    ports: "{{ tang_port }}"
+    proto: tcp
+    setype: tangd_port_t
+    state: present
 
 - name: start the tang server
   service:
