@@ -19,8 +19,9 @@ function progress() {
 
 function _reachable() {
     target=$1
-    port=$2
-    if (echo | timeout --signal=9 1 telnet $target $port 2>&1 | grep 'Connected to' > /dev/null); then
+    timeout --signal=9 3 ansible $target -m setup &> /dev/null
+    retcode=$?
+    if [[ $retcode == 0 ]]; then
         echo '\e[32m+ YES\e[0m'
         return 0
     else
@@ -41,10 +42,11 @@ function _row() {
     fi
     if [ $# -lt 3 ]; then
         mac=$(echo "$INVENTORY" | jq -rc "._meta.hostvars.\"$1\".mac_address")
+        echo "$1\t$ip\t$mac\t$(_reachable $1)\n"
     else
         mac=$3
+        echo "$1\t$ip\t$mac\t- N/A\n"
     fi
-    echo "$1\t$ip\t$mac\t$(_reachable $ip 22)\n"
 }
 
 function main() {

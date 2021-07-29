@@ -7,7 +7,7 @@
   become: true
 
 - name: sleep
-  command: sleep 1
+  command: sleep 2
   delegate_to: localhost
   become: false
   listen: restart dhcpd

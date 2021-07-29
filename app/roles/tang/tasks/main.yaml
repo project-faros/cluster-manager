@@ -8,12 +8,14 @@
     path: /usr/lib/systemd/system/tangd.socket
     state: present
     line: "ListenStream={{ tang_port }}"
-    regexp: "^ListenStream="
-  register: port_set
+    regexp: '^ListenStream='
 
 - name: set selinux to allow tang to us the port
-  command: "semanage port -a -t tangd_port_t -p tcp {{ tang_port }}"
-  when: port_set is changed # noqa no-handler
+  community.general.seport:
+    ports: "{{ tang_port }}"
+    proto: tcp
+    setype: tangd_port_t
+    state: present
 
 - name: start the tang server
   service:
