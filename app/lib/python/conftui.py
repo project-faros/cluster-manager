@@ -122,7 +122,7 @@ class CheckParameter(Parameter):
 
     def __init__(self, name, prompt, choices):
         self._name = name
-        self._value = json.loads(os.environ.get(self._name, ''))
+        self._value = json.loads(os.environ.get(self._name, '[]'))
         self._prompt = prompt
         self._choices = choices
         self._choices = [{'name': f'{choice}',
