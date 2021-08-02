@@ -11,7 +11,7 @@
       changed_when: false
       retries: 10
       delay: 1
-      until: cluster_drives is success
+      until: drive_id_lkp is success
 
     - name: save storage node drive id paths
       set_fact:
