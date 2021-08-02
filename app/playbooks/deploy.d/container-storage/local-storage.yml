@@ -9,6 +9,9 @@
       loop: "{{ stg_drives | json_query('[*].host') }}"
       register: drive_id_lkp
       changed_when: false
+      retries: 10
+      delay: 1
+      until: cluster_drives is success
 
     - name: save storage node drive id paths
       set_fact:

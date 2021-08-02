@@ -4,25 +4,40 @@
   register: vgs
   changed_when: false
   ignore_errors: true
+  retries: 10
+  delay: 1
+  until: cluster_drives is success
 
 - name: delete associated vgs
   shell: "oc debug -n default node/{{ outer.host }} -- chroot /host vgremove --force --noudevsync '{{ item.stdout }}'"
   changed_when: true
   when: item.stdout != ""
   loop: "{{ vgs.results }}"
+  retries: 10
+  delay: 1
+  until: cluster_drives is success
 
 - name: remove pvs
   shell: "oc debug -n default node/{{ outer.host }} -- chroot /host pvremove '/dev/{{ item }}'"
   loop: "{{ outer.drives }}"
   changed_when: true
   ignore_errors: true
+  retries: 10
+  delay: 1
+  until: cluster_drives is success
 
 - name: wipe filesystem
   shell: "oc debug -n default node/{{ outer.host }} -- chroot /host wipefs -a '/dev/{{ item }}'"
   loop: "{{ outer.drives }}"
   changed_when: true
+  retries: 10
+  delay: 1
+  until: cluster_drives is success
 
 - name: clear GPT and MBR structures
   shell: "oc debug -n default node/{{ outer.host }} -- chroot /host sgdisk --zap-all '/dev/{{ item }}'"
   loop: "{{ outer.drives }}"
   changed_when: true
+  retries: 10
+  delay: 1
+  until: cluster_drives is success
