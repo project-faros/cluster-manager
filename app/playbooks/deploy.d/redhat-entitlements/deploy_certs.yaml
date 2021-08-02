@@ -1,7 +1,7 @@
 - name: gather rhel subscription from bastion host
   hosts: bastion_hosts[0]
-  gather_facts: yes
-  become: no
+  gather_facts: true
+  become: false
 
   tasks:
     - name: ensure bastion host in a RHEL system
@@ -14,7 +14,7 @@
         set -o pipefail &&
         subscription-manager list --consumed --matches="Red Hat CoreOS" |
         grep Serial | tail -n 1 | awk -F: '{ print $2 }' | xargs echo -n
-      become: yes
+      become: true
       register: entitlement_serial
       failed_when: entitlement_serial.stdout_lines | length == 0
 

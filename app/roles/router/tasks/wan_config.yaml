@@ -1,5 +1,5 @@
 - name: get wan interface status
-  shell: nmcli dev sh {{ router_wan_interface }}
+  command: nmcli dev sh {{ router_wan_interface }}
   changed_when: false
   register: wan_int_raw
 
@@ -8,9 +8,11 @@
     wan_int_facts: "{{ wan_int_raw.stdout | from_yaml }}"
 
 - name: get wan settings
-  shell: nmcli con sh "{{ wan_int_facts['GENERAL.CONNECTION'] }}" | grep -v 802-3
-  changed_when: no
-  failed_when: no
+  shell: |
+    set -o pipefail
+    nmcli con sh "{{ wan_int_facts['GENERAL.CONNECTION'] }}" | grep -v 802-3
+  changed_when: false
+  failed_when: false
   register: wan_check
 
 - name: parse wan settings
@@ -18,14 +20,14 @@
     wan_facts: "{{ wan_check.stdout | from_yaml }}"
 
 - name: verify wan configuration
-  shell: nmcli con mod "{{ wan_int_facts['GENERAL.CONNECTION'] }}" "{{ item.key }}" "{{ item.target }}"
+  command: nmcli con mod "{{ wan_int_facts['GENERAL.CONNECTION'] }}" "{{ item.key }}" "{{ item.target }}"
   loop:
     - key: connection.zone
       target: external
     - key: ipv4.dns
       target: "{{ ','.join(['127.0.0.1'] + router_dns_forwarders) }}"
     - key: ipv4.ignore-auto-dns
-      target: yes
+      target: true
     - key: connection.id
       target: faroswan
   when:

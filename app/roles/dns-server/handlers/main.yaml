@@ -12,7 +12,7 @@
     owner: root
     group: named
     mode: 0644
-    create: yes
+    create: true
   loop:
     - line: "@ IN SOA ns.{{ dns_server_domain }}. {{ dns_server_domain }}. {{ serial_update.stdout }} 1D 1W 1W 3H;"
       regexp: "IN\\sSOA"
@@ -30,7 +30,7 @@
     owner: root
     group: named
     mode: 0644
-    create: yes
+    create: true
   loop:
     - line: "@ IN SOA ns.{{ dns_server_domain }}. {{ dns_server_domain }}. {{ serial_update.stdout }} 1D 1W 1W 3H;"
       regexp: "IN\\sSOA"

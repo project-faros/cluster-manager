@@ -1,7 +1,7 @@
 - name: install nvidia gpu drivers
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - name: ensure project exists
@@ -117,7 +117,7 @@
             namespace: gpu-operator-resources
           spec:
             operand:
-              image: 'registry.redhat.io/openshift4/ose-node-feature-discovery:v4.7.0'
+              image: "registry.redhat.io/openshift4/ose-node-feature-discovery:v4.7.0"
               imagePullPolicy: Always
               namespace: node-feature-discovery-operator
             workerConfig:
@@ -152,7 +152,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia/k8s
               securityContext: {}
-              version: 'sha256:ced606933cd2210768ee8488b624c64ac0bdce6f05d9c4b4210e251370a14ff8'
+              version: "sha256:ced606933cd2210768ee8488b624c64ac0bdce6f05d9c4b4210e251370a14ff8"
               image: dcgm-exporter
               tolerations: []
             devicePlugin:
@@ -163,18 +163,18 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: 'sha256:ea353fe57628f4d3c3e1cda126455d02f2277e3ee92fa9da441d409d76b2ac92'
+              version: "sha256:ea353fe57628f4d3c3e1cda126455d02f2277e3ee92fa9da441d409d76b2ac92"
               image: k8s-device-plugin
               tolerations: []
               args:
-                - '--mig-strategy=single'
-                - '--pass-device-specs=true'
-                - '--fail-on-init-error=true'
-                - '--device-list-strategy=envvar'
-                - '--nvidia-driver-root=/run/nvidia/driver'
+                - "--mig-strategy=single"
+                - "--pass-device-specs=true"
+                - "--fail-on-init-error=true"
+                - "--device-list-strategy=envvar"
+                - "--nvidia-driver-root=/run/nvidia/driver"
             driver:
               licensingConfig:
-                configMapName: ''
+                configMapName: ""
               nodeSelector: {}
               imagePullSecrets: []
               resources: {}
@@ -183,9 +183,9 @@
               repository: nvcr.io/nvidia
               securityContext: {}
               repoConfig:
-                configMapName: ''
-                destinationDir: ''
-              version: 'sha256:017d2e2a1bc410e9d2ac116683fc49a6f28e935cadee86e712cc147ea0239469'
+                configMapName: ""
+                destinationDir: ""
+              version: "sha256:017d2e2a1bc410e9d2ac116683fc49a6f28e935cadee86e712cc147ea0239469"
               image: driver
               tolerations: []
             gfd:
@@ -196,7 +196,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia
               securityContext: {}
-              version: 'sha256:bfc39d23568458dfd50c0c5323b6d42bdcd038c420fb2a2becd513a3ed3be27f'
+              version: "sha256:bfc39d23568458dfd50c0c5323b6d42bdcd038c420fb2a2becd513a3ed3be27f"
               image: gpu-feature-discovery
               tolerations: []
               migStrategy: single
@@ -207,7 +207,7 @@
                 image: cuda-sample
                 imagePullSecrets: []
                 repository: nvcr.io/nvidia/k8s
-                version: 'sha256:2a30fe7e23067bc2c3f8f62a6867702a016af2b80b9f6ce861f3fea4dfd85bc2'
+                version: "sha256:2a30fe7e23067bc2c3f8f62a6867702a016af2b80b9f6ce861f3fea4dfd85bc2"
               deployGFD: true
             toolkit:
               nodeSelector: {}
@@ -217,7 +217,7 @@
               podSecurityContext: {}
               repository: nvcr.io/nvidia/k8s
               securityContext: {}
-              version: 'sha256:c91875db54ad5d2a2ed396c8fd15cc666411ff35c58c634680946371d32507ae'
+              version: "sha256:c91875db54ad5d2a2ed396c8fd15cc666411ff35c58c634680946371d32507ae"
               image: container-toolkit
               tolerations: []
       register: cp_install

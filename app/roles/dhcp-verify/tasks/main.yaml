@@ -1,19 +1,20 @@
-
 - name: get list of ignored hosts
   shell: >
+    set -o pipefail
     grep '^# BEGIN MANAGED RECORD - ignore_' /etc/dhcp/dhcpd.static.conf |
     awk '{ print $6 }' |
     sed 's/^ignore_//g'
   register: dhcp_verify_file_ignored
-  changed_when: False
+  changed_when: false
 
 - name: get list of configured hosts
   shell: >
+    set -o pipefail
     grep '^# BEGIN MANAGED RECORD - ' /etc/dhcp/dhcpd.static.conf |
     grep -v '^# BEGIN MANAGED RECORD - ignore_' |
     awk '{ print $6 }'
   register: dhcp_verify_file_records
-  changed_when: False
+  changed_when: false
 
 - name: remove orphaned ignored hosts
   blockinfile:

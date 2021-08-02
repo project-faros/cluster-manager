@@ -2,7 +2,8 @@
   lineinfile:
     path: /etc/sysctl.d/99-faros.conf
     line: net.ipv4.ip_forwarding = 1
-    create: yes
+    create: true
+    mode: 0644
   notify: enable ip forwarding
 
 - import_tasks: wan_config.yaml

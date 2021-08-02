@@ -1,23 +1,23 @@
 #!/usr/bin/env ansible-playbook
 - name: Uninstall cluster load balancer
   hosts: bastion
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   tasks:
     - name: shutdown the load balancer service
       systemd:
         name: haproxy
         state: stopped
-        enabled: no
-        force: yes
+        enabled: false
+        force: true
 
     - name: shutdown the VIP service
       systemd:
         name: keepalived
         state: stopped
-        enabled: no
-        force: yes
+        enabled: false
+        force: true
 
     - name: delete load balancer configuration
       file:

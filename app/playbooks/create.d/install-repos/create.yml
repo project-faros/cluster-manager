@@ -4,8 +4,8 @@
 
 - name: create cluster encryption services
   hosts: bastion_hosts
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   roles:
     - name: tang
@@ -13,19 +13,19 @@
 
 - name: create red hat coreos ignition files
   hosts: localhost
-  gather_facts: no
-  become: no
+  gather_facts: false
+  become: false
 
   roles:
     - name: openshift-installer
       openshift_installer_dir: /data/openshift-installer
-      openshift_installer_cluster_id: '{{ cluster_name }}'
-      openshift_installer_base_domain: '{{ cluster_domain }}'
-      openshift_installer_control_plane: '{{ groups.control_plane }}'
+      openshift_installer_cluster_id: "{{ cluster_name }}"
+      openshift_installer_base_domain: "{{ cluster_domain }}"
+      openshift_installer_control_plane: "{{ groups.control_plane }}"
       openshift_installer_ssh_key: '{{ lookup("file", ansible_ssh_private_key_file + ".pub") }}'
       openshift_installer_fips_mode: "{{ fips_mode }}"
       openshift_installer_cache_disk: "{{ cache_disk }}"
-      openshift_installer_pull_secret: '{{ pull_secret | to_json }}'
+      openshift_installer_pull_secret: "{{ pull_secret | to_json }}"
       openshift_installer_version: "{{ lookup('ini', 'installer section=cluster file=/app/versions.ini') }}"
       openshift_installer_proxy: "{{ proxy }}"
       openshift_installer_proxy_http: "{{ proxy_http }}"
@@ -38,8 +38,8 @@
 
 - name: create openshift installation source repositories
   hosts: bastion_hosts
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
 
   roles:
     - name: content-servers
@@ -59,7 +59,7 @@
 
 - name: create pxelinux kickstart files
   hosts: cluster
-  gather_facts: no
+  gather_facts: false
 
   roles:
     - name: pxelinux-kickstarts

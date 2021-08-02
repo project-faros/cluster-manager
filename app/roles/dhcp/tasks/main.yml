@@ -9,14 +9,14 @@
         fixed-address {{ dhcp_ip }};
       }
     marker: "# {mark} MANAGED RECORD - {{ dhcp_name }}"
-    create: yes
+    create: true
     owner: root
     group: root
     mode: 0640
     state: "{% if dhcp_present|bool %}present{% else %}absent{% endif %}"
   notify: restart dhcpd
   delegate_to: dhcp
-  become: yes
+  become: true
   when: "not dhcp_ignore"
 
 - name: configure dhcp ignoring
@@ -28,13 +28,12 @@
         ignore booting;
       }
     marker: "# {mark} MANAGED RECORD - ignore_{{ dhcp_name }}"
-    create: yes
+    create: true
     owner: root
     group: root
     mode: 0640
     state: "{% if dhcp_present|bool %}present{% else %}absent{% endif %}"
   notify: restart dhcpd
   delegate_to: dhcp
-  become: yes
+  become: true
   when: "dhcp_ignore"
-

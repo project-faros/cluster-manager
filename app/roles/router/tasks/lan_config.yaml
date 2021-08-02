@@ -1,7 +1,9 @@
 - name: check for lan bridge
-  shell: nmcli con sh faroslan | grep -v 802-3
-  changed_when: no
-  failed_when: no
+  shell: |
+    set -o pipefail
+    nmcli con sh faroslan | grep -v 802-3
+  changed_when: false
+  failed_when: false
   register: br_check
 
 - name: parse bridge settings
@@ -21,10 +23,12 @@
   notify: restart faroslan
 
 - name: check interfaces for bridge membership
-  shell: nmcli con sh faroslan-{{ item }} | grep -v 802-3
+  shell: |
+    set -o pipefail
+    nmcli con sh faroslan-{{ item }} | grep -v 802-3
   loop: "{{ router_all_interfaces }}"
-  changed_when: no
-  failed_when: no
+  changed_when: false
+  failed_when: false
   register: member_check
 
 - name: add interfaces to the lan bridge
@@ -39,21 +43,21 @@
     label: "{{ item.item }}"
   when:
     - item.item is in router_lan_interfaces
-    - item.stdout == ""
+    - item.stdout|length == 0
   notify: restart faroslan
 
 - name: remove interfaces from the lan bridge
-  shell: nmcli con del faroslan-{{ item.item }}
+  command: nmcli con del faroslan-{{ item.item }}
   loop: "{{ member_check.results }}"
   loop_control:
     label: "{{ item.item }}"
   when:
     - item.item is not in router_lan_interfaces
-    - item.stdout != ""
+    - item.stdout|length > 0
   notify: restart faroslan
 
 - name: verify faroslan configuration
-  shell: nmcli con mod faroslan "{{ item.key }}" "{{ item.target }}"
+  command: nmcli con mod faroslan "{{ item.key }}" "{{ item.target }}"
   loop:
     - key: ipv4.method
       target: manual

@@ -1,19 +1,19 @@
 #!/usr/bin/env ansible-playbook
 - name: configure the hypervisor
   hosts: bastion_hosts
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
 
   roles:
     - name: hypervisor
 
 - name: configure virtual machines
   hosts: virtual
-  gather_facts: no
-  become: no
+  gather_facts: false
+  become: false
 
   roles:
     - name: virtual-machine
-      virtual_machine_hypervisor: '{{ mgmt_hostname }}'
+      virtual_machine_hypervisor: "{{ mgmt_hostname }}"
       virtual_machine_network: bridge=faroslan
       virtual_machine_disk: size=100,format=qcow2

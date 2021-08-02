@@ -1,19 +1,21 @@
 #!/usr/bin/env ansible-playbook
 - name: prepare cluster for shutdown
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
   vars:
-    graceful: yes
+    graceful: true
   tasks:
     - include_role:
         name: ocp-reset-csrs
       when: graceful|bool
+      tags:
+        - skip_ansible_lint
 
 - name: shutdown control plane
   hosts: control_plane
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - include_role:
@@ -26,4 +28,5 @@
         management_hostname: "{{ mgmt_hostname }}"
         management_user: "{{ mgmt_user }}"
         management_pass: "{{ mgmt_password }}"
-
+      tags:
+        - skip_ansible_lint

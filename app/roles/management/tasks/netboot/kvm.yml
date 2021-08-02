@@ -1,14 +1,16 @@
 - name: get current kvm server disk capacity
   shell: >
+    set -o pipefail
     virsh vol-info --pool default --vol {{ inventory_hostname }}.qcow2 |
     grep Capacity |
     awk '{ print $2; }'
   delegate_to: "{{ management_hostname }}"
-  become: yes
+  become: true
   register: kvm_vol_cap
-  changed_when: no
+  changed_when: false
 
-- debug:
+- name: debug print the disk capacity
+  debug:
     var: kvm_vol_cap.stdout.split('.')[0]
 
 - name: network boot kvm servers
@@ -18,4 +20,5 @@
     --capacity {{ kvm_vol_cap.stdout.split('.')[0] }}G --format qcow2 &&
     virsh start {{ inventory_hostname }}
   delegate_to: "{{ management_hostname }}"
-  become: yes
+  become: true
+  changed_when: true

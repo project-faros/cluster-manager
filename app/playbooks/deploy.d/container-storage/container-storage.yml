@@ -1,7 +1,7 @@
 - name: install openshift container storage
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - name: ensure project exists
@@ -27,7 +27,7 @@
             namespace: openshift-storage
           spec:
             targetNamespaces:
-            - openshift-storage
+              - openshift-storage
 
     - name: ensure subscription exists
       k8s:
@@ -59,25 +59,25 @@
             manageNodes: false
             monDataDirHostPath: /var/lib/rook
             storageDeviceSets:
-            - count: "{{ drives_per_node }}"
-              dataPVCTemplate:
-                spec:
-                  accessModes:
-                  - ReadWriteOnce
-                  resources:
-                    requests:
-                      storage: 1Gi
-                  storageClassName: localblock
-                  volumeMode: Block
-              name: ocs-deviceset
-              placement: {}
-              portable: false
-              replica: 3
-              resources: {}
-              encryption:
-                enable: true
-                kms: {}
-              flexibleScaling: True
+              - count: "{{ drives_per_node }}"
+                dataPVCTemplate:
+                  spec:
+                    accessModes:
+                      - ReadWriteOnce
+                    resources:
+                      requests:
+                        storage: 1Gi
+                    storageClassName: localblock
+                    volumeMode: Block
+                name: ocs-deviceset
+                placement: {}
+                portable: false
+                replica: 3
+                resources: {}
+                encryption:
+                  enable: true
+                  kms: {}
+                flexibleScaling: true
       retries: 60
       delay: 15
       register: apply

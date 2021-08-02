@@ -3,22 +3,16 @@
     path: /usr/local/share/cockpit/faros
     state: directory
     mode: 0755
-  register: install
+  notify: install cockpit plugin
 
-- name: install cockpit plugin
-  copy:
-    src: "{{ item }}"
-    dest: "/usr/local/share/cockpit/faros/{{ item }}"
-    mode: 0644
-  loop:
-    - index.html
-    - manifest.json
-  when: install is changed
+- name: Flush handlers
+  meta: flush_handlers
 
 - name: add links to cockpit - insert
   lineinfile:
     path: /usr/local/share/cockpit/faros/index.html
     line: <li><a href="{{ item.url }}" target="_blank">{{ item.name }}</a></li> <!-- {{ item.icon }} -->
+    # yamllint disable-line
     insertafter: <!-- ##START## -->
     regexp: "{{ item.name }}"
   loop: "{{ cockpit_links }}"
@@ -28,6 +22,7 @@
   lineinfile:
     path: /usr/local/share/cockpit/faros/index.html
     line: <li><a href="{{ item.url }}" target="_blank">{{ item.name }}</a></li> <!-- {{ item.icon }} -->
+    # yamllint disable-line
     insertbefore: <!-- ##END## -->
     regexp: "{{ item.name }}"
   loop: "{{ cockpit_links }}"

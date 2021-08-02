@@ -5,3 +5,4 @@ data
 venv
 devel.env
 data.tgz
+.cache

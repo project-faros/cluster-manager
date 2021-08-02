@@ -3,7 +3,7 @@
     command: list_vms
   register: all_vms
   delegate_to: "{{ virtual_machine_hypervisor }}"
-  become: yes
+  become: true
 
 - name: create virtual machine
   shell: >
@@ -20,7 +20,7 @@
     --check disk_size=off
   when: inventory_hostname not in all_vms.list_vms
   delegate_to: "{{ virtual_machine_hypervisor }}"
-  become: yes
+  become: true
 
   # Haswell CPU specification fixes some bug in kvm where it might not like
   # the EL8000 CPUs. Or something. I don't know, I'm tired and it works.

@@ -8,7 +8,7 @@
     path: /etc/chrony.conf
     line: allow {{ ntp_server_allowed }}
     regexp: '#*\s*allow'
-    firstmatch: yes
+    firstmatch: true
   when: ntp_server_allowed != omit
   notify: restart chronyd
 
@@ -16,10 +16,10 @@
   ansible.posix.firewalld:
     service: ntp
     state: enabled
-    permanent: yes
+    permanent: true
 
 - name: ensure chrony is running/enabled
   service:
     name: chronyd
     state: started
-    enabled: yes
+    enabled: true

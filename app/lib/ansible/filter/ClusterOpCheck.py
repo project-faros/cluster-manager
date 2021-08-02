@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 TARGET = {
     'Degraded': ['False'],
     'Progressing': ['False'],

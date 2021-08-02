@@ -3,16 +3,16 @@
     router_ingress_routing: '{{ "External to Internal Routing - DANGER" in allowed_services }}'
 - name: calculate desired firewall state
   set_fact:
-    router_ext_masq: 'yes'
-    router_int_masq: 'no'
-    router_external_target: '{% if router_ingress_routing %}default{% else %}DROP{% endif %}'
-    router_internal_target: 'ACCEPT'
+    router_ext_masq: "yes"
+    router_int_masq: "no"
+    router_external_target: "{% if router_ingress_routing %}default{% else %}DROP{% endif %}"
+    router_internal_target: "ACCEPT"
     router_ingress_ssh: '{% if "SSH to Bastion" in allowed_services %}enabled{% else %}disabled{% endif %}'
     router_ingress_cockpit: '{% if "HTTPS to Cockpit Panel" in allowed_services %}enabled{% else %}disabled{% endif %}'
     router_ingress_api: '{% if router_ingress_routing and "HTTPS to Cluster API" in allowed_services %}enabled{% else %}disabled{% endif %}'
     router_ingress_http: '{% if router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services %}enabled{% else %}disabled{% endif %}'
     router_ingress_https: '{% if router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services %}enabled{% else %}disabled{% endif %}'
-    router_ingress_target: '{% if router_ingress_routing %}default{% else %}DROP{% endif %}'
+    router_ingress_target: "{% if router_ingress_routing %}default{% else %}DROP{% endif %}"
     router_forward_api: '{{ not router_ingress_routing and "HTTPS to Cluster API" in allowed_services }}'
     router_forward_http: '{{ not router_ingress_routing and "HTTP to Cluster Apps" in allowed_services }}'
     router_forward_https: '{{ not router_ingress_routing and "HTTPS to Cluster Apps" in allowed_services }}'
@@ -21,45 +21,45 @@
   service:
     name: firewalld
     state: started
-    enabled: yes
+    enabled: true
 
 - name: query current external firewall state
   command: firewall-cmd --zone=external --permanent --get-target
   register: router_external_target_current
-  changed_when: no
+  changed_when: false
 - name: query current internal firewall state
   command: firewall-cmd --zone=internal --permanent --get-target
   register: router_internal_target_current
-  changed_when: no
+  changed_when: false
 
 # MASQUERADING
 - name: ensure masquerading is enabled
   ansible.posix.firewalld:
     zone: "external"
-    masquerade: '{{ router_ext_masq }}'
-    permanent: yes
-    immediate: yes
+    masquerade: "{{ router_ext_masq }}"
+    permanent: true
+    immediate: true
     state: enabled
 - name: ensure internal masquerading is configured
   ansible.posix.firewalld:
     zone: "internal"
-    masquerade: '{{ router_int_masq }}'
-    permanent: yes
-    immediate: yes
+    masquerade: "{{ router_int_masq }}"
+    permanent: true
+    immediate: true
     state: enabled
 
 # DEFAULT ACTION / PACKET FORWARDING ACTION
 - name: configure the external default target
   command: "firewall-cmd --zone=external --permanent --set-target={{ router_external_target }}"
-  changed_when: yes
+  changed_when: true
   when: router_external_target != router_external_target_current.stdout
 - name: configure the internal default target
   command: "firewall-cmd --zone=internal --permanent --set-target={{ router_internal_target }}"
-  changed_when: yes
+  changed_when: true
   when: router_internal_target != router_internal_target_current.stdout
 - name: reload firewall with new default external target
   command: "firewall-cmd --reload"
-  changed_when: yes
+  changed_when: true
   when: >
     router_external_target != router_external_target_current.stdout or
     router_internal_target != router_internal_target_current.stdout
@@ -69,52 +69,52 @@
   ansible.posix.firewalld:
     zone: external
     service: ssh
-    permanent: yes
-    immediate: yes
-    state: '{{ router_ingress_ssh }}'
+    permanent: true
+    immediate: true
+    state: "{{ router_ingress_ssh }}"
 - name: configure ingress https to cockpit
   ansible.posix.firewalld:
     zone: external
     service: cockpit
-    permanent: yes
-    immediate: yes
-    state: '{{ router_ingress_cockpit }}'
+    permanent: true
+    immediate: true
+    state: "{{ router_ingress_cockpit }}"
 
 # INGRESS SERVICES - NAT
 - name: configure https to cluster api NAT
   ansible.posix.firewalld:
     zone: "external"
     port: 6443/tcp
-    permanent: yes
-    immediate: yes
-    state: '{{ router_ingress_api }}'
+    permanent: true
+    immediate: true
+    state: "{{ router_ingress_api }}"
 - name: configure https to cluster apps NAT
   ansible.posix.firewalld:
     zone: "external"
     port: 443/tcp
-    permanent: yes
-    immediate: yes
-    state: '{{ router_ingress_https }}'
+    permanent: true
+    immediate: true
+    state: "{{ router_ingress_https }}"
 - name: configure http to cluster apps NAT
   ansible.posix.firewalld:
     zone: "external"
     port: 80/tcp
-    permanent: yes
-    immediate: yes
-    state: '{{ router_ingress_http }}'
+    permanent: true
+    immediate: true
+    state: "{{ router_ingress_http }}"
 
 # INGRESS SERVICES - PAT
 - name: configure port forward
   ansible.posix.firewalld:
     zone: external
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
     state: "{% if item.exist %}enabled{% else %}disabled{% endif %}"
     port_forward:
-    - port: "{{ item.port }}"
-      proto: tcp
-      toaddr: "{{ router_loadbalancer }}"
-      toport: "{{ item.port }}"
+      - port: "{{ item.port }}"
+        proto: tcp
+        toaddr: "{{ router_loadbalancer }}"
+        toport: "{{ item.port }}"
   loop:
     - name: ingress https to cluster api
       port: 6443

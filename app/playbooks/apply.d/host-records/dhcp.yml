@@ -4,7 +4,7 @@
 
 - name: Configure Cluster Node DHCP records
   hosts: cluster
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   roles:
@@ -12,7 +12,7 @@
 
 - name: Configure Management DHCP records
   hosts: cluster:!virtual
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   roles:
@@ -23,7 +23,7 @@
 
 - name: Configure extra DHCP records
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -44,7 +44,7 @@
 
 - name: Configure ignored MAC Addresses
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   serial: 1
 
   vars:
@@ -58,18 +58,17 @@
       vars:
         dhcp_name: "{{ node.name }}"
         dhcp_mac_address: "{{ node.mac }}"
-        dhcp_ignore: yes
+        dhcp_ignore: true
       loop: "{{ ignored_macs }}"
       loop_control:
         loop_var: node
 
 - name: Check for orphaned dhcp entries
   hosts: bastion
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
 
   roles:
     - name: dhcp-verify
       dhcp_verify_ignored: "{{ ignored_macs | from_json | json_query('[*].name') }}"
       dhcp_verify_records: "{{ lookup('inventory_hostnames', 'cluster,management').split(',') + extra_nodes | json_query('[*].name') }}"
-

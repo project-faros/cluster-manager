@@ -26,4 +26,3 @@ PROMPT 0
 LABEL rhcos_install
     KERNEL {{ kernel }}
     APPEND {{ ip }} rd.neednet=1 initrd={{ initrd }} nomodeset coreos.inst=yes coreos.inst.install_dev={{ disk }} coreos.live.rootfs_url={{ rootfs }} coreos.inst.ignition_url={{ ign }}
-

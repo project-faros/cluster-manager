@@ -1,7 +1,7 @@
 - name: turn off uid light
   hosts: cluster
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - name: turn off uid light (ilo)

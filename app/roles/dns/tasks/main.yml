@@ -6,17 +6,18 @@
     dns_rev_zone_db: "/var/named/zone.{{ dns_reverse_domain }}"
     dns_zone_serial: "/var/named/serial.{{ dns_domain }}"
   delegate_to: dns
-  become: yes
+  become: true
 
 - name: ensure forward entry exists in zone (not SRV)
   lineinfile:
     line: "{{ dns_hostname }} IN {{ dns_type }} {{ dns_value }}"
     dest: "{{ dns_fwd_zone_db }}"
     regexp: ";*\\w*{{ dns_hostname | replace('*', '\\*') }} IN"
-    create: yes
+    create: true
+    mode: 0644
     state: "{% if dns_present|bool %}present{% else %}absent{% endif %}"
   delegate_to: dns
-  become: yes
+  become: true
   when: dns_type != "SRV"
   notify: update serial
 
@@ -24,10 +25,11 @@
   lineinfile:
     line: "{{ dns_hostname }} IN {{ dns_type }} {{ dns_value }}"
     dest: "{{ dns_fwd_zone_db }}"
-    create: yes
+    create: true
+    mode: 0644
     state: "{% if dns_present|bool %}present{% else %}absent{% endif %}"
   delegate_to: dns
-  become: yes
+  become: true
   when: dns_type == "SRV"
   notify: update serial
 
@@ -41,5 +43,5 @@
     - dns_reverse
     - dns_type == "A"
   delegate_to: dns
-  become: yes
+  become: true
   notify: update serial

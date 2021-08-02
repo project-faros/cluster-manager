@@ -4,10 +4,10 @@
     state: restarted
   listen: restart dhcpd
   delegate_to: dhcp
-  become: yes
+  become: true
 
 - name: sleep
   command: sleep 2
   delegate_to: localhost
-  become: no
+  become: false
   listen: restart dhcpd

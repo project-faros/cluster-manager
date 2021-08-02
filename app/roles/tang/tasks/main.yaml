@@ -21,15 +21,19 @@
   service:
     name: tangd.socket
     state: started
-    enabled: yes
+    enabled: true
 
 - name: check if tang keys exist
-  shell: "ls /var/db/tang | wc -l"
+  shell: |
+    set -o pipefail
+    ls /var/db/tang | wc -l
   register: key_check
-  changed_when: no
+  changed_when: false
 
 - name: force tang to generate new keys
-  shell: "echo 'test' | clevis-encrypt-tang '{\"url\":\"http://localhost:{{ tang_port }}\"}' -y"
+  shell: |
+    set -o pipefail
+    echo 'test' | clevis-encrypt-tang '{"url":"http://localhost:{{ tang_port }}"}' -y
   when: "key_check.stdout|int == 0"
 
 - name: gather tang public key
@@ -38,9 +42,9 @@
       - tang-show-keys
       - "{{ tang_port }}"
   register: key_lkp
-  changed_when: no
+  changed_when: false
 
 - name: save tang public key
   set_fact:
     tang_key: "{{ key_lkp.stdout }}"
-  changed_when: no
+  changed_when: false

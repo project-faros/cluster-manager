@@ -1,15 +1,15 @@
 - name: Wait for management interfaces to respond
   hosts: cluster:!virtual
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - name: wait for mgmt interfaces reachable from bastion
       shell: ping -c 1 {{ mgmt_hostname }}
       delegate_to: "{{ groups.bastion_hosts[0] }}"
-      become: no
+      become: false
       register: node_ping
       until: "node_ping is not failed"
       retries: 360
       delay: 10
-      changed_when: no
+      changed_when: false

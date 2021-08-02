@@ -20,7 +20,7 @@
     mode: 0640
     state: file
   register: custom_conf_check
-  ignore_errors: yes
+  ignore_errors: true
   notify: restart named
 
 - name: create custom dns conf file
@@ -36,18 +36,20 @@
 - name: read dns zone serial
   command: cat /var/named/serial.{{ dns_server_domain }}
   register: serial
-  changed_when: no
-  ignore_errors: yes
+  changed_when: false
+  ignore_errors: true
 
 - name: initialize dns zone serial
-  shell: date +%s | tee /var/named/serial.{{ dns_server_domain }}
+  shell: |
+    set -o pipefail
+    date +%s | tee /var/named/serial.{{ dns_server_domain }}
   when: serial is failed
-  changed_when: yes
+  changed_when: true
 
 - name: read dns zone serial
   command: cat /var/named/serial.{{ dns_server_domain }}
   register: serial
-  changed_when: no
+  changed_when: false
 
 - name: ensure forward dns zone is configured
   lineinfile:
@@ -57,7 +59,7 @@
     owner: root
     group: named
     mode: 0644
-    create: yes
+    create: true
   loop:
     - line: "$TTL 1D"
       regexp: "^\\$TTL"
@@ -83,7 +85,7 @@
     owner: root
     group: named
     mode: 0644
-    create: yes
+    create: true
   loop:
     - line: "$TTL 1D"
       regexp: "^\\$TTL"
@@ -102,15 +104,15 @@
   service:
     name: named
     state: started
-    enabled: yes
+    enabled: true
 
 - name: ensure firewall allows internal access to dns
   ansible.posix.firewalld:
     zone: internal
     port: 53/{{ item }}
     state: enabled
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
   loop:
     - tcp
     - udp

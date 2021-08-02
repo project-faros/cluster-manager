@@ -20,7 +20,7 @@
     mode: 0640
     state: file
   register: custom_conf_check
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: create custom dhcpd conf file
   file:
@@ -39,7 +39,7 @@
     mode: 0640
     state: file
   register: custom_static_check
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: create static dhcpd conf file
   file:
@@ -54,15 +54,15 @@
   service:
     name: dhcpd
     state: started
-    enabled: yes
+    enabled: true
 
 - name: ensure firewall allows internal access to dhcp
   ansible.posix.firewalld:
     zone: internal
     port: 67/{{ item }}
     state: enabled
-    permanent: yes
-    immediate: yes
+    permanent: true
+    immediate: true
   loop:
     - tcp
     - udp

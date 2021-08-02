@@ -1,20 +1,20 @@
 - name: install openshift local storage
   hosts: localhost
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
 
   tasks:
     - name: get storage node drive id paths
       shell: "oc debug -n default node/{{ item }} -- chroot /host find /dev/disk/by-id -type l -exec readlink -nf {} ';' -exec echo ': {}' ';' | egrep '(wwn|eui)' | sed 's/\\/dev\\///'"
       loop: "{{ stg_drives | json_query('[*].host') }}"
       register: drive_id_lkp
-      changed_when: no
+      changed_when: false
 
     - name: save storage node drive id paths
       set_fact:
         drive_ids: "{{ drive_ids|default({}) | combine({ item.item : item.stdout | from_yaml }) }}"
       loop: "{{ drive_id_lkp.results }}"
-      changed_when: no
+      changed_when: false
 
     - name: ensure project exists
       k8s:
@@ -39,7 +39,7 @@
             namespace: openshift-local-storage
           spec:
             targetNamespaces:
-            - openshift-local-storage
+              - openshift-local-storage
 
     - name: ensure subscription exists
       k8s:
@@ -100,9 +100,9 @@
           spec:
             nodeSelector:
               nodeSelectorTerms:
-              - matchExpressions:
-                  - key: cluster.ocs.openshift.io/openshift-storage
-                    operator: Exists
+                - matchExpressions:
+                    - key: cluster.ocs.openshift.io/openshift-storage
+                      operator: Exists
             storageClassDevices:
               - storageClassName: localblock
                 volumeMode: Block

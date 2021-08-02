@@ -40,4 +40,3 @@ RUN rpm -i /app/tmp/ilorest-3.0.1-7.x86_64.rpm; \
 
 ENTRYPOINT ["/app/bin/entry.sh"]
 CMD ["/app/bin/run.sh"]
-
