@@ -40,7 +40,7 @@
         dhcp_mac_address: "{{ node.mac }}"
       loop: "{{ extra_nodes }}"
       loop_control:
-        loop_var: falsede
+        loop_var: node
 
 - name: Configure ignored MAC Addresses
   hosts: localhost
@@ -61,7 +61,7 @@
         dhcp_ignore: true
       loop: "{{ ignored_macs }}"
       loop_control:
-        loop_var: falsede
+        loop_var: node
 
 - name: Check for orphaned dhcp entries
   hosts: bastion

@@ -98,4 +98,4 @@
         dns_value: "{{ node.ip }}"
       loop: "{{ extra_nodes }}"
       loop_control:
-        loop_var: falsede
+        loop_var: node

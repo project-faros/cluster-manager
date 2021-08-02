@@ -19,5 +19,6 @@
     virsh vol-create-as --pool default --name {{ inventory_hostname }}.qcow2
     --capacity {{ kvm_vol_cap.stdout.split('.')[0] }}G --format qcow2 &&
     virsh start {{ inventory_hostname }}
-  delegate_to: "{{ management_hostname }}" # noqa no-changed-when
+  delegate_to: "{{ management_hostname }}"
   become: true
+  changed_when: true

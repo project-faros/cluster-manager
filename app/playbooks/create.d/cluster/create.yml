@@ -73,7 +73,7 @@
       shell: ping -c 1 {{ ansible_host }}
       delegate_to: "{{ groups.bastion_hosts[0] }}"
       become: false
-      register: falsede_ping
+      register: node_ping
       until: "node_ping is not failed"
       retries: 30
       delay: 10

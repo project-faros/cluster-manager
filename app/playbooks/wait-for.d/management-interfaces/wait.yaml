@@ -8,7 +8,7 @@
       shell: ping -c 1 {{ mgmt_hostname }}
       delegate_to: "{{ groups.bastion_hosts[0] }}"
       become: false
-      register: falsede_ping
+      register: node_ping
       until: "node_ping is not failed"
       retries: 360
       delay: 10

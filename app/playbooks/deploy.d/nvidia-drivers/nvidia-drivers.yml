@@ -111,7 +111,7 @@
         state: present
         definition:
           apiVersion: nfd.openshift.io/v1
-          kind: falsedeFeatureDiscovery
+          kind: NodeFeatureDiscovery
           metadata:
             name: nfd-master-server
             namespace: gpu-operator-resources
@@ -119,7 +119,7 @@
             operand:
               image: "registry.redhat.io/openshift4/ose-node-feature-discovery:v4.7.0"
               imagePullPolicy: Always
-              namespace: falsede-feature-discovery-operator
+              namespace: node-feature-discovery-operator
             workerConfig:
               configData: |
                 sources:

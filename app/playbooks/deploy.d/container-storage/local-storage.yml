@@ -67,7 +67,7 @@
         state: present
         definition:
           apiVersion: v1
-          kind: falsede
+          kind: Node
           metadata:
             name: "{{ item }}"
             labels:
@@ -80,7 +80,7 @@
         state: present
         definition:
           apiVersion: v1
-          kind: falsede
+          kind: Node
           metadata:
             name: "{{ item }}"
             labels:
