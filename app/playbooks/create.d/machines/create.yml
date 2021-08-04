@@ -17,3 +17,8 @@
       virtual_machine_hypervisor: "{{ mgmt_hostname }}"
       virtual_machine_network: bridge=faroslan
       virtual_machine_disk: size=100,format=qcow2
+      virtual_machine_vcpus: '{{ guest_cores | default(4) }}'
+      virtual_machine_memory: '{{ guest_mem | default(4096) }}'
+      virtual_machine_hostdevs: '{{ guest_devices | default([]) }}'
+      virtual_machine_autostart: '{{ inventory_hostname != "bootstrap" }}'
+      virtual_machine_hostdrives: '{{ guest_drives | default ([]) }}'

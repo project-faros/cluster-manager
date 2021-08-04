@@ -1,0 +1,25 @@
+- name: inspect vm for desired drive mapping
+  shell: virsh dumpxml {{ inventory_hostname }} | grep "<source dev='/dev/{{ drive }}'/>"
+  ignore_errors: yes
+  register: hostdev_check
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+
+- name: add host drive to virtual machine
+  when: hostdev_check is failed
+  block:
+    - name: lookup next drive letter
+      shell: sudo virsh dumpxml node-3 | sed -rn "s/^.*'sd([a-z])'.*$/\1/p" | sort | tail -n 1 | tr '_a-z' 'a-z_'
+      register: next_drive_lkp
+      changed_when: false
+      delegate_to: "{{ virtual_machine_hypervisor }}"
+      become: yes
+
+    - name: save next drive
+      set_fact:
+        next_drive: 'sd{% if next_drive_lkp.stdout %}{{ next_drive_lkp.stdout }}{% else %}a{% endif %}'
+
+    - name: attach drive to virtual machine
+      command: "virsh attach-disk {{ inventory_hostname }} /dev/{{ drive }}  {{ next_drive }} --persistent"
+      delegate_to: "{{ virtual_machine_hypervisor }}"
+      become: yes

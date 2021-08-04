@@ -18,10 +18,22 @@
     --cpu Haswell-noTSX
     --noautoconsole
     --check disk_size=off
+    {% if virtual_machine_autostart %}--autostart{% endif %}
   when: inventory_hostname not in all_vms.list_vms
   delegate_to: "{{ virtual_machine_hypervisor }}"
   become: true
-
   # Haswell CPU specification fixes some bug in kvm where it might not like
   # the EL8000 CPUs. Or something. I don't know, I'm tired and it works.
   # https://bugzilla.redhat.com/show_bug.cgi?id=1657738
+
+- name: ensure host devices are mapped
+  include_tasks: host_devices.yml
+  loop: '{{ virtual_machine_hostdevs }}'
+  loop_control:
+    loop_var: device
+
+- name: ensure host drives are mapped
+  include_tasks: host_drives.yml
+  loop: '{{ virtual_machine_hostdrives }}'
+  loop_control:
+    loop_var: drive

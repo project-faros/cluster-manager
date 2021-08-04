@@ -50,6 +50,9 @@ class ClusterConfigurator(Configurator):
         bastion_drives = os.environ.get('BASTION_UNMOUNTED_DRIVES', '').split()
         self.bastionvm = ParameterCollection('bastionvm', 'Bastion Node Guest', [
             BooleanParameter('GUEST', 'Create app node VM on bastion', 'False'),
+            Parameter('GUEST_NAME', 'Node name'),
+            Parameter('GUEST_CORES', 'Core Count'),
+            Parameter('GUEST_MEM', 'Memory (GB)'),
             CheckParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', stubbed_devices),
             CheckParameter('GUEST_DRIVES', 'Host drives to passthrough', bastion_drives)])
 
