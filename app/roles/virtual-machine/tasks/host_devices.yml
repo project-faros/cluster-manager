@@ -1,0 +1,20 @@
+- name: inspect vm for desired host device mapping
+  shell: virsh dumpxml {{ inventory_hostname }} | grep "domain='0x{{ device.domain }}' bus='0x{{ device.bus }}' slot='0x{{ device.slot }}' function='0x{{ device.function }}'"
+  ignore_errors: yes
+  register: hostdev_check
+
+- name: add host device to virtual machine
+  when: hostdev_check is failed
+  block:
+    - name: create temp file for device definition
+      tempfile:
+        state: file
+        suffix: _tmp.xml
+      register: xml_file
+
+    - name: generate device xml definition
+      command: virsh nodedev-dumpxml pci_{{ device.domain }}_{{ device.bus }}_{{ device.slot }}_{{ device.function }} > {{ xml_file.path }}
+      changed_when: true
+
+    - name: attach device to virtual machine
+      command: virsh attach-device {{ inventory_hostname }} {{ xml_file.path }} --persistent
