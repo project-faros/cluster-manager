@@ -2,6 +2,7 @@
   shell: virsh dumpxml {{ inventory_hostname }} | grep "<source dev='/dev/{{ drive }}'/>"
   ignore_errors: yes
   register: hostdev_check
+  changed_when: false
   delegate_to: "{{ virtual_machine_hypervisor }}"
   become: yes
 
