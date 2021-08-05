@@ -26,6 +26,44 @@
   # the EL8000 CPUs. Or something. I don't know, I'm tired and it works.
   # https://bugzilla.redhat.com/show_bug.cgi?id=1657738
 
+- name: gather current ram allocation
+  shell: >
+    virsh dumpxml {{ virtual_machine_name }} |
+    sed -rn "s/^.*<memory.*?>([0-9]+)<\/memory>/\1/p"
+  register: vm_ram
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+  changed_when: false
+
+- name: ensure vm ram is properly allocated
+  shell: >
+    virsh setmem {{ virtual_machine_name }} --config
+    --size {{ virtual_machine_memory|int * 1024 }} ;
+    virsh setmaxmem {{ virtual_machine_name }} --config
+    --size {{ virtual_machine_memory|int * 1024 }}
+  when: vm_ram.stdout|int - virtual_machine_memory|int * 1024 > 1024
+  changed_when: true
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+
+- name: gather current cpu allocation
+  shell: >
+    virsh dumpxml {{ virtual_machine_name }} |
+    sed -rn "s/^.*<vcpu.*?>([0-9]+)<\/vcpu>/\1/p"
+  register: vm_cpu
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+  changed_when: false
+
+- name: ensure vm cpu is properly allocated
+  command: >
+    virsh setvcpus {{ virtual_machine_name }} --config --maximum
+    --count {{ virtual_machine_vcpus|int }}
+  when: vm_ram.stdout|int - virtual_machine_memory|int * 1024 > 1024
+  changed_when: true
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: yes
+
 - name: ensure host devices are mapped
   include_tasks: host_devices.yml
   loop: '{{ virtual_machine_hostdevs }}'
