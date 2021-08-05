@@ -1,3 +1,4 @@
+virtual_machine_name: '{{ inventory_hostname }}'
 virtual_machine_hypervisor: 'localhost'
 virtual_machine_vcpus: 4
 virtual_machine_memory: 4096

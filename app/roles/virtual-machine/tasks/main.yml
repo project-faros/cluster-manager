@@ -7,7 +7,7 @@
 
 - name: create virtual machine
   shell: >
-    virt-install --name={{ inventory_hostname }}
+    virt-install --name={{ virtual_machine_name }}
     --vcpus={{ virtual_machine_vcpus }}
     --memory={{ virtual_machine_memory }}
     --disk={{ virtual_machine_disk }}
@@ -19,7 +19,7 @@
     --noautoconsole
     --check disk_size=off
     {% if virtual_machine_autostart %}--autostart{% endif %}
-  when: inventory_hostname not in all_vms.list_vms
+  when: virtual_machine_name not in all_vms.list_vms
   delegate_to: "{{ virtual_machine_hypervisor }}"
   become: true
   # Haswell CPU specification fixes some bug in kvm where it might not like

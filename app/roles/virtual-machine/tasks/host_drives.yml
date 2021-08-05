@@ -1,5 +1,5 @@
 - name: inspect vm for desired drive mapping
-  shell: virsh dumpxml {{ inventory_hostname }} | grep "<source dev='/dev/{{ drive }}'/>"
+  shell: virsh dumpxml {{ virtual_machine_name }} | grep "<source dev='/dev/{{ drive }}'/>"
   ignore_errors: yes
   register: hostdev_check
   changed_when: false
@@ -21,6 +21,6 @@
         next_drive: 'sd{% if next_drive_lkp.stdout %}{{ next_drive_lkp.stdout }}{% else %}a{% endif %}'
 
     - name: attach drive to virtual machine
-      command: "virsh attach-disk {{ inventory_hostname }} /dev/{{ drive }}  {{ next_drive }} --persistent"
+      command: "virsh attach-disk {{ virtual_machine_name }} /dev/{{ drive }}  {{ next_drive }} --persistent"
       delegate_to: "{{ virtual_machine_hypervisor }}"
       become: yes

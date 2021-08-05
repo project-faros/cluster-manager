@@ -6,4 +6,5 @@
 
   roles:
     - name: vm-gather-facts
-      hypervisor: "{{ groups.bastion_hosts.0 }}"
+      hypervisor: '{{ groups.bastion_hosts.0 }}'
+      primary_network: faroslan

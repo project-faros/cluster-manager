@@ -272,7 +272,8 @@ def main(config, ipam, inv):
     cluster.add_host('bootstrap', ip,
             ansible_ssh_user='core',
             node_role='bootstrap',
-            cluster_nic='')
+            cluster_nic='',
+            virsh_name='bootstrap')
     # CLUSTER CONTROL PLANE NODES
     cp = cluster.add_group('control_plane', node_role='master')
     node_defs = json.loads(config['CP_NODES'])
@@ -300,10 +301,11 @@ def main(config, ipam, inv):
         app.add_host(config['GUEST_NAME'], ipam[config['GUEST_NAME']],
            ansible_ssh_user='core',
            cluster_nic='enp1s0',
-           guest_cores = int(config['GUEST_CORES']),
-           guest_mem = int(config['GUEST_MEM']) * 1024,
-           guest_drives = json.loads(config['GUEST_DRIVES']),
-           guest_devices = guest_devices)
+           guest_cores=int(config['GUEST_CORES']),
+           guest_mem=int(config['GUEST_MEM']) * 1024,
+           guest_drives=json.loads(config['GUEST_DRIVES']),
+           guest_devices=guest_devices,
+           virsh_name='guest_node')
 
     # VIRTUAL NODES
     virt = inv.add_group('virtual',

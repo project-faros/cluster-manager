@@ -1,5 +1,5 @@
 - name: inspect vm for desired host device mapping
-  shell: virsh dumpxml {{ inventory_hostname }} | grep "domain='0x{{ device.domain }}' bus='0x{{ device.bus }}' slot='0x{{ device.slot }}' function='0x{{ device.function }}'"
+  shell: virsh dumpxml {{ virtual_machine_name }} | grep "domain='0x{{ device.domain }}' bus='0x{{ device.bus }}' slot='0x{{ device.slot }}' function='0x{{ device.function }}'"
   ignore_errors: yes
   register: hostdev_check
   delegate_to: "{{ virtual_machine_hypervisor }}"
@@ -25,7 +25,7 @@
       become: yes
 
     - name: attach device to virtual machine
-      command: "virsh attach-device {{ inventory_hostname }} {{ xml_file.path }} --persistent"
+      command: "virsh attach-device {{ virtual_machine_name }} {{ xml_file.path }} --persistent"
       delegate_to: "{{ virtual_machine_hypervisor }}"
       become: yes
 

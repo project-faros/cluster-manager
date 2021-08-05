@@ -1,14 +1,21 @@
 - name: lookup kvm mac adress
   shell: >
-    set -o pipefail
-    virsh domiflist --domain {{ inventory_hostname }} |
-    tail -n2 |
-    awk '{ print $5 }'
+    set -o pipefail;
+    virsh domiflist --domain {{ virsh_name }} |
+    jq -R -s 'split("\n")[2:] |
+              map([splits(" +")]) |
+              map({interface: .[1], type: .[2], source: .[3],
+                   model: .[4], mac: .[5]}) |
+              map(select(.source != null))'
   delegate_to: "{{ hypervisor }}"
   become: true
-  register: dommac_lkp
+  register: domif_lkp
   changed_when: false
 
-- name: save mac address
+- name: save network interface data
   set_fact:
-    mac_address: "{{ dommac_lkp.stdout }}"
+    network_interfaces: "{{ domif_lkp.stdout | from_json }}"
+
+- name: save primary mac address
+  set_fact:
+    mac_address: "{{ network_interfaces | json_query('[?source==`' + primary_network + '`].mac | [0]')}}"
