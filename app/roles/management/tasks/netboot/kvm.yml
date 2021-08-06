@@ -1,7 +1,7 @@
 - name: get current kvm server disk capacity
   shell: >
-    set -o pipefail
-    virsh vol-info --pool default --vol {{ inventory_hostname }}.qcow2 |
+    set -o pipefail;
+    virsh vol-info --pool default --vol {{ virsh_name | default(inventory_hostname) }}.qcow2 |
     grep Capacity |
     awk '{ print $2; }'
   delegate_to: "{{ management_hostname }}"
@@ -15,10 +15,10 @@
 
 - name: network boot kvm servers
   shell: >
-    virsh vol-delete --pool default --vol {{ inventory_hostname }}.qcow2 &&
-    virsh vol-create-as --pool default --name {{ inventory_hostname }}.qcow2
+    virsh vol-delete --pool default --vol {{ virsh_name | default(inventory_hostname) }}.qcow2 &&
+    virsh vol-create-as --pool default --name {{ virsh_name | default(inventory_hostname) }}.qcow2
     --capacity {{ kvm_vol_cap.stdout.split('.')[0] }}G --format qcow2 &&
-    virsh start {{ inventory_hostname }}
+    virsh start {{ virsh_name | default(inventory_hostname) }}
   delegate_to: "{{ management_hostname }}"
   become: true
   changed_when: true

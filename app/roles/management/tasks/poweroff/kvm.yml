@@ -1,6 +1,6 @@
 - name: power off kvm server power state
   virt:
-    name: "{{ inventory_hostname }}"
+    name: "{{ virsh_name | default(inventory_hostname) }}"
     state: destroyed
   delegate_to: "{{ management_hostname }}"
   become: true
