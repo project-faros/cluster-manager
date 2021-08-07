@@ -1,0 +1,46 @@
+- name: auto-approve all pending nodes
+  block:
+    - name: delay
+      pause:
+        seconds: 15
+
+    - name: approve all pending certificate requests
+      shell: >
+        {% raw %}
+        oc get csr
+        -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' |
+        xargs --no-run-if-empty oc adm certificate approve
+        {% endraw %}
+      register: approve
+      changed_when: approve.stdout_lines | length
+
+    - name: check new node status
+      shell: >
+        set -o pipefail;
+        oc get node {{ item }}.{{ cluster_name }}.{{ cluster_domain }} -o json |
+        jq -r '.status.conditions[] | select(.reason=="KubeletReady").status'
+      ignore_errors: true
+      register: node_ready
+      with_inventory_hostnames:
+        - new_app_nodes
+      changed_when: false
+
+    - name: all nodes must be ready to continue
+      fail:
+        msg: not all new nodes are ready
+      when: >
+        node_ready | json_query('results[?stdout==`True`].item') | length <
+        groups.new_app_nodes | length
+
+  rescue:
+    - name: ensure timeout has not been exceeded
+      fail:
+        msg: new application nodes failed to become ready
+      when: retry_count | default(0) | int > 240
+
+    - name: update loop counter
+      set_fact:
+        retry_count: "{{ retry_count | default(0) | int + 1 }}"
+
+    - name: loop
+      include_tasks: approve-csrs.yml
