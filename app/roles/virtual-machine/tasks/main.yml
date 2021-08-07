@@ -59,7 +59,7 @@
   command: >
     virsh setvcpus {{ virtual_machine_name }} --config --maximum
     --count {{ virtual_machine_vcpus|int }}
-  when: vm_ram.stdout|int - virtual_machine_memory|int * 1024 > 1024
+  when: vm_cpu.stdout|int - virtual_machine_vcpus|int != 0
   changed_when: true
   delegate_to: "{{ virtual_machine_hypervisor }}"
   become: yes
