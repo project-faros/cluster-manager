@@ -65,6 +65,11 @@
         stg_devices: "{{ stg_devices|default([]) + [ drive_ids[item.0.host][item.1] ] }}"
       loop: "{{ lookup('subelements', stg_drives, 'drives') }}"
 
+    - name: save storage device id paths
+      set_stats:
+        data:
+          stg_devices: "{{ stg_devices }}"
+
     - name: ensure storage nodes are labeled
       k8s:
         state: present
