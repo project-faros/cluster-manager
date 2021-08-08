@@ -30,38 +30,6 @@
             sourceNamespace: openshift-marketplace
             installPlanApproval: "Automatic"
 
-    - name: wait for install to start
-      pause:
-        seconds: 30
-
-    - name: lookup install plan
-      set_fact:
-        install_plan: |
-          "{{ lookup('k8s',
-                     api_version='operators.coreos.com/v1alpha1',
-                     kind='Subscription',
-                     resource=lookup('ini', 'nfd_name section=operators file=/app/versions.ini'),
-                     namespace='openshift-operators',
-                     wantlist=True)[0].status.installplan.name  }}"
-      register: ip_lkp
-      until: ip_lkp is success
-      retries: 60
-      delay: 15
-
-    - name: wait for install to complete
-      assert:
-        that: |
-          "{{ lookup('k8s',
-                     api_version='operators.coreos.com/v1alpha1',
-                     kind='InstallPlan',
-                     resource=install_plan,
-                     namespace='openshift-operators',
-                     wantlist=True)[0].status.phase | default('error') == 'Complete' }}"
-      register: op_lkp
-      until: op_lkp is success
-      retries: 60
-      delay: 15
-
     - name: ensure nvidia subscription exists
       k8s:
         state: present
@@ -77,34 +45,6 @@
             source: "{{ lookup('ini', 'nvidia_source section=operators file=/app/versions.ini') }}"
             sourceNamespace: openshift-marketplace
             installPlanApproval: "Automatic"
-
-    - name: wait for install to start
-      pause:
-        seconds: 30
-
-    - name: lookup install plan
-      set_fact:
-        install_plan: |
-          "{{ lookup('k8s',
-                     api_version='operators.coreos.com/v1alpha1',
-                     kind='Subscription',
-                     resource=lookup('ini', 'nvidia_name section=operators file=/app/versions.ini'),
-                     namespace='openshift-operators',
-                     wantlist=True)[0].status.installplan.name  }}"
-
-    - name: wait for install to complete
-      assert:
-        that: |
-          "{{ lookup('k8s',
-                     api_version='operators.coreos.com/v1alpha1',
-                     kind='InstallPlan',
-                     resource=install_plan,
-                     namespace='openshift-operators',
-                     wantlist=True)[0].status.phase | default('error') == 'Complete' }}"
-      register: op_lkp
-      until: op_lkp is success
-      retries: 60
-      delay: 15
 
     - name: create nfd server
       k8s:

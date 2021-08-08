@@ -5,7 +5,7 @@
 
   tasks:
     - name: get storage node drive id paths
-      shell: "oc debug -n default node/{{ item }} -- chroot /host find /dev/disk/by-id -type l -exec readlink -nf {} ';' -exec echo ': {}' ';' | egrep '(wwn|eui)' | sed 's/\\/dev\\///'"
+      shell: "oc debug -n default node/{{ item }} -- chroot /host find /dev/disk/by-id -type l -exec readlink -nf {} ';' -exec echo ': {}' ';' | egrep '(scsi|(wwn|eui))' | sed 's/\\/dev\\///'"
       loop: "{{ stg_drives | json_query('[*].host') }}"
       register: drive_id_lkp
       changed_when: false

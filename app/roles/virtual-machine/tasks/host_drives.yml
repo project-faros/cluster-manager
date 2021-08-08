@@ -1,5 +1,5 @@
 - name: inspect vm for desired drive mapping
-  shell: virsh dumpxml {{ virtual_machine_name }} | grep "<source dev='/dev/{{ drive }}'/>"
+  shell: virsh dumpxml {{ virtual_machine_name }} | grep "<source dev='/dev/{{ drive }}'[ '=0-9a-z]*/>"
   ignore_errors: yes
   register: hostdev_check
   changed_when: false

@@ -49,35 +49,7 @@
     - name: ensure storagecluster exists
       k8s:
         state: present
-        definition:
-          apiVersion: ocs.openshift.io/v1
-          kind: StorageCluster
-          metadata:
-            name: ocs-storagecluster
-            namespace: openshift-storage
-          spec:
-            manageNodes: false
-            monDataDirHostPath: /var/lib/rook
-            storageDeviceSets:
-              - count: "{{ drives_per_node }}"
-                dataPVCTemplate:
-                  spec:
-                    accessModes:
-                      - ReadWriteOnce
-                    resources:
-                      requests:
-                        storage: 1Gi
-                    storageClassName: localblock
-                    volumeMode: Block
-                name: ocs-deviceset
-                placement: {}
-                portable: false
-                replica: 3
-                resources: {}
-                encryption:
-                  enable: true
-                  kms: {}
-                flexibleScaling: true
+        definition: "{{ lookup('template', './ocs-storagecluster.yml.j2') | from_yaml }}"
       retries: 60
       delay: 15
       register: apply
