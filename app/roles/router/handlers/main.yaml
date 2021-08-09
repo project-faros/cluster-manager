@@ -2,7 +2,7 @@
   command: sysctl -w net.ipv4.ip_forward=1
 
 - name: restart faroswan
-  command: nmcli con up faroslan
+  command: nmcli con up faroswan
   async: 120
   poll: 5
 

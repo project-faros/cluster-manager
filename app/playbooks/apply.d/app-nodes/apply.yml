@@ -1,0 +1,69 @@
+#!/usr/bin/env ansible-playbook
+
+- import_playbook: /app/playbooks/util_vm_facts.yml
+
+- name: Add app nodes to the cluster
+  hosts: localhost
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: lookup node object
+      shell: >
+        set -o pipefail;
+        oc get node {{ item }}.{{ cluster_name }}.{{ cluster_domain }} -o json |
+        jq -r '.status.conditions[] | select(.reason=="KubeletReady").status'
+      ignore_errors: true
+      register: node_ready
+      with_inventory_hostnames:
+        - app_nodes
+      changed_when: false
+
+    - name: group new app nodes together
+      add_host:
+        name: "{{ item }}"
+        groups: new_app_nodes
+      with_items: "{{ node_ready | json_query('results[?failed].item') }}"
+      changed_when: false
+
+- name: create new application nodes
+  hosts: new_app_nodes
+  gather_facts: no
+  become: no
+
+  roles:
+    - name: pxelinux-kickstarts
+      pxelinux_kickstarts_pxe_server: "{{ groups.bastion_hosts.0 }}"
+      pxelinux_kickstarts_content_server: "http://{{ hostvars[groups.bastion_hosts.0].ansible_host }}:8081"
+      pxelinux_kickstarts_host_role: "{{ node_role }}"
+      pxelinux_kickstarts_install_disk: "{{ install_disk }}"
+      pxelinux_kickstarts_network_gateway: "{{ hostvars.lan.ansible_host }}"
+      pxelinux_kickstarts_network_cidr: "{{ subnet_mask }}"
+      pxelinux_kickstarts_network_nic: "{{ cluster_nic }}"
+
+  post_tasks:
+    - include_role:
+        name: management
+        defaults_from: main.yml
+        tasks_from: "netboot/{{ mgmt_provider }}.yml"
+        vars_from: "{{ mgmt_provider }}.yml"
+        handlers_from: "{{ mgmt_provider }}.yml"
+      vars:
+        management_hostname: "{{ mgmt_hostname }}"
+        management_user: "{{ mgmt_user }}"
+        management_pass: "{{ mgmt_password }}"
+
+    - name: wait for nodes to finish provisioning
+      wait_for_connection:
+        delay: 60
+        sleep: 15
+        timeout: 3600
+
+- name: Approve new application nodes
+  hosts: localhost
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: loop
+      include_tasks: approve-csrs.yml

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import json
 import os
+import sys
+
 from conftui import (Configurator, ParameterCollection, Parameter,
                      ListDictParameter, PasswordParameter, ChoiceParameter,
                      CheckParameter, StaticParameter, BooleanParameter)
@@ -24,11 +27,13 @@ class ClusterConfigurator(Configurator):
                 [('server', 'DNS Server')],
                 default='[{"server": "1.1.1.1"}]')
             ])
+
         self.cluster = ParameterCollection('cluster', 'Cluster Configuration', [
             PasswordParameter('ADMIN_PASSWORD', 'Adminstrator Password'),
             PasswordParameter('PULL_SECRET', 'Pull Secret'),
             BooleanParameter('FIPS_MODE', 'FIPS Mode', 'False')
             ])
+
         self.architecture = ParameterCollection('architecture', 'Host Record Configuration', [
             StaticParameter('MGMT_PROVIDER', 'Machine Management Provider', 'ilo'),
             Parameter('MGMT_USER', 'Machine Management User'),
@@ -40,6 +45,24 @@ class ClusterConfigurator(Configurator):
                  ('install_drive', 'OS Install Drive',
                      os.environ.get('BOOT_DRIVE'))]),
             Parameter('CACHE_DISK', 'Container Cache Disk')])
+
+        stubbed_devices = json.loads(os.environ.get('BASTION_STUBBED_DEVICES', '{"items": []}'))['items']
+        if stubbed_devices:
+            stub_parameter = CheckParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', stubbed_devices)
+        else:
+            stub_parameter = StaticParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', '---', '[]')
+        bastion_drives = os.environ.get('BASTION_UNMOUNTED_DRIVES', '').split()
+        if bastion_drives:
+            drives_parameter = CheckParameter('GUEST_DRIVES', 'Host drives to passthrough', bastion_drives)
+        else:
+            drives_parameter = StaticParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', '---', '[]')
+        self.bastionvm = ParameterCollection('bastionvm', 'Bastion Node Guest', [
+            BooleanParameter('GUEST', 'Create app node VM on bastion', 'False'),
+            Parameter('GUEST_NAME', 'Node name'),
+            Parameter('GUEST_CORES', 'Core Count'),
+            Parameter('GUEST_MEM', 'Memory (GB)'),
+            stub_parameter, drives_parameter])
+
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Static IP Reservations',
                 [('name', 'Node Name'), ('mac', 'MAC Address'), ('ip', 'Requested IP Address')]),
@@ -47,7 +70,7 @@ class ClusterConfigurator(Configurator):
                 [('name', 'Entry Name'), ('mac', 'MAC Address')])
             ])
 
-        self.all = [self.router, self.cluster, self.architecture, self.extra]
+        self.all = [self.router, self.cluster, self.architecture, self.bastionvm, self.extra]
 
 
 def main():

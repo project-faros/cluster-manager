@@ -122,7 +122,7 @@ class CheckParameter(Parameter):
 
     def __init__(self, name, prompt, choices):
         self._name = name
-        self._value = json.loads(os.environ.get(self._name, ''))
+        self._value = json.loads(os.environ.get(self._name, '[]'))
         self._prompt = prompt
         self._choices = choices
         self._choices = [{'name': f'{choice}',
@@ -147,9 +147,16 @@ class CheckParameter(Parameter):
 
 class StaticParameter(Parameter):
 
-    def __init__(self, name, prompt, value):
+    def __init__(self, name, prompt, value, save_output=None):
         super().__init__(name, prompt, 'Static Value')
         self._value = value
+        self._out = save_output
+
+    def to_bash(self):
+        if self._out:
+            return "export {}={}".format(self.name, self._out)
+        else:
+            return super().to_bash()
 
 
 class ListDictParameter(Parameter):

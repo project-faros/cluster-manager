@@ -5,6 +5,7 @@ from collections import defaultdict
 import ipaddress
 import json
 import os
+import re
 import sys
 import pickle
 
@@ -271,7 +272,9 @@ def main(config, ipam, inv):
     cluster.add_host('bootstrap', ip,
             ansible_ssh_user='core',
             node_role='bootstrap',
-            cluster_nic='')
+            cluster_nic='',
+            vnc_port=5901,
+            virsh_name='bootstrap')
     # CLUSTER CONTROL PLANE NODES
     cp = cluster.add_group('control_plane', node_role='master')
     node_defs = json.loads(config['CP_NODES'])
@@ -287,6 +290,24 @@ def main(config, ipam, inv):
            cluster_nic=node.get('nic', ''))
         if node.get('install_drive').strip():
             cp.host(node['name'])['install_disk'] = node['install_drive']
+    # CLUSTER VIRTUAL APP NODE
+    app = cluster.add_group('app_nodes', node_role='worker')
+    if config['GUEST'] == "True":
+        assert config['GUEST_NAME'], "A name must be defined for the guest node."
+        guest_devices = [
+                dict(zip(
+                    ['domain', 'bus', 'slot', 'function'],
+                    re.split('\W', item)))
+                for item in json.loads(config['GUEST_HOSTDEVS'])]
+        app.add_host(config['GUEST_NAME'], ipam[config['GUEST_NAME']],
+           ansible_ssh_user='core',
+           cluster_nic='enp1s0',
+           guest_cores=int(config['GUEST_CORES']),
+           guest_mem=int(config['GUEST_MEM']) * 1024,
+           guest_drives=json.loads(config['GUEST_DRIVES']),
+           guest_devices=guest_devices,
+           virsh_name='guest_node',
+           vnc_port=5902)
 
     # VIRTUAL NODES
     virt = inv.add_group('virtual',
@@ -294,6 +315,8 @@ def main(config, ipam, inv):
             mgmt_hostname='bastion',
             install_disk='vda')
     virt.add_host('bootstrap')
+    if config['GUEST'] == "True":
+        virt.add_host(config['GUEST_NAME'])
 
     # MGMT INTERFACES
     mgmt = inv.add_group('management',

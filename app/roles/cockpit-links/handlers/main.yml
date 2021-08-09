@@ -6,4 +6,3 @@
   loop:
     - index.html
     - manifest.json
-  when: install is changed

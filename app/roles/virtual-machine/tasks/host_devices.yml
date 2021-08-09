@@ -1,0 +1,38 @@
+- name: inspect vm for desired host device mapping
+  shell: virsh dumpxml --inactive {{ virtual_machine_name }} | grep "domain='0x{{ device.domain }}' bus='0x{{ device.bus }}' slot='0x{{ device.slot }}' function='0x{{ device.function }}'"
+  ignore_errors: true
+  register: hostdev_check
+  delegate_to: "{{ virtual_machine_hypervisor }}"
+  become: true
+  changed_when: false
+
+- name: add host device to virtual machine
+  when: hostdev_check is failed
+  block:
+    - name: create temp file for device definition
+      tempfile:
+        state: file
+        suffix: _tmp.xml
+      register: xml_file
+      delegate_to: "{{ virtual_machine_hypervisor }}"
+      become: true
+
+    - name: generate device xml definition
+      template:
+        src: hostdev.xml.j2
+        dest: "{{ xml_file.path }}"
+      changed_when: true
+      delegate_to: "{{ virtual_machine_hypervisor }}"
+      become: true
+
+    - name: attach device to virtual machine
+      command: "virsh attach-device {{ virtual_machine_name }} {{ xml_file.path }} --persistent"
+      delegate_to: "{{ virtual_machine_hypervisor }}"
+      become: true
+
+    - name: delete temp device definition file
+      file:
+        path: "{{ xml_file.path }}"
+        state: absent
+      delegate_to: "{{ virtual_machine_hypervisor }}"
+      become: true

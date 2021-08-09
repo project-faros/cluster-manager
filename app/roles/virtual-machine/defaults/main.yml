@@ -1,3 +1,4 @@
+virtual_machine_name: '{{ inventory_hostname }}'
 virtual_machine_hypervisor: 'localhost'
 virtual_machine_vcpus: 4
 virtual_machine_memory: 4096
@@ -6,3 +7,6 @@ virtual_machine_network: bridge=virbr0
 virtual_machine_boot: hd,network
 virtual_machine_graphics: vnc,port=5901,listen=0.0.0.0
 virtual_machine_os_variant: rhel8.0
+virtual_machine_hostdevs: []
+virtual_machine_autostart: false
+virtual_machine_hostdrives: []
