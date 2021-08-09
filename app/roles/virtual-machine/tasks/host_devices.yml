@@ -1,5 +1,5 @@
 - name: inspect vm for desired host device mapping
-  shell: virsh dumpxml {{ virtual_machine_name }} | grep "domain='0x{{ device.domain }}' bus='0x{{ device.bus }}' slot='0x{{ device.slot }}' function='0x{{ device.function }}'"
+  shell: virsh dumpxml --inactive {{ virtual_machine_name }} | grep "domain='0x{{ device.domain }}' bus='0x{{ device.bus }}' slot='0x{{ device.slot }}' function='0x{{ device.function }}'"
   ignore_errors: true
   register: hostdev_check
   delegate_to: "{{ virtual_machine_hypervisor }}"

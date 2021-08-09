@@ -23,3 +23,4 @@
       virtual_machine_hostdevs: '{{ guest_devices | default([]) }}'
       virtual_machine_autostart: '{{ inventory_hostname != "bootstrap" }}'
       virtual_machine_hostdrives: '{{ guest_drives | default ([]) }}'
+      virtual_machine_graphics: 'vnc,port={{ vnc_port | default(5900) }},listen=0.0.0.0'

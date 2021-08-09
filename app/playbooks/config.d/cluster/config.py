@@ -47,14 +47,21 @@ class ClusterConfigurator(Configurator):
             Parameter('CACHE_DISK', 'Container Cache Disk')])
 
         stubbed_devices = json.loads(os.environ.get('BASTION_STUBBED_DEVICES', '{"items": []}'))['items']
+        if stubbed_devices:
+            stub_parameter = CheckParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', stubbed_devices)
+        else:
+            stub_parameter = StaticParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', '---', '[]')
         bastion_drives = os.environ.get('BASTION_UNMOUNTED_DRIVES', '').split()
+        if bastion_drives:
+            drives_parameter = CheckParameter('GUEST_DRIVES', 'Host drives to passthrough', bastion_drives)
+        else:
+            drives_parameter = StaticParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', '---', '[]')
         self.bastionvm = ParameterCollection('bastionvm', 'Bastion Node Guest', [
             BooleanParameter('GUEST', 'Create app node VM on bastion', 'False'),
             Parameter('GUEST_NAME', 'Node name'),
             Parameter('GUEST_CORES', 'Core Count'),
             Parameter('GUEST_MEM', 'Memory (GB)'),
-            CheckParameter('GUEST_HOSTDEVS', 'Host devices to passthrough', stubbed_devices),
-            CheckParameter('GUEST_DRIVES', 'Host drives to passthrough', bastion_drives)])
+            stub_parameter, drives_parameter])
 
         self.extra = ParameterCollection('extra', 'Extra DNS/DHCP Records', [
             ListDictParameter('EXTRA_NODES', 'Static IP Reservations',

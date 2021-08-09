@@ -273,6 +273,7 @@ def main(config, ipam, inv):
             ansible_ssh_user='core',
             node_role='bootstrap',
             cluster_nic='',
+            vnc_port=5901,
             virsh_name='bootstrap')
     # CLUSTER CONTROL PLANE NODES
     cp = cluster.add_group('control_plane', node_role='master')
@@ -305,7 +306,8 @@ def main(config, ipam, inv):
            guest_mem=int(config['GUEST_MEM']) * 1024,
            guest_drives=json.loads(config['GUEST_DRIVES']),
            guest_devices=guest_devices,
-           virsh_name='guest_node')
+           virsh_name='guest_node',
+           vnc_port=5902)
 
     # VIRTUAL NODES
     virt = inv.add_group('virtual',
