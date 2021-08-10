@@ -41,7 +41,7 @@ class ClusterConfigurator(Configurator):
             ListDictParameter('CP_NODES', 'Control Plane Machines',
                 [('name', 'Node Name'),
                  ('nic', 'Network Interface'), ('mac', 'MAC Address'),
-                 ('mgmt_mac', 'Management MAC Address'),
+                 ('mgmt_ip', 'Management IP'), ('mgmt_mac', 'Management MAC Address'),
                  ('install_drive', 'OS Install Drive',
                      os.environ.get('BOOT_DRIVE'))]),
             Parameter('CACHE_DISK', 'Container Cache Disk')])
