@@ -34,7 +34,7 @@ RUN rpm -i /app/tmp/ilorest-3.0.1-7.x86_64.rpm; \
     chmod -Rv g-rwx /root/.ssh; chmod -Rv o-rwx /root/.ssh; \
     rm -rf /app/tmp; \
     cd /usr/local/bin; \
-    curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.7/openshift-client-linux.tar.gz | tar xvzf -; \
+    curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.8/openshift-client-linux.tar.gz | tar xvzf -; \
     curl https://raw.githubusercontent.com/project-faros/farosctl/master/bin/farosctl > farosctl; \
     chmod 755 farosctl;
 
