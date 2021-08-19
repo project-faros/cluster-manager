@@ -23,7 +23,10 @@ function set_proxy() {
 
 # User specific environment and startup programs
 function ps1() {
-        _CONFIG_LAST_MODIFY=$(stat -c %Z /data/config.sh)
+        if [[ ! -f /data/config.sh ]]; then
+            cp -a /data.skel/config.sh /data/config.sh
+        fi
+        _CONFIG_LAST_MODIFY=$(stat -c %Z /data/config.sh 2> /dev/null)
         if [[ $_CONFIG_LAST_MODIFY -gt $_CONFIG_LAST_LOAD ]]; then
                 echo " -- Configuration Reloaded -- "
                 source /data/config.sh 2> /dev/null
