@@ -114,7 +114,9 @@ class IPAddressManager(dict):
         self.update(restore)
 
         # reserve the first ip for the bastion
+        self._validate = False
         _ = self['bastion']
+        self._validate = True
 
     def __getitem__(self, key):
         key = key.lower().strip()
@@ -144,8 +146,9 @@ class IPAddressManager(dict):
         self._validate = validate
         if value and value not in self.values():
             self[key] = value
+        out = self[key]
         self._validate = True
-        return self[key]
+        return out
 
     def save(self):
         with open(self._save_file, 'wb') as handle:
@@ -312,7 +315,8 @@ def main(config, ipam, inv):
                     ['domain', 'bus', 'slot', 'function'],
                     re.split('\W', item)))
                 for item in json.loads(config['GUEST_HOSTDEVS'])]
-        app.add_host(config['GUEST_NAME'], ipam.get(config['GUEST_NAME']),
+        app.add_host(config['GUEST_NAME'],
+           ipam.get(config['GUEST_NAME'], validate=False),
            ansible_ssh_user='core',
            cluster_nic='enp1s0',
            guest_cores=int(config['GUEST_CORES']),
