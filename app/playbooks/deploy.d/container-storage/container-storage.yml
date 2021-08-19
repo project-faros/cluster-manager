@@ -54,3 +54,51 @@
       delay: 15
       register: apply
       until: apply is success
+
+    - name: wait for storage class to be ready
+      k8s_info:
+        api_version: v1
+        kind: StorageCluster
+        name: ocs-storagecluster
+        namespace: openshift-storage
+        wait: yes
+        wait_condition:
+          type: Available
+
+    - name: ensure cephfs is the default storage class
+      k8s:
+        definition:
+          apiVersion: v1
+          kind: StorageClass
+          metadata:
+            name: ocs-storagecluster-cephfs
+            annotations:
+              storageclass.kubernetes.io/is-default-class: "true"
+
+    - name: ensure the registry is configured
+      k8s:
+        definition:
+          apiVersion: imageregistry.operator.openshift.io/v1
+          kind: Config
+          metadata:
+            name: cluster
+          spec:
+            managementState: Managed
+            storage:
+              pvc:
+                claim: ""
+
+    - name: wait for the registry to become available
+      k8s_info:
+        api_version: imageregistry.operator.openshift.io/v1
+        kind: Config
+        name: cluster
+        wait: yes
+        wait_condition:
+          type: "{{ item.type }}"
+          status: "{{ item.status }}"
+      loop:
+        - type: Removed
+          status: false
+        - type: Available
+          status: true
