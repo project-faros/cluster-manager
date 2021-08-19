@@ -88,6 +88,7 @@ class IPAddressManager(dict):
     def __init__(self, save_file, subnet, subnet_mask):
         super().__init__()
         self._save_file = save_file
+        self._validate = True
 
         # parse the subnet definition into a static and dynamic pool
         subnet = ipaddress.ip_network(f'{subnet}/{subnet_mask}', strict=False)
@@ -116,7 +117,10 @@ class IPAddressManager(dict):
         _ = self['bastion']
 
     def __getitem__(self, key):
-        key = key.lower()
+        key = key.lower().strip()
+        if self._validate:
+            assert re.match('^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$', key.lower()), \
+                   f'Provided mac address ({key}) is not valid.'
         try:
             return super().__getitem__(key)
         except KeyError:
@@ -136,9 +140,11 @@ class IPAddressManager(dict):
             loop = new_ip in used_ips
         return new_ip
 
-    def get(self, key, value=None):
+    def get(self, key, value=None, validate=True):
+        self._validate = validate
         if value and value not in self.values():
             self[key] = value
+        self._validate = True
         return self[key]
 
     def save(self):
@@ -203,7 +209,7 @@ def main(config, ipam, inv):
         mgmt_user=config['MGMT_USER'],
         mgmt_password=config['MGMT_PASSWORD'],
         install_disk=config['BOOT_DRIVE'],
-        loadbalancer_vip=ipam['loadbalancer'],
+        loadbalancer_vip=ipam.get('loadbalancer', validate=False),
         dynamic_ip_range=ipam.dynamic_pool,
         reverse_ptr_zone=ipam.reverse_ptr_zone,
         subnet=config['SUBNET'],
@@ -238,29 +244,29 @@ def main(config, ipam, inv):
         ansible_become_pass=config['ADMIN_PASSWORD'],
         ansible_ssh_user=config['BASTION_SSH_USER'])
     router.add_host('lan',
-        ipam['bastion'],
+        ipam.get('bastion', validate=False),
         ansible_become_pass=config['ADMIN_PASSWORD'],
         ansible_ssh_user=config['BASTION_SSH_USER'])
     # DNS NODE
     router.add_host('dns',
-        ipam['bastion'],
+        ipam.get('bastion', validate=False),
         ansible_become_pass=config['ADMIN_PASSWORD'],
         ansible_ssh_user=config['BASTION_SSH_USER'])
     # DHCP NODE
     router.add_host('dhcp',
-        ipam['bastion'],
+        ipam.get('bastion', validate=False),
         ansible_become_pass=config['ADMIN_PASSWORD'],
         ansible_ssh_user=config['BASTION_SSH_USER'])
     # LOAD BALANCER NODE
     router.add_host('loadbalancer',
-        ipam['loadbalancer'],
+        ipam.get('loadbalancer', validate=False),
         ansible_become_pass=config['ADMIN_PASSWORD'],
         ansible_ssh_user=config['BASTION_SSH_USER'])
 
     # BASTION NODE
     bastion = infra.add_group('bastion_hosts')
     bastion.add_host(config['BASTION_HOST_NAME'],
-            ipam['bastion'],
+            ipam.get('bastion', validate=False),
             ansible_become_pass=config['ADMIN_PASSWORD'],
             ansible_ssh_user=config['BASTION_SSH_USER'])
 
@@ -268,7 +274,7 @@ def main(config, ipam, inv):
     cluster = inv.add_group('cluster',
         ansible_python_interpreter='/usr/libexec/platform-python')
     # BOOTSTRAP NODE
-    ip = ipam['bootstrap']
+    ip = ipam.get('bootstrap', validate=False)
     cluster.add_host('bootstrap', ip,
             ansible_ssh_user='core',
             node_role='bootstrap',
@@ -280,10 +286,17 @@ def main(config, ipam, inv):
     node_defs = json.loads(config['CP_NODES'])
     for count, node in enumerate(node_defs):
         ip = ipam[node['mac']]
-        mgmt_ip = ipam[node['mgmt_mac']]
+        if node.get('mgmt_ip'):
+            _ = ipaddress.ip_address(node['mgmt_ip'])
+            mgmt_ip = node['mgmt_ip']
+            mgmt_mac = ''
+        else:
+            mgmt_mac = node['mgmt_mac']
+            mgmt_ip = ipam[node['mgmt_mac']]
+
         cp.add_host(node['name'], ip,
            mac_address=node['mac'],
-           mgmt_mac_address=node['mgmt_mac'],
+           mgmt_mac_address=mgmt_mac,
            mgmt_hostname=mgmt_ip,
            ansible_ssh_user='core',
            cp_node_id=count,
@@ -299,7 +312,7 @@ def main(config, ipam, inv):
                     ['domain', 'bus', 'slot', 'function'],
                     re.split('\W', item)))
                 for item in json.loads(config['GUEST_HOSTDEVS'])]
-        app.add_host(config['GUEST_NAME'], ipam[config['GUEST_NAME']],
+        app.add_host(config['GUEST_NAME'], ipam.get(config['GUEST_NAME']),
            ansible_ssh_user='core',
            cluster_nic='enp1s0',
            guest_cores=int(config['GUEST_CORES']),

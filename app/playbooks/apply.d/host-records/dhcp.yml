@@ -20,6 +20,7 @@
       dhcp_mac_address: "{{ mgmt_mac_address }}"
       dhcp_ip: "{{ mgmt_hostname }}"
       dhcp_name: "{{ inventory_hostname }}-mgmt"
+      dhcp_present: "{{ mgmt_mac_address != '' }}"
 
 - name: Configure extra DHCP records
   hosts: localhost
