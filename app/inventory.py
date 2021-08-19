@@ -119,8 +119,8 @@ class IPAddressManager(dict):
     def __getitem__(self, key):
         key = key.lower().strip()
         if self._validate:
-            assert re.match('^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$', 'a0:48:1c:ab:ec:3e'.lower()),
-                   'Provided mac address is not valid.'
+            assert re.match('^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$', key.lower()), \
+                   f'Provided mac address ({key}) is not valid.'
         try:
             return super().__getitem__(key)
         except KeyError:
@@ -286,14 +286,13 @@ def main(config, ipam, inv):
     node_defs = json.loads(config['CP_NODES'])
     for count, node in enumerate(node_defs):
         ip = ipam[node['mac']]
-        try:
-            _ = ipaddress.ip_address(config['MGMT_IP']
-        except ValueError:
+        if node.get('mgmt_ip'):
+            _ = ipaddress.ip_address(node['mgmt_ip'])
+            mgmt_ip = node['mgmt_ip']
+            mgmt_mac = ''
+        else:
             mgmt_mac = node['mgmt_mac']
             mgmt_ip = ipam[node['mgmt_mac']]
-        else:
-            mgmt_ip = config['MGMT_IP']
-            mgmt_mac = ''
 
         cp.add_host(node['name'], ip,
            mac_address=node['mac'],
@@ -313,7 +312,7 @@ def main(config, ipam, inv):
                     ['domain', 'bus', 'slot', 'function'],
                     re.split('\W', item)))
                 for item in json.loads(config['GUEST_HOSTDEVS'])]
-        app.add_host(config['GUEST_NAME'], ipam[config['GUEST_NAME']],
+        app.add_host(config['GUEST_NAME'], ipam.get(config['GUEST_NAME']),
            ansible_ssh_user='core',
            cluster_nic='enp1s0',
            guest_cores=int(config['GUEST_CORES']),

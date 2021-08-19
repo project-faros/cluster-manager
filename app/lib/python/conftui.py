@@ -276,7 +276,7 @@ class ListDictParameter(Parameter):
         for item in self._keys:
             default = defaults.get(item[0], item[2])
             answer = answers[item[0]].strip()
-            answers[item[0]] = default if default and not answer else answer
+            answers[item[0]] = answer
 
         return answers
 
