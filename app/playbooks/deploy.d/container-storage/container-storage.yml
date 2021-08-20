@@ -65,15 +65,32 @@
         wait_condition:
           type: Available
 
-    - name: ensure cephfs is the default storage class
+    - name: ensure rbd is the default storage class
       k8s:
         definition:
           apiVersion: v1
           kind: StorageClass
           metadata:
-            name: ocs-storagecluster-cephfs
+            name: ocs-storagecluster-ceph-rbd
             annotations:
               storageclass.kubernetes.io/is-default-class: "true"
+
+    - name: ensure registry storage exists
+      k8s:
+        definition:
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: image-registry-storage
+            namespace: openshift-image-registry
+          spec:
+            accessModes:
+              - ReadWriteMany
+            resources:
+              requests:
+                storage: 100Gi
+            volumeMode: Filesystem
+            storageClassName: ocs-storagecluster-cephfs
 
     - name: ensure the registry is configured
       k8s:
@@ -86,7 +103,7 @@
             managementState: Managed
             storage:
               pvc:
-                claim: ""
+                claim: image-registry-storage
 
     - name: wait for the registry to become available
       k8s_info:
