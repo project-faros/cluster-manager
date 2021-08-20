@@ -54,3 +54,68 @@
       delay: 15
       register: apply
       until: apply is success
+
+    - name: wait for storage class to be ready
+      k8s_info:
+        api_version: v1
+        kind: StorageCluster
+        name: ocs-storagecluster
+        namespace: openshift-storage
+        wait: yes
+        wait_condition:
+          type: Available
+
+    - name: ensure rbd is the default storage class
+      k8s:
+        definition:
+          apiVersion: v1
+          kind: StorageClass
+          metadata:
+            name: ocs-storagecluster-ceph-rbd
+            annotations:
+              storageclass.kubernetes.io/is-default-class: "true"
+
+    - name: ensure registry storage exists
+      k8s:
+        definition:
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: image-registry-storage
+            namespace: openshift-image-registry
+          spec:
+            accessModes:
+              - ReadWriteMany
+            resources:
+              requests:
+                storage: 100Gi
+            volumeMode: Filesystem
+            storageClassName: ocs-storagecluster-cephfs
+
+    - name: ensure the registry is configured
+      k8s:
+        definition:
+          apiVersion: imageregistry.operator.openshift.io/v1
+          kind: Config
+          metadata:
+            name: cluster
+          spec:
+            managementState: Managed
+            storage:
+              pvc:
+                claim: image-registry-storage
+
+    - name: wait for the registry to become available
+      k8s_info:
+        api_version: imageregistry.operator.openshift.io/v1
+        kind: Config
+        name: cluster
+        wait: yes
+        wait_condition:
+          type: "{{ item.type }}"
+          status: "{{ item.status }}"
+      loop:
+        - type: Removed
+          status: false
+        - type: Available
+          status: true
