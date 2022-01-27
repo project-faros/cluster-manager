@@ -44,7 +44,8 @@ class ClusterConfigurator(Configurator):
                  ('mgmt_ip', 'Management IP'), ('mgmt_mac', 'Management MAC Address'),
                  ('install_drive', 'OS Install Drive',
                      os.environ.get('BOOT_DRIVE'))]),
-            Parameter('CACHE_DISK', 'Container Cache Disk')])
+            Parameter('CACHE_DISK', 'Container Cache Disk'),
+            Parameter('LOCAL_REGISTRY_HOSTNAME', 'Local Registry with OCP Mirrored Images')])
 
         stubbed_devices = json.loads(os.environ.get('BASTION_STUBBED_DEVICES', '{"items": []}'))['items']
         if stubbed_devices:

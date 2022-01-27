@@ -227,7 +227,8 @@ def main(config, ipam, inv):
         proxy_https=config.get('PROXY_HTTPS', ''),
         proxy_noproxy=[item['dest'] for item in json.loads(config.get('PROXY_NOPROXY', '[]'))],
         proxy_ca=config.get('PROXY_CA', ''),
-        cache_disk=config.get('CACHE_DISK', ''))
+        cache_disk=config.get('CACHE_DISK', ''),
+        local_registry_hostname=config.get('LOCAL_REGISTRY_HOSTNAME', ''))
 
     inv.add_host('localhost',
             ansible_connection='local',
