@@ -25,6 +25,7 @@
       openshift_installer_ssh_key: '{{ lookup("file", ansible_ssh_private_key_file + ".pub") }}'
       openshift_installer_fips_mode: "{{ fips_mode }}"
       openshift_installer_cache_disk: "{{ cache_disk }}"
+      openshift_installer_local_registry_hostname: "{{ local_registry_hostname }}"
       openshift_installer_pull_secret: "{{ pull_secret | to_json }}"
       openshift_installer_version: "{{ lookup('ini', 'installer section=cluster file=/app/versions.ini') }}"
       openshift_installer_proxy: "{{ proxy }}"

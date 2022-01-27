@@ -29,12 +29,12 @@ platform:
 fips: {{ openshift_installer_fips_mode }}
 pullSecret: '{{ openshift_installer_pull_secret }}'
 sshKey: "{{ openshift_installer_ssh_key }}"
-{% if local_registry_hostname is defined and local_registry_hostname|length %}
+{% if openshift_installer_local_registry_hostname is defined and openshift_installer_local_registry_hostname|length %}
 imageContentSources:
 - mirrors:
-  - "{{ local_registry_hostname }}/ocp4/ocp-release"
+  - "{{ openshift_installer_local_registry_hostname }}/ocp4/ocp-release"
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - "{{ local_registry_hostname }}/ocp4/ocp-v4.0-art-dev"
+  - "{{ openshift_installer_local_registry_hostname }}/ocp4/ocp-v4.0-art-dev"
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 {% endif %}
