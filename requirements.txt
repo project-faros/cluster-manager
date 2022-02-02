@@ -1,5 +1,5 @@
 pyinquirer==1.0.3
-ansible<4.5
+ansible<5.4
 
 # for management/ilo provider
 python-hpilo==4.4.3
